@@ -1,9 +1,10 @@
 package flow_structure;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import flow_fileIO.AbstractFileWriter;
-import flow_fileIO.FileReader;
+import flow_fileIO.AbstractFileReader;
 
 /**
  * Graph is a set of nodes and edges. Graphs can be saved and loaded from 
@@ -120,8 +121,9 @@ public class Graph
 	 * Adding graphs that contain similar IDs may be problematic.
 	 * @param fileName The name of the file the data will be loaded from. 
 	 * "data/" automatically included
+	 * @throws FileNotFoundException If the file couldn't be found
 	 */
-	public void loadDataFromFile(String fileName)
+	public void loadDataFromFile(String fileName) throws FileNotFoundException
 	{
 		new GraphLoader(fileName);
 	}
@@ -217,7 +219,7 @@ public class Graph
 		}
 	}
 	
-	private class GraphLoader extends FileReader
+	private class GraphLoader extends AbstractFileReader
 	{
 		// ATTRIBUTES	-------------------------------------------------
 		
@@ -228,7 +230,7 @@ public class Graph
 		
 		// CONSTRUCTOR	-------------------------------------------------
 		
-		public GraphLoader(String fileName)
+		public GraphLoader(String fileName) throws FileNotFoundException
 		{
 			// Initializes attributes
 			this.mode = NONE;

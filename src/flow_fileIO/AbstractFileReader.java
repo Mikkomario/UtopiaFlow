@@ -11,7 +11,7 @@ import java.util.Scanner;
  * @author Mikko Hilpinen.
  * @since 19.7.2013.
  */
-public abstract class FileReader
+public abstract class AbstractFileReader
 {
 	// ABSTRACT METHODS	--------------------------------------------------
 	
@@ -57,24 +57,16 @@ public abstract class FileReader
 	 * @param filename The name of the file read (data/ is added 
 	 * automatically to the beginning)
 	 * @param commentIndicator The lines starting with this string will be ignored as comments
+	 * @throws FileNotFoundException If the file wasn't found
 	 */
-	public void readFile(String filename, String commentIndicator)
+	public void readFile(String filename, String commentIndicator) throws FileNotFoundException
 	{
 		// First checks if the file actually exists
 		File file = new File("data/" + filename);
 		Scanner scanner = null;
 		
 		// Tries to open the file
-		try
-		{
-			scanner = new Scanner(file);
-		}
-		catch (FileNotFoundException e)
-		{
-			System.err.println("File data/" + filename + 
-					" does not exist!");
-			return;
-		}
+		scanner = new Scanner(file);
 		
 		String line = "";
 		
