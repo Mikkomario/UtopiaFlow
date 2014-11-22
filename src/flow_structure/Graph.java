@@ -1,10 +1,6 @@
 package flow_structure;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-
-import flow_fileIO.AbstractFileWriter;
-import flow_fileIO.AbstractFileReader;
 
 /**
  * Graph is a set of nodes and edges. Graphs can be saved and loaded from 
@@ -106,15 +102,19 @@ public class Graph
 		return this.nodes.get(index);
 	}
 	
+	// TODO: Add saving and loading
+	
 	/**
 	 * Saves the graph into the given file
 	 * @param fileName The name of the file that will be created. Previous files 
 	 * with the same name will be overwritten. "data/" included automatically.
 	 */
+	/*
 	public void saveGraphIntoFile(String fileName)
 	{
 		new GraphSaver(fileName);
 	}
+	*/
 	
 	/**
 	 * Loads a graph from the given file and adds as a part of this graph. 
@@ -123,14 +123,16 @@ public class Graph
 	 * "data/" automatically included
 	 * @throws FileNotFoundException If the file couldn't be found
 	 */
+	/*
 	public void loadDataFromFile(String fileName) throws FileNotFoundException
 	{
 		new GraphLoader(fileName);
 	}
+	*/
 	
 	
 	// SUBCLASSES	-----------------------------------------------------
-	
+	/*
 	private class GraphSaver extends AbstractFileWriter
 	{
 		// ATTRIBUTES	-------------------------------------------------
@@ -298,4 +300,5 @@ public class Graph
 			}
 		}
 	}
+	*/
 }

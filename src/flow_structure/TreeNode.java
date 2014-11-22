@@ -110,6 +110,14 @@ public class TreeNode<T>
 	// OTHER METHODS	--------------------------------------------------
 	
 	/**
+	 * @return Does the node have any children under it
+	 */
+	public boolean hasChildren()
+	{
+		return !this.children.isEmpty();
+	}
+	
+	/**
 	 * Adds a node as the direct child of this node. This does not work if 
 	 * this node is a child of the given node.
 	 * 
@@ -237,6 +245,57 @@ public class TreeNode<T>
 		}
 		
 		return maxDepth + 1;
+	}
+	
+	/**
+	 * @return A child on the right side of this node under the same parent
+	 */
+	public TreeNode<T> getRightSibling()
+	{
+		// If the node has no parent, it has no siblings
+		if (getParent() == null)
+			return null;
+		
+		int index = getIndex();
+		// If the node is the rightmost child, it has no right sibling
+		if (index + 1 >= getParent().getChildAmount())
+			return null;
+		
+		return getParent().getChild(index + 1);
+	}
+	
+	/**
+	 * @return A child on the left side of this node under the same parent
+	 */
+	public TreeNode<T> getLeftSibling()
+	{
+		// Might want to remove WETWET
+		if (getParent() == null)
+			return null;
+		
+		int index = getIndex();
+		if (index == 0)
+			return null;
+		
+		return getParent().getChild(index);
+	}
+	
+	/**
+	 * @return The index of this node under its parent. getParent().getChild(int) should return 
+	 * this node with the this index.
+	 */
+	public int getIndex()
+	{
+		if (getParent() == null)
+			return -1;
+		
+		int index = 0;
+		while (!getParent().getChild(index).equals(this))
+		{
+			index ++;
+		}
+		
+		return index;
 	}
 	
 	/**

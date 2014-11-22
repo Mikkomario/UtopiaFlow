@@ -1,5 +1,6 @@
 package flow_fileIO;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public abstract class ModeUsingFileReader extends AbstractFileReader
 	{
 		// Initializes attributes
 		this.modeIndicators = modeIndicators;
-		this.currentModes = new ArrayList<String>();
+		this.currentModes = null;
 	}
 	
 	/**
@@ -41,7 +42,22 @@ public abstract class ModeUsingFileReader extends AbstractFileReader
 		// Initializes attributes
 		this.modeIndicators = new String[1];
 		this.modeIndicators[0] = modeIndicator;
-		this.currentModes = new ArrayList<String>();
+		this.currentModes = null;
+	}
+	
+	/**
+	 * Creates a new file reader that uses the default mode indicators. The default indicators 
+	 * are: "&0:", "&1:", ... , "&9:".
+	 */
+	public ModeUsingFileReader()
+	{
+		// Initializes attributes
+		this.currentModes = null;
+		this.modeIndicators = new String[10];
+		for (int i = 0; i < this.modeIndicators.length; i++)
+		{
+			this.modeIndicators[i] = "&" + i + ":";
+		}
 	}
 	
 	
@@ -86,5 +102,14 @@ public abstract class ModeUsingFileReader extends AbstractFileReader
 		List<String> activeModes = new ArrayList<>();
 		activeModes.addAll(this.currentModes);
 		onLine(line, activeModes);
+	}
+	
+	@Override
+	public void readFile(String fileName, String commentIndicator) throws FileNotFoundException
+	{
+		// Clears the previous data
+		this.currentModes = new ArrayList<String>();
+		
+		super.readFile(fileName, commentIndicator);
 	}
 }

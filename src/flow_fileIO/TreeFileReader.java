@@ -38,6 +38,20 @@ public class TreeFileReader extends ModeUsingFileReader
 		this.lastDepth = 0;
 	}
 	
+	/**
+	 * Creates a new file reader that uses the default mode indicators. The default indicators 
+	 * are: "&0:", "&1:", ... , "&9:".
+	 */
+	public TreeFileReader()
+	{
+		super();
+		
+		// Initializes attributes
+		this.root = new TreeNode<String>("Document", null);
+		this.currentParent = this.root;
+		this.lastDepth = 0;
+	}
+	
 	
 	// IMPLEMENTED METHODS	------------------------
 
