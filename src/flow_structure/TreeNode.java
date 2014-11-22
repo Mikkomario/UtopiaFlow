@@ -1,6 +1,7 @@
 package flow_structure;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * TreeNode is a simple tree-like data structure that can contain treeNodes of any type. 
@@ -16,7 +17,7 @@ public class TreeNode<T>
 {
 	// ATTRIBUTES	------------------------------------------------------
 	
-	private ArrayList<TreeNode<T>> children;
+	private List<TreeNode<T>> children;
 	private TreeNode<T> parent;
 	private T content;
 	
@@ -219,6 +220,23 @@ public class TreeNode<T>
 		}
 		
 		return contentFound;
+	}
+	
+	/**
+	 * @return How "high" the tree is. In other words, how many nodes there are a top of 
+	 * each other.
+	 */
+	public int getDepth()
+	{
+		int maxDepth = 0;
+		for (TreeNode<T> child : this.children)
+		{
+			int childDepth = child.getDepth();
+			if (childDepth > maxDepth)
+				maxDepth = childDepth;
+		}
+		
+		return maxDepth + 1;
 	}
 	
 	/**
