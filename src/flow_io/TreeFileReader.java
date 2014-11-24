@@ -1,4 +1,4 @@
-package flow_fileIO;
+package flow_io;
 
 import java.io.FileNotFoundException;
 import java.util.List;

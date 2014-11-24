@@ -2,6 +2,7 @@ package flow_structure;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * TreeNode is a simple tree-like data structure that can contain treeNodes of any type. 
@@ -20,6 +21,11 @@ public class TreeNode<T>
 	private List<TreeNode<T>> children;
 	private TreeNode<T> parent;
 	private T content;
+	
+	private static final char CONTINUELAYER = ',';
+	private static final char NEWLAYER = '<';
+	private static final char PREVIOUSLAYER = '>';
+	private static final char NOACTION = ' ';
 	
 	
 	// CONSTRUCTOR	------------------------------------------------------
@@ -314,6 +320,81 @@ public class TreeNode<T>
 		return containsPath(path, canBeAnyContent, 0);
 	}
 	
+	/**
+	 * Parses a string into a tree format.
+	 * @param s The string that will be parsed into a tree format. Nodes under a node should 
+	 * be indicated with '<' and '>' while nodes under the same parent should be separated 
+	 * with ','. For example "a<b,c>d,e<f<g>>" would be a valid tree.
+	 * @return A tree constructed from the given string
+	 */
+	public static TreeNode<String> constructFromString(String s)
+	{
+		if (countSubStrings(s, "<") != countSubStrings(s, ">"))
+			throw new IllegalArgumentException("Could not create a validation tree based on " + 
+					s + ". The amount of opened and closed elements is unequal");
+		
+		String remainingString = new String(s);
+		TreeNode<String> tree = new TreeNode<String>("root", null);
+		Stack<TreeNode<String>> parents = new Stack<TreeNode<String>>();
+		parents.push(tree);
+		
+		// Parses each node separately (a node ends at ',' '<' or '>')
+		while (remainingString.length() > 0)
+		{
+			int nextComma = remainingString.indexOf(CONTINUELAYER);
+			int nextNewLayer = remainingString.indexOf(NEWLAYER);
+			int nextOldLayer = remainingString.indexOf(PREVIOUSLAYER);
+			
+			// Finds out how the node ends and at which point
+			int nodeEndsAt = -1;
+			char nodeEndsWith = NOACTION;
+			
+			if (nextComma != -1)
+			{
+				nodeEndsAt = nextComma;
+				nodeEndsWith = CONTINUELAYER;
+			}
+			if (nextNewLayer != -1 && (nextNewLayer < nodeEndsAt || nodeEndsAt == -1))
+			{
+				nodeEndsAt = nextNewLayer;
+				nodeEndsWith = NEWLAYER;
+			}
+			if (nextOldLayer != -1 && (nextOldLayer < nodeEndsAt || nodeEndsAt == -1))
+			{
+				nodeEndsAt = nextOldLayer;
+				nodeEndsWith = PREVIOUSLAYER;
+			}
+			if (nodeEndsAt == -1)
+				nodeEndsAt = remainingString.length();
+			
+			// Creates the new node (if there is one)
+			TreeNode<String> newNode = null;
+			if (nodeEndsAt != 0)
+				newNode = new TreeNode<String>(remainingString.substring(0, nodeEndsAt), 
+						parents.peek());
+			
+			// Performs a specific action (depends on the action that ended the current node)
+			switch (nodeEndsWith)
+			{
+				case PREVIOUSLAYER: parents.pop(); break;
+				case NEWLAYER:
+					if (newNode != null)
+						parents.push(newNode);
+					else
+						System.err.println("Failed to parse " + remainingString);
+					break;
+			}
+			
+			// Creates a new remaining tree string
+			if (remainingString.length() < nodeEndsAt + 1)
+				remainingString = new String();
+			else
+				remainingString = remainingString.substring(nodeEndsAt + 1);
+		}
+		
+		return tree;
+	}
+	
 	private boolean containsPath(T[] path, T canBeAnyContent, int checkIndex)
 	{
 		// If there is no path left to check, returns true
@@ -344,5 +425,29 @@ public class TreeNode<T>
 		}
 		
 		return validForAnyChild;
+	}
+	
+	private static int countSubStrings(String searchFrom, String searchedString)
+	{
+		int count = 0;
+		String searchLeft = new String(searchFrom);
+		
+		while (true)
+		{
+			int foundAt = searchLeft.indexOf(searchedString);
+			
+			// If there aren't any left, stops
+			if (foundAt < 0)
+				break;
+			
+			// Otherwise remembers it and moves to the next one
+			count ++;
+			int newIndex = foundAt + searchedString.length();
+			if (newIndex >= searchLeft.length())
+				break;
+			searchLeft = searchLeft.substring(newIndex);
+		}
+		
+		return count;
 	}
 }
