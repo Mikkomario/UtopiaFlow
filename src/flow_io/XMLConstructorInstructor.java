@@ -46,6 +46,7 @@ public class XMLConstructorInstructor<T extends Constructable<T>>
 	public void constructFrom(InputStream stream) throws UnsupportedEncodingException, XMLStreamException
 	{
 		this.latestElementName = null;
+		boolean rootElementPassed = false;
 		
 		XMLStreamReader reader = XMLIOAccessor.createReader(stream);
 		
@@ -57,7 +58,13 @@ public class XMLConstructorInstructor<T extends Constructable<T>>
 			{
 				if (this.latestElementName != null)
 					this.constructor.create(this.latestElementName);
-					
+				// Skips the first element introduction
+				else if (!rootElementPassed)
+				{
+					rootElementPassed = true;
+					continue;
+				}
+				
 				this.latestElementName = reader.getLocalName();
 			}
 			// On character data, a link or an attribute value will be created

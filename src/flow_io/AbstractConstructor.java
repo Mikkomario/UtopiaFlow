@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Constructors are used for constructing other objects from stream-like data.
@@ -152,21 +151,6 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 			
 			queries.get(getLatestConstruct()).add(attributeBame);
 		}
-	}
-	
-	/**
-	 * Generates a random ID that isn't in use in this constructor yet
-	 * @return A randomly generated id
-	 */
-	protected String generateID()
-	{
-		Random r = new Random();
-		String id = ID_INDICATOR + Long.toString(Math.abs(r.nextLong()), 36);
-		
-		if (this.constructs.containsKey(id))
-			return generateID();
-		else
-			return id;
 	}
 	
 	
