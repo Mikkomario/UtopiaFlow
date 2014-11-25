@@ -56,7 +56,7 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	/**
 	 * @return The last object that was constructed
 	 */
-	protected T getLatestConstruct()
+	public T getLatestConstruct()
 	{
 		return this.latestConstruct;
 	}
@@ -66,7 +66,7 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	 * @param construct The construct that will be considered the latest construct from 
 	 * now on
 	 */
-	protected void moveTo(T construct)
+	public void moveTo(T construct)
 	{
 		if (construct != null)
 			this.latestConstruct = construct;
@@ -77,7 +77,7 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	 * @param id The id of the construct that will be considered the latest construct from 
 	 * now on
 	 */
-	protected void moveTo(String id)
+	public void moveTo(String id)
 	{
 		moveTo(this.constructs.get(id));
 	}
@@ -90,7 +90,7 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	 * 
 	 * @param id The id that will be given to the construct
 	 */
-	protected void create(String id)
+	public void create(String id)
 	{
 		if (this.constructs.containsKey(id))
 			throw new ConstructorException("IDs must be unique.");
@@ -123,7 +123,7 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	 * @param attributeName The name of the attribute
 	 * @param attributeValue The value the attribute will have
 	 */
-	protected void addAttribute(String attributeName, String attributeValue)
+	public void addAttribute(String attributeName, String attributeValue)
 	{
 		if (getLatestConstruct() == null)
 			throw new ConstructorException("No objects constructed yet");
@@ -136,7 +136,7 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	 * @param attributeBame The name of the link
 	 * @param linkID The id of the linked construct
 	 */
-	protected void addLink(String attributeBame, String linkID)
+	public void addLink(String attributeBame, String linkID)
 	{
 		// Simply adds the link or makes a new query
 		if (this.constructs.containsKey(linkID))

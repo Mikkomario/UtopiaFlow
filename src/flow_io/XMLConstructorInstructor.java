@@ -12,11 +12,25 @@ import javax.xml.stream.XMLStreamReader;
  * @author Mikko Hilpinen
  * @param <T> The type of object constructed by this constructor
  */
-public abstract class XMLConstructor<T extends Constructable<T>> extends AbstractConstructor<T>
+public class XMLConstructorInstructor<T extends Constructable<T>>
 {
 	// ATTRIBUTES	--------------------------------------
 	
 	private String latestElementName;
+	private AbstractConstructor<T> constructor;
+	
+	
+	// CONSTRUCTOR	--------------------------------------
+	
+	/**
+	 * Creates a new instructor that instructs the given constructor
+	 * @param constructor The constructor that will be instructed
+	 */
+	public XMLConstructorInstructor(AbstractConstructor<T> constructor)
+	{
+		this.constructor = constructor;
+		this.latestElementName = null;
+	}
 	
 	
 	// OTHER METHODS	-----------------------------------
@@ -42,7 +56,7 @@ public abstract class XMLConstructor<T extends Constructable<T>> extends Abstrac
 			if (reader.isStartElement())
 			{
 				if (this.latestElementName != null)
-					create(this.latestElementName);
+					this.constructor.create(this.latestElementName);
 					
 				this.latestElementName = reader.getLocalName();
 			}
@@ -50,10 +64,10 @@ public abstract class XMLConstructor<T extends Constructable<T>> extends Abstrac
 			else if (reader.isCharacters())
 			{
 				String value = reader.getText();
-				if (value.startsWith(ID_INDICATOR))
-					addLink(this.latestElementName, value);
+				if (value.startsWith(AbstractConstructor.ID_INDICATOR))
+					this.constructor.addLink(this.latestElementName, value);
 				else
-					addAttribute(this.latestElementName, value);
+					this.constructor.addAttribute(this.latestElementName, value);
 			}
 		}
 		
