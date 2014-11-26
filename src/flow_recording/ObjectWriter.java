@@ -2,7 +2,6 @@ package flow_recording;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * ObjectWriters write writable objects into different formats
@@ -15,6 +14,7 @@ public class ObjectWriter
 	// ATTRIBUTES	--------------------------------------
 	
 	private Map<Writable, String> writableIDs;
+	private IDGenerator idGen;
 	
 	
 	// CONSTRUCTOR	--------------------------------------
@@ -25,6 +25,7 @@ public class ObjectWriter
 	protected ObjectWriter()
 	{
 		this.writableIDs = new HashMap<>();
+		this.idGen = new IDGenerator();
 	}
 	
 	
@@ -41,23 +42,8 @@ public class ObjectWriter
 	{
 		// If the writable wasn't previously introduced, generates an id for it
 		if (!this.writableIDs.containsKey(writable))
-			this.writableIDs.put(writable, generateID());
+			this.writableIDs.put(writable, this.idGen.generateID());
 		
 		return this.writableIDs.get(writable);
-	}
-	
-	/**
-	 * Generates a random ID that isn't in use in this constructor yet
-	 * @return A randomly generated id
-	 */
-	private String generateID()
-	{
-		Random r = new Random();
-		String id = AbstractConstructor.ID_INDICATOR + Long.toString(Math.abs(r.nextLong()), 36);
-		
-		if (this.writableIDs.containsValue(id))
-			return generateID();
-		else
-			return id;
 	}
 }

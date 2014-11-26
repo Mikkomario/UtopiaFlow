@@ -16,12 +16,6 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 {
 	// ATTRIBUTES	-------------------------------
 	
-	/**
-	 * A string that indicates which character is used to differentiate an id from a normal 
-	 * value
-	 */
-	public static final String ID_INDICATOR = "#";
-	
 	private Map<String, T> constructs;
 	private Map<String, Map<T, List<String>>> idQuery;
 	private T latestConstruct;

@@ -56,7 +56,7 @@ public class XMLConstructorInstructor
 			if (reader.isStartElement())
 			{
 				// Object elements contain their ID
-				if (reader.getLocalName().startsWith(AbstractConstructor.ID_INDICATOR))
+				if (reader.getLocalName().startsWith(IDGenerator.ID_INDICATOR))
 					this.constructor.create(reader.getLocalName());
 				else
 				{
@@ -79,7 +79,7 @@ public class XMLConstructorInstructor
 					throw new AbstractConstructor.ConstructorException("The XML is not well valid");
 				
 				String value = reader.getText();
-				if (value.startsWith(AbstractConstructor.ID_INDICATOR))
+				if (value.startsWith(IDGenerator.ID_INDICATOR))
 					this.constructor.addLink(attributeElementName, value);
 				else
 					this.constructor.addAttribute(attributeElementName, value);

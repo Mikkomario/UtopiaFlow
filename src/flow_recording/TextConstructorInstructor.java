@@ -55,7 +55,7 @@ public class TextConstructorInstructor
 	public void onLine(String line)
 	{
 		// Checks if a new constructable is created
-		if (line.startsWith(AbstractConstructor.ID_INDICATOR))
+		if (line.startsWith(IDGenerator.ID_INDICATOR))
 			this.constructor.create(line);
 		// Or if a new instruction was received
 		else if (line.startsWith(this.instructionIndicator) && line.length() > 
@@ -71,7 +71,7 @@ public class TextConstructorInstructor
 			String value = line.substring(splitIndex + 1);
 			
 			// Otherwise checks if a link is created
-			if (value.startsWith(AbstractConstructor.ID_INDICATOR))
+			if (value.startsWith(IDGenerator.ID_INDICATOR))
 				this.constructor.addLink(key, value);
 			// Otherwise creates an attribute
 			else
