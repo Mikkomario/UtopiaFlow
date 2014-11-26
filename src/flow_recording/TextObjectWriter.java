@@ -38,4 +38,26 @@ public class TextObjectWriter extends ObjectWriter
 			FileOutputAccessor.writeLine(writer, key + "=" + getIDForWritable(links.get(key)));
 		}
 	}
+	
+	/**
+	 * Writes a new instruction that applies until new instruction is given
+	 * @param instructionIndicator The indicator that identifies the instruction
+	 * @param instruction The content of the instruction
+	 * @param writer The writer that will write the instruction
+	 */
+	public void writeInstruction(String instructionIndicator, String instruction, BufferedWriter writer)
+	{
+		FileOutputAccessor.writeLine(writer, instructionIndicator + instruction);
+	}
+	
+	/**
+	 * Writes a new instruction that applies until new instruction is given. The default 
+	 * instruction indicator "%CHECK:" is used.
+	 * @param instruction The content of the instruction
+	 * @param writer The writer that will write the instruction
+	 */
+	public void writeInstruction(String instruction, BufferedWriter writer)
+	{
+		writeInstruction("%CHECK:", instruction, writer);
+	}
 }

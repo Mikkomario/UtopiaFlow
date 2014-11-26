@@ -1,0 +1,46 @@
+%CHECK:GROUP1
+#13ojt0xtlwuye
+name=Matti 0
+message=hello 
+fella=#1pvrjz8fp78lb
+#170czctciy4s8
+name=Matti 1
+message=hello 
+fella=#13ojt0xtlwuye
+#p0vmocgk9lu6
+name=Matti 2
+message=hello 
+fella=#170czctciy4s8
+#1tmu94x5p4kmz
+name=Matti 3
+message=hello 
+fella=#p0vmocgk9lu6
+#ph370vkabh4k
+name=Matti 4
+message=hello 
+fella=#1tmu94x5p4kmz
+%CHECK:GROUP2
+#rvrnxxvcutjz
+name=Matti 5
+message=hello 
+fella=#ph370vkabh4k
+#1jdy9k1y2gyy3
+name=Matti 6
+message=hello 
+fella=#rvrnxxvcutjz
+#1hnljn7m8xypt
+name=Matti 7
+message=hello 
+fella=#1jdy9k1y2gyy3
+#13jz1laah1k18
+name=Matti 8
+message=hello 
+fella=#1hnljn7m8xypt
+#v0dhkqni14d1
+name=Matti 9
+message=hello 
+fella=#13jz1laah1k18
+%CHECK:START
+#1pvrjz8fp78lb
+name=Uuno
+message=The first one is 

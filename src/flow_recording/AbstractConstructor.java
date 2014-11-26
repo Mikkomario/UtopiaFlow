@@ -79,6 +79,14 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	{
 		moveTo(this.constructs.get(id));
 	}
+	
+	/**
+	 * @return The objects constructed by this constructor
+	 */
+	public Map<String, T> getConstructs()
+	{
+		return this.constructs;
+	}
 
 	
 	// OTHER METHODS	----------------------------

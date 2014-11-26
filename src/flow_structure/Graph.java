@@ -148,6 +148,38 @@ public class Graph<TNode, TEdge>
 	}
 	
 	/**
+	 * Finds a node that has the given data
+	 * @param data The data that should be held in the node
+	 * @return A node with the given data or null if no node holds that kind of data
+	 */
+	public GraphNode<TNode, TEdge> findNodeWithData(TNode data)
+	{
+		for (GraphNode<TNode, TEdge> node : getNodes())
+		{
+			if (node.getData().equals(data))
+				return node;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Finds an edge with the given data
+	 * @param data The data that should be held in the edge
+	 * @return The edge with the given data or null if no such edge exists
+	 */
+	public GraphEdge<TNode, TEdge> gindEdgeWithData(TEdge data)
+	{
+		for (GraphEdge<TNode, TEdge> edge : getEdges())
+		{
+			if (edge.getData() == data)
+				return edge;
+		}
+		
+		return null;
+	}
+	
+	/**
 	 * Creates a connecting edge between two nodes
 	 * 
 	 * @param startNodeID The node the edge starts from
