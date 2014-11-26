@@ -10,14 +10,12 @@ import javax.xml.stream.XMLStreamReader;
  * This constructor constructs objects by using an xml stream
  * 
  * @author Mikko Hilpinen
- * @param <T> The type of object constructed by this constructor
  */
-public class XMLConstructorInstructor<T extends Constructable<T>>
+public class XMLConstructorInstructor
 {
 	// ATTRIBUTES	--------------------------------------
 	
-	private String latestElementName;
-	private AbstractConstructor<T> constructor;
+	private AbstractConstructor<?> constructor;
 	
 	
 	// CONSTRUCTOR	--------------------------------------
@@ -26,10 +24,9 @@ public class XMLConstructorInstructor<T extends Constructable<T>>
 	 * Creates a new instructor that instructs the given constructor
 	 * @param constructor The constructor that will be instructed
 	 */
-	public XMLConstructorInstructor(AbstractConstructor<T> constructor)
+	public XMLConstructorInstructor(AbstractConstructor<?> constructor)
 	{
 		this.constructor = constructor;
-		this.latestElementName = null;
 	}
 	
 	
@@ -45,8 +42,8 @@ public class XMLConstructorInstructor<T extends Constructable<T>>
 	 */
 	public void constructFrom(InputStream stream) throws UnsupportedEncodingException, XMLStreamException
 	{
-		this.latestElementName = null;
-		boolean rootElementPassed = false;
+		String attributeElementName = null;
+		int depth = 0;
 		
 		XMLStreamReader reader = XMLIOAccessor.createReader(stream);
 		
@@ -56,25 +53,40 @@ public class XMLConstructorInstructor<T extends Constructable<T>>
 			// just an attribute or a link with a cdata value
 			if (reader.isStartElement())
 			{
-				if (this.latestElementName != null)
-					this.constructor.create(this.latestElementName);
-				// Skips the first element introduction
-				else if (!rootElementPassed)
+				// Object elements contain their ID
+				if (reader.getLocalName().startsWith(AbstractConstructor.ID_INDICATOR))
+					this.constructor.create(reader.getLocalName());
+				else
 				{
-					rootElementPassed = true;
-					continue;
+					// The root element is skipped (depth 0)
+					// If there is no current element, an instruction was given (depth 1)
+					if (depth == 1)
+						this.constructor.setInstruction(reader.getLocalName());
+					// If no id is found, an element is added to the current object (depth 2)
+					else if (depth == 2)
+						attributeElementName = reader.getLocalName();
 				}
 				
-				this.latestElementName = reader.getLocalName();
+				depth ++;
 			}
 			// On character data, a link or an attribute value will be created
 			else if (reader.isCharacters())
 			{
+				// If there was no attribute element above this data, can't work properly
+				if (attributeElementName == null)
+					throw new AbstractConstructor.ConstructorException("The XML is not well valid");
+				
 				String value = reader.getText();
 				if (value.startsWith(AbstractConstructor.ID_INDICATOR))
-					this.constructor.addLink(this.latestElementName, value);
+					this.constructor.addLink(attributeElementName, value);
 				else
-					this.constructor.addAttribute(this.latestElementName, value);
+					this.constructor.addAttribute(attributeElementName, value);
+			}
+			else if (reader.isEndElement())
+			{
+				// Remembers that depth decreased
+				depth --;
+				attributeElementName = null;
 			}
 		}
 		

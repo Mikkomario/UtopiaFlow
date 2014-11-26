@@ -7,14 +7,14 @@ import java.util.List;
  * TextConstructor uses lines of text when constructing new constructables
  * 
  * @author Mikko Hilpinen
- * @param <T> The type of object constructed by this constructor
  * @since 24.11.2014
  */
-public class TextConstructorInstructor<T extends Constructable<T>>
+public class TextConstructorInstructor
 {
 	// ATTRIBUTES	---------------------------------------
 	
-	private AbstractConstructor<T> constructor;
+	private AbstractConstructor<?> constructor;
+	private String instructionIndicator;
 	
 	
 	// CONSTRUCTOR	---------------------------------------
@@ -22,10 +22,23 @@ public class TextConstructorInstructor<T extends Constructable<T>>
 	/**
 	 * Creates a new constructor that uses the given constructor for creating the objects
 	 * @param constructor The constructor that creates the objects
+	 * @param instructionIndicator A string that indicates when a line contains an ins
 	 */
-	public TextConstructorInstructor(AbstractConstructor<T> constructor)
+	public TextConstructorInstructor(AbstractConstructor<?> constructor, String instructionIndicator)
 	{
 		this.constructor = constructor;
+		this.instructionIndicator = instructionIndicator;
+	}
+	
+	/**
+	 * Creates a new constructor that uses the given constructor for creating the objects. 
+	 * The default instruction indicator "%CHECK:" is used.
+	 * @param constructor The constructor that creates the objects
+	 */
+	public TextConstructorInstructor(AbstractConstructor<?> constructor)
+	{
+		this.constructor = constructor;
+		this.instructionIndicator = "%CHECK:";
 	}
 	
 	
@@ -42,6 +55,11 @@ public class TextConstructorInstructor<T extends Constructable<T>>
 		// Checks if a new constructable is created
 		if (line.startsWith(AbstractConstructor.ID_INDICATOR))
 			this.constructor.create(line);
+		// Or if a new instruction was received
+		else if (line.startsWith(this.instructionIndicator) && line.length() > 
+				this.instructionIndicator.length())
+			this.constructor.setInstruction(line.substring(this.instructionIndicator.length()));
+		// Otherwise modifies the last object
 		else
 		{
 			int splitIndex = line.indexOf('=');

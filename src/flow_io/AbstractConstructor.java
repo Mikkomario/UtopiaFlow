@@ -23,9 +23,9 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	public static final String ID_INDICATOR = "#";
 	
 	private Map<String, T> constructs;
-	// Map<ID, Map<Receiver, List<AttributeName>>
 	private Map<String, Map<T, List<String>>> idQuery;
 	private T latestConstruct;
+	private String currentInstruction;
 	
 	
 	// CONSTRUCTOR	-------------------------------
@@ -39,15 +39,18 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 		this.constructs = new HashMap<>();
 		this.idQuery = new HashMap<>();
 		this.latestConstruct = null;
+		this.currentInstruction = "";
 	}
 	
 	
 	// ABSTRACT METHODS	----------------------------
 	
 	/**
+	 * @param instruction An instruction on how the constructable should be created. The format 
+	 * is defined by the writer of the document.
 	 * @return a new Constructable
 	 */
-	protected abstract T createConstructable();
+	protected abstract T createConstructable(String instruction);
 	
 	
 	// GETTERS & SETTERS	------------------------
@@ -94,7 +97,7 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 		if (this.constructs.containsKey(id))
 			throw new ConstructorException("IDs must be unique.");
 		
-		T newConstruct = createConstructable();
+		T newConstruct = createConstructable(this.currentInstruction);
 		
 		newConstruct.setID(id);
 		this.constructs.put(id, newConstruct);
@@ -151,6 +154,16 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 			
 			queries.get(getLatestConstruct()).add(attributeBame);
 		}
+	}
+	
+	/**
+	 * Changes the current instruction given on object creation
+	 * @param newInstruction The new instruction that will be given when constructing new 
+	 * objects.
+	 */
+	public void setInstruction(String newInstruction)
+	{
+		this.currentInstruction = newInstruction;
 	}
 	
 	

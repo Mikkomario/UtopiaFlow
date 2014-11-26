@@ -7,7 +7,7 @@ package flow_io;
  * @param <T> The type of this constructable
  * @since 24.11.2014
  */
-public interface Constructable<T extends Constructable<T>>
+public interface Constructable<T extends Constructable<?>>
 {
 	/**
 	 * @return The unique identifier of this constructable
