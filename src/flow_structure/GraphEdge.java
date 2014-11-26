@@ -1,20 +1,26 @@
 package flow_structure;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 /**
  * Edges are used in graphs to connect nodes together. They may also contain 
- * data. Please note that edges only work a single way, the end node is not 
- * aware of the edge connected to it.
+ * data. Edges may be one way or two ways.
  * 
  * @author Mikko Hilpinen
+ * @param <TNode> The type of data contained within the nodes of the Graph
+ * @param <TEdge> The type of data contained within the edges of the Graph
  * @since 1.5.2014
  */
-public class GraphEdge
+public class GraphEdge<TNode, TEdge>
 {
 	// ATTRIBUTES	-----------------------------------------------------
 	
-	private GraphNode start, end;
-	private String data, id;
-	
+	private GraphNode<TNode, TEdge> start, end;
+	private String id;
+	private TEdge data;
+	private boolean twoWays;
+
 	
 	// CONSTRUCTOR	-----------------------------------------------------
 	
@@ -27,13 +33,21 @@ public class GraphEdge
 	 * @param id The id that describes this edge. The id should be unique in a 
 	 * group of edges connected to a single node
 	 * @param data The data stored in the edge
+	 * @param bothWays Should the edge connect the nodes both ways.
 	 */
-	public GraphEdge(GraphNode start, GraphNode end, String id, String data)
+	public GraphEdge(GraphNode<TNode, TEdge> start, GraphNode<TNode, TEdge> end, String id, 
+			TEdge data, boolean bothWays)
 	{
 		// Initializes attributes
 		this.start = start;
 		this.end = end;
 		this.data = data;
+		this.twoWays = bothWays;
+		
+		// Adds the edge to the nodes
+		this.start.addLeavingEdge(this);
+		if (this.twoWays)
+			this.end.removeEdge(this);
 	}
 
 	
@@ -42,25 +56,35 @@ public class GraphEdge
 	/**
 	 * @return The data the edge contains
 	 */
-	public String getData()
+	public TEdge getData()
 	{
 		return this.data;
 	}
 	
 	/**
-	 * @return The node the edge starts from
+	 * @return The node the edge starts from. If the edge connects the nodes both ways, the 
+	 * start node could be either one.
 	 */
-	public GraphNode getStartNode()
+	public GraphNode<TNode, TEdge> getStartNode()
 	{
 		return this.start;
 	}
 	
 	/**
-	 * @return The node the edge ends to
+	 * @return The node the edge ends to. If the edge connects the nodes both ways, the 
+	 * end node could be either one.
 	 */
-	public GraphNode getEndNode()
+	public GraphNode<TNode, TEdge> getEndNode()
 	{
 		return this.end;
+	}
+	
+	/**
+	 * @return Does the edge connect the nodes both ways
+	 */
+	public boolean isBothWays()
+	{
+		return this.twoWays;
 	}
 	
 	/**
@@ -73,13 +97,116 @@ public class GraphEdge
 	}
 	
 	
-	// OTHER METHODS	-------------------------------------------------
+	// OTHER METHODS	----------------------------
 	
 	/**
-	 * @return The identifier used to distinguish this edge from the rest
+	 * Disconnects the edge from the both nodes, making it effectively useless
 	 */
-	public String getSaveData()
+	public void remove()
 	{
-		return getID() + "#" + getData() + "#" + this.start.getID() + "+" + this.end.getID();
+		if (getStartNode() != null)
+			getStartNode().removeEdge(this);
+		if (getEndNode() != null)
+			getEndNode().removeEdge(this);
+		
+		this.start = null;
+		this.end = null;
+	}
+	
+	/**
+	 * Makes a two way edge one way. Please make sure the start and end nodes are 
+	 * correct before calling this.
+	 */
+	public void makeOneWay()
+	{
+		if (this.twoWays)
+		{
+			this.twoWays = false;
+			if (getEndNode() != null)
+				getEndNode().removeEdge(this);
+		}
+	}
+	
+	/**
+	 * Makes the edge a two way edge instead of one way.
+	 */
+	public void makeBothWays()
+	{
+		if (!this.twoWays)
+		{
+			this.twoWays = true;
+			if (getEndNode() != null)
+				getEndNode().addLeavingEdge(this);
+		}
+	}
+	
+	/**
+	 * Changes the direction of the edge. Making the start node the end node and vice versa. 
+	 * Naturally this has more effect in one way edges.
+	 */
+	public void swapDirection()
+	{
+		// If the edge is one way, informs the nodes
+		if (!this.twoWays)
+		{
+			if (getStartNode() != null)
+				getStartNode().removeEdge(this);
+			if (getEndNode() != null)
+				getEndNode().addLeavingEdge(this);
+		}
+		
+		// Swaps the start and end nodes
+		GraphNode<TNode, TEdge> temp = getStartNode();
+		this.start = getEndNode();
+		this.end = temp;
+	}
+	
+	/**
+	 * Checks if the edge connects the two nodes
+	 * @param node1 The first node
+	 * @param node2 The second node
+	 * @return Does the edge connect the nodes in any way
+	 */
+	public boolean connectsNodes(GraphNode<TNode, TEdge> node1, GraphNode<TNode, TEdge> node2)
+	{
+		Collection<GraphNode<TNode, TEdge>> nodes = getConnectedNodes();
+		return nodes.contains(node1) && nodes.contains(node2);
+	}
+	
+	/**
+	 * Checks if the edge connects the two nodes
+	 * @param node1ID The unique id of the first node
+	 * @param node2ID The unique id of the second node
+	 * @return Does the edge connect the nodes in any way
+	 */
+	/*
+	public boolean connectsNodes(String node1ID, String node2ID)
+	{
+		return (getStartNode().getID() == node1ID && getEndNode().getID() == node2ID) || 
+				(getStartNode().getID() == node2ID && getEndNode().getID() == node1ID);
+	}
+	*/
+	
+	/**
+	 * Checks if the edge is connected to (starts from or ends to) the given node.
+	 * @param node The node that may be connected to this edge
+	 * @return Is the node connected to this edge
+	 */
+	public boolean isConnectedTo(GraphNode<TNode, TEdge> node)
+	{
+		return getConnectedNodes().contains(node);
+	}
+	
+	/**
+	 * @return The nodes connected to this edge
+	 */
+	public ArrayList<GraphNode<TNode, TEdge>> getConnectedNodes()
+	{
+		ArrayList<GraphNode<TNode, TEdge>> nodes = new ArrayList<>();
+		if (getStartNode() != null)
+			nodes.add(getStartNode());
+		if (getEndNode() != null)
+			nodes.add(getEndNode());
+		return nodes;
 	}
 }

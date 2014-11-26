@@ -49,4 +49,14 @@ public class IDGenerator
 		else
 			return id;
 	}
+	
+	/**
+	 * Reserves an id so that it won't get generated
+	 * @param id The id that is wouldn't be unique if it was generated
+	 */
+	public void reserveID(String id)
+	{
+		if (!this.ids.contains(id))
+			this.ids.add(id);
+	}
 }

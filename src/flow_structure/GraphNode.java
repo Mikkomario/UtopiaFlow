@@ -1,19 +1,24 @@
 package flow_structure;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Nodes are used in graphs and they contain data. Nodes can be connected via Edges
  * 
  * @author Mikko Hilpinen
+ * @param <TNode> The type of data contained within the nodes in this Graph
+ * @param <TEdge> The type of data contained within the edges in this Graph
  * @since 1.5.2014
  */
-public class GraphNode
+public class GraphNode<TNode, TEdge>
 {
 	// ATTRIBUTES	-----------------------------------------------------
 	
-	private String data, id;
-	private ArrayList<GraphEdge> leavingEdges;
+	private TNode data;
+	private String id;
+	private Map<String, GraphEdge<TNode, TEdge>> leavingEdges;
 	
 	
 	// CONSTRUCTOR	-----------------------------------------------------
@@ -24,12 +29,12 @@ public class GraphNode
 	 * @param id The name of the node unique to this specific instance
 	 * @param data The data held in the node
 	 */
-	public GraphNode(String id, String data)
+	public GraphNode(String id, TNode data)
 	{
 		// Initializes attributes
 		this.id = id;
 		this.data = data;
-		this.leavingEdges = new ArrayList<GraphEdge>();
+		this.leavingEdges = new HashMap<>();
 	}
 
 	
@@ -46,7 +51,7 @@ public class GraphNode
 	/**
 	 * @return The data held in the node
 	 */
-	public String getData()
+	public TNode getData()
 	{
 		return this.data;
 	}
@@ -55,81 +60,51 @@ public class GraphNode
 	// OTHER METHODS	------------------------------------------------
 	
 	/**
-	 * Connects this node to another with an edge
-	 * 
-	 * @param endNode The node this node will be connected to
-	 * @param edgeID The identifier given to the edge in order to distinguish 
-	 * it from other edges connected to this node
-	 * @param edgeData The data stored in the connecting edge
-	 * @param connectBothWays Should the other node be connected to this node as well
+	 * Checks if the node registers the edge as leaving from this node
+	 * @param edge The edge that is checked
+	 * @return Does the edge leave from this node
 	 */
-	public void connectNode(GraphNode endNode, String edgeID, String edgeData, 
-			boolean connectBothWays)
+	public boolean contains(GraphEdge<?, ?> edge)
 	{
-		if (endNode == null)
-			return;
-		
-		// Checks that there aren't already an edge connecting the nodes
-		if (getEdgeIndex(endNode.getID()) == -1)
-			// Connects the two nodes with an edge
-			this.leavingEdges.add(new GraphEdge(this, endNode, edgeID, edgeData));
-		
-		if (connectBothWays)
-			endNode.connectNode(this, edgeID, edgeData, false);
+		return this.leavingEdges.containsValue(edge);
 	}
 	
 	/**
-	 * Disconnects the given node from this one.
-	 * 
-	 * @param endNode The node that will be disconnected from this node
-	 * @param disconnectBothWays Should this node be disconnected from the 
-	 * other node as well
+	 * Checks if the node registers the edge as leaving from this node
+	 * @param edgeID The unique ID of edge that is checked
+	 * @return Does the edge leave from this node
 	 */
-	public void disconnectNode(GraphNode endNode, boolean disconnectBothWays)
+	public boolean contains(String edgeID)
 	{
-		if (endNode == null)
-			return;
-		
-		int edgeIndex = getEdgeIndex(endNode.getID());
-		
-		if (edgeIndex != -1)
-			this.leavingEdges.remove(edgeIndex);
-		
-		// May also disconnect this node from the other one
-		if (disconnectBothWays)
-			endNode.disconnectNode(this, false);
+		return this.leavingEdges.containsKey(edgeID);
 	}
 	
 	/**
-	 * Tells if this node is connected to the given node with an edge
-	 * @param endNode The node this node may be connected to
-	 * @return Is this node connected to the other node
+	 * Registers the edge as an edge leaving from this node
+	 * @param edge The new edge from this node
 	 */
-	public boolean isConnectedToNode(GraphNode endNode)
+	protected void addLeavingEdge(GraphEdge<TNode, TEdge> edge)
 	{
-		return endNode != null && getEdgeIndex(endNode.getID()) != -1;
+		if (!contains(edge))
+			this.leavingEdges.put(edge.getID(), edge);
+	}
+	
+	/**
+	 * Removes the edge from the edges that leave from this node
+	 * @param edge The edge that will be removed from this node
+	 */
+	protected void removeEdge(GraphEdge<TNode, TEdge> edge)
+	{
+		if (contains(edge))
+			this.leavingEdges.remove(edge.getID());
 	}
 	
 	/**
 	 * @return The number of edges this node uses
 	 */
-	public int getEdgeAmount()
+	public int getLeavingEdgeAmount()
 	{
 		return this.leavingEdges.size();
-	}
-	
-	/**
-	 * Returns an edge with the given index
-	 * @param index The 
-	 * @return The edge with the given index or null if there isn't an edge with 
-	 * the given index
-	 */
-	public GraphEdge getLeavingEdge(int index)
-	{
-		if (index < 0 || index >= getEdgeAmount())
-			return null;
-		
-		return this.leavingEdges.get(index);
 	}
 	
 	/**
@@ -137,53 +112,45 @@ public class GraphNode
 	 * @param edgeID The unique identifier the edge should have
 	 * @return The edge with the given id or null if no such edge exists
 	 */
-	public GraphEdge getLeavingEdge(String edgeID)
+	public GraphEdge<TNode, TEdge> getLeavingEdge(String edgeID)
 	{
-		for (GraphEdge edge : this.leavingEdges)
-		{
-			if (edge.getID().equals(edgeID))
-				return edge;
-		}
-		
-		return null;
+		return this.leavingEdges.get(edgeID);
 	}
 	
 	/**
-	 * @return The data that is needed to recreate this node
+	 * @return A list containing all the edges leaving from this node
 	 */
-	public String getSaveData()
+	public ArrayList<GraphEdge<TNode, TEdge>> getLeavingEdges()
 	{
-		return getID() + "#" + getData();
+		ArrayList<GraphEdge<TNode, TEdge>> edges = new ArrayList<>();
+		edges.addAll(this.leavingEdges.values());
+		return edges;
 	}
 	
 	/**
-	 * Removes all the edges from this node
-	 * @param disconnectBothWays Should the edges connected to this node from 
-	 * other nodes be removed as well
+	 * @return A list containing the IDs of all the edges leaving from this node
 	 */
-	public void removeAllEdges(boolean disconnectBothWays)
+	public ArrayList<String> getLeavingEdgeIDs()
 	{
-		if (disconnectBothWays)
-		{
-			while (this.leavingEdges.size() > 0)
-			{
-				disconnectNode(this.leavingEdges.get(0).getEndNode(), true);
-			}
-		}
-		else
-			this.leavingEdges.clear();
+		ArrayList<String> edgeIDs = new ArrayList<>();
+		edgeIDs.addAll(this.leavingEdges.keySet());
+		return edgeIDs;
 	}
 	
-	// Returns the index of the edge connected to the given node or -1 if not 
-	// connected
-	private int getEdgeIndex(String endNodeID)
+	/**
+	 * @return All nodes that this node has edges to
+	 */
+	public ArrayList<GraphNode<TNode, TEdge>> getEndNodes()
 	{
-		for (int i = 0; i < this.leavingEdges.size(); i++)
+		ArrayList<GraphNode<TNode, TEdge>> nodes = new ArrayList<>();
+		for (GraphEdge<TNode, TEdge> edge : getLeavingEdges())
 		{
-			if (this.leavingEdges.get(i).getEndNode().getID().equals(endNodeID))
-				return i;
+			if (edge.getEndNode() == this)
+				nodes.add(edge.getStartNode());
+			else
+				nodes.add(edge.getEndNode());
 		}
 		
-		return -1;
+		return nodes;
 	}
 }

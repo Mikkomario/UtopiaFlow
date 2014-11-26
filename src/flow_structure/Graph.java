@@ -1,19 +1,27 @@
 package flow_structure;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import flow_recording.IDGenerator;
 
 /**
  * Graph is a set of nodes and edges. Graphs can be saved and loaded from 
  * text files.
  * 
  * @author Mikko Hilpinen
+ * @param <TNode> The type of data contained within the nodes in this Graph
+ * @param <TEdge> The type of data contained within the edges in this Graph
  * @since 1.5.2014
  */
-public class Graph
+public class Graph<TNode, TEdge>
 {
 	// ATTRIBUTES	----------------------------------------------------
 	
-	private ArrayList<GraphNode> nodes;
+	private Map<String, GraphNode<TNode, TEdge>> nodes;
+	private IDGenerator idGen;
 	
 	
 	// CONSTRUCTOR	----------------------------------------------------
@@ -24,20 +32,37 @@ public class Graph
 	public Graph()
 	{
 		// Initializes attributes
-		this.nodes = new ArrayList<GraphNode>();
+		this.nodes = new HashMap<>();
+		this.idGen = new IDGenerator();
 	}
 
 	
 	// OTHER METHODS	------------------------------------------------
+
+	// TODO: Add copying feature
 	
 	/**
 	 * Adds a new node to the graph
 	 * @param node The node that will be added to the graph
 	 */
-	public void addNode(GraphNode node)
+	protected void addNode(GraphNode<TNode, TEdge> node)
 	{
-		if (!this.nodes.contains(node))
-			this.nodes.add(node);
+		if (!contains(node))
+			this.nodes.put(node.getID(), node);
+		
+		this.idGen.reserveID(node.getID());
+	}
+	
+	/**
+	 * Creates and adds a node to the Graph. The node will contain the given data.
+	 * @param data The data contained within the new node.
+	 * @return The node that was just created to contain the data.
+	 */
+	public GraphNode<TNode, TEdge> addNode(TNode data)
+	{
+		GraphNode<TNode, TEdge> node = new GraphNode<>(this.idGen.generateID(), data);
+		addNode(node);
+		return node;
 	}
 	
 	/**
@@ -45,9 +70,36 @@ public class Graph
 	 * @param nodeID The id to be searched for
 	 * @return is there a node with the given ID in the graph
 	 */
-	public boolean graphContainsNodeWithID(String nodeID)
+	public boolean contains(String nodeID)
 	{
-		return getNodeWithID(nodeID) != null;
+		return this.nodes.containsKey(nodeID);
+	}
+	
+	/**
+	 * Checks if the graph contains the given node
+	 * @param node The node that may be contained within the Graph
+	 * @return Does the Graph contain the given node
+	 */
+	public boolean contains(GraphNode<?, ?> node)
+	{
+		return this.nodes.containsValue(node);
+	}
+	
+	/**
+	 * Checks if the graph contains the given graph
+	 * @param graph The graph that may be contained within this graph
+	 * @return Is the given graph a sub graph of this graph
+	 */
+	public boolean contains(Graph<TNode, TEdge> graph)
+	{
+		// Contains the graph if contains all the nodes in it
+		for (GraphNode<TNode, TEdge> node : graph.getNodes())
+		{
+			if (!contains(node))
+				return false;
+		}
+		
+		return true;
 	}
 	
 	/**
@@ -55,250 +107,294 @@ public class Graph
 	 * @param nodeID The ID that is searched for
 	 * @return The node with the given ID or null if it couldn't be found
 	 */
-	public GraphNode getNodeWithID(String nodeID)
+	public GraphNode<TNode, TEdge> getNode(String nodeID)
 	{
-		for (GraphNode node : this.nodes)
+		return this.nodes.get(nodeID);
+	}
+	
+	/**
+	 * Removes a node with the given ID from the graph. Disconnecting it from any other nodes.
+	 * @param nodeID The unique identifier of the node that is removed
+	 */
+	public void removeNode(String nodeID)
+	{
+		// Removes the node
+		this.nodes.remove(nodeID);
+		
+		// Removes all the edges connected to the node
+		for (GraphEdge<TNode, TEdge> edge : getDirectlyConnectedEdges(nodeID))
 		{
-			if (node.getID().equals(nodeID))
-				return node;
+			edge.remove();
+		}
+	}
+	
+	/**
+	 * @return How many nodes there are in this graph
+	 */
+	public int size()
+	{
+		return this.nodes.size();
+	}
+	
+	/**
+	 * Creates a connecting edge between two nodes
+	 * 
+	 * @param startNodeID The node the edge starts from
+	 * @param endNodeID The node the edge ends to
+	 * @param edgeData The data contained within the edge
+	 * @param bothWays If the edge should be two way instead of one way
+	 */
+	public void connectNodes(String startNodeID, String endNodeID, TEdge edgeData, 
+			boolean bothWays)
+	{
+		// Checks the parameters
+		if (!contains(startNodeID) || !contains(endNodeID))
+			return;
+		
+		// Connects the nodes with an edge
+		new GraphEdge<>(getNode(startNodeID), getNode(endNodeID), this.idGen.generateID(), 
+				edgeData, bothWays);
+	}
+	
+	/**
+	 * @return A list of all the nodes within this graph
+	 */
+	public ArrayList<GraphNode<TNode, TEdge>> getNodes()
+	{
+		ArrayList<GraphNode<TNode, TEdge>> nodes = new ArrayList<>();
+		nodes.addAll(this.nodes.values());
+		return nodes;
+	}
+	
+	/**
+	 * @return A list of all the node IDs used within this graph
+	 */
+	public ArrayList<String> getNodeIDs()
+	{
+		ArrayList<String> nodeIDs = new ArrayList<>();
+		nodeIDs.addAll(this.nodes.keySet());
+		return nodeIDs;
+	}
+	
+	/**
+	 * @return All the edges within this graph
+	 */
+	public ArrayList<GraphEdge<TNode, TEdge>> getEdges()
+	{
+		ArrayList<GraphEdge<TNode, TEdge>> foundEdges = new ArrayList<>();
+		
+		for (GraphNode<TNode, TEdge> node : getNodes())
+		{
+			for (GraphEdge<TNode, TEdge> edge : node.getLeavingEdges())
+			{
+				if (!foundEdges.contains(edge))
+					foundEdges.add(edge);
+			}
+		}
+		
+		return foundEdges;
+	}
+	
+	/**
+	 * Returns an edge with the given id or null if no such edge exists within this Graph
+	 * @param edgeID The unique identifier of the edge
+	 * @return The edge with the given identifier
+	 */
+	public GraphEdge<TNode, TEdge> getEdge(String edgeID)
+	{
+		for (GraphNode<TNode, TEdge> node : getNodes())
+		{
+			for (GraphEdge<TNode, TEdge> edge : node.getLeavingEdges())
+			{
+				if (edge.getID() == edgeID)
+					return edge;
+			}
 		}
 		
 		return null;
 	}
 	
 	/**
-	 * Removes a node from the graph, disconnecting it from any other nodes
-	 * @param node The node that will be removed from the graph
+	 * Finds all the edges that connect the given nodes
+	 * @param nodes The nodes that may be connected in some way
+	 * @return The edges that connect the nodes
 	 */
-	public void removeNode(GraphNode node)
+	public ArrayList<GraphEdge<TNode, TEdge>> getDirectlyConnectingEdges(List<GraphNode<TNode, TEdge>> nodes)
 	{
-		if (!this.nodes.contains(node))
-			return;
+		ArrayList<GraphEdge<TNode, TEdge>> foundEdges = new ArrayList<>();
 		
-		this.nodes.remove(node);
-		
-		// Also removes the edges
-		node.removeAllEdges(true);
-	}
-	
-	/**
-	 * @return How many nodes there are in this graph
-	 */
-	public int getNodeAmount()
-	{
-		return this.nodes.size();
-	}
-	
-	/**
-	 * Returns a node with the given index
-	 * @param index The index of the node to be returned
-	 * @return A node with the given index or null if there isn't one
-	 */
-	public GraphNode getNode(int index)
-	{
-		if (index < 0 || index >= getNodeAmount())
-			return null;
-		
-		return this.nodes.get(index);
-	}
-	
-	// TODO: Add saving and loading
-	
-	/**
-	 * Saves the graph into the given file
-	 * @param fileName The name of the file that will be created. Previous files 
-	 * with the same name will be overwritten. "data/" included automatically.
-	 */
-	/*
-	public void saveGraphIntoFile(String fileName)
-	{
-		new GraphSaver(fileName);
-	}
-	*/
-	
-	/**
-	 * Loads a graph from the given file and adds as a part of this graph. 
-	 * Adding graphs that contain similar IDs may be problematic.
-	 * @param fileName The name of the file the data will be loaded from. 
-	 * "data/" automatically included
-	 * @throws FileNotFoundException If the file couldn't be found
-	 */
-	/*
-	public void loadDataFromFile(String fileName) throws FileNotFoundException
-	{
-		new GraphLoader(fileName);
-	}
-	*/
-	
-	
-	// SUBCLASSES	-----------------------------------------------------
-	/*
-	private class GraphSaver extends AbstractFileWriter
-	{
-		// ATTRIBUTES	-------------------------------------------------
-		
-		private int currentNodeIndex, currentEdgeIndex, mode;
-		
-		private static final int NODEINTRO = 0, NODES = 1, EDGEINTRO = 2, EDGES = 3;
-		
-		
-		// CONSTRUCTOR	-------------------------------------------------
-		
-		public GraphSaver(String fileName)
+		// Finds all the leaving edges that connect a node to any other nodes
+		for (int startIndex = 0; startIndex < nodes.size(); startIndex ++)
 		{
-			// Initializes attributes
-			this.currentNodeIndex = 0;
-			this.currentEdgeIndex = 0;
-			this.mode = NODEINTRO;
-			
-			// Starts writing the data
-			saveIntoFile(fileName);
-		}
-		
-		
-		// IMPLEMENTED METHODS	-----------------------------------------
-		
-		@Override
-		protected String writeLine(int lineindex)
-		{
-			// Acts differently in different modes
-			if (this.mode == EDGES)
-				getNextEdgeLine();
-			else if (this.mode == NODES)
-				getNextNodeLine();
-			else if (this.mode == EDGEINTRO)
+			for (GraphEdge<TNode, TEdge> edge : nodes.get(startIndex).getLeavingEdges())
 			{
-				this.mode = EDGES;
-				return "&edges";
-			}
-			else if (this.mode == NODEINTRO)
-			{
-				this.mode = NODES;
-				return "&nodes";
-			}
-			
-			return END_OF_STREAM;
-		}
-		
-		
-		// OTHER METHODS	---------------------------------------------
-		
-		private String getNextEdgeLine()
-		{
-			this.currentEdgeIndex ++;
-			
-			// Checks if the last edge was reached. If so, moves to the next node
-			if (this.currentEdgeIndex >= 
-					Graph.this.getNode(this.currentNodeIndex).getEdgeAmount())
-			{
-				this.currentEdgeIndex = 0;
-				this.currentNodeIndex ++;
-			}
-			
-			// Checks if the last node was reached. If so, quits
-			if (this.currentNodeIndex >= Graph.this.getNodeAmount())
-				return END_OF_STREAM;
-			
-			// Otherwise returns the savedata of the current edge
-			return Graph.this.getNode(this.currentNodeIndex).getLeavingEdge(
-					this.currentEdgeIndex).getSaveData();
-		}
-		
-		private String getNextNodeLine()
-		{
-			this.currentNodeIndex ++;
-			
-			// Checks if the end of the nodes was reached and stops if it was
-			if (this.currentNodeIndex >= Graph.this.getNodeAmount())
-			{
-				this.currentNodeIndex = 0;
-				this.mode = EDGEINTRO;
-				return "";
-			}
-			
-			// Otherwise prints the current node data
-			return Graph.this.getNode(this.currentNodeIndex).getSaveData();
-		}
-	}
-	
-	private class GraphLoader extends AbstractFileReader
-	{
-		// ATTRIBUTES	-------------------------------------------------
-		
-		private int mode;
-		
-		private static final int NONE = 0, NODES = 1, EDGES = 2;
-		
-		
-		// CONSTRUCTOR	-------------------------------------------------
-		
-		public GraphLoader(String fileName) throws FileNotFoundException
-		{
-			// Initializes attributes
-			this.mode = NONE;
-			
-			// Reads the save file
-			readFile(fileName, "*");
-		}
-		
-		
-		// IMPLEMENTED METHODS	----------------------------------------
-		
-		@Override
-		protected void onLine(String line)
-		{
-			// Changes mode on lines that start with with "&"
-			if (line.startsWith("&"))
-			{
-				if (line.equals("&nodes"))
-					this.mode = NODES;
-				else if (line.equals("&edges"))
-					this.mode = EDGES;
-			}
-			else
-			{
-				String[] arguments = line.split("#");
-				
-				// Otherwise acts as the mode requires
-				if (this.mode == NODES)
+				for (int endIndex = startIndex + 1; endIndex < nodes.size(); endIndex ++)
 				{
-					if (arguments.length < 2)
-					{
-						System.err.println("Cannot load a node from a line " + 
-								line + ". The line contains two few (<2) arguments");
-						return;
-					}
-					
-					// Reads a node from the line
-					// (Name#Data)
-					Graph.this.addNode(new GraphNode(arguments[0], arguments[1]));
-				}
-				else if (this.mode == EDGES)
-				{
-					if (arguments.length < 3)
-					{
-						System.err.println("Cannot load an edge from a line " + 
-								line + ". The line contains two few (<3) arguments");
-						return;
-					}
-					
-					// Checks the node IDs
-					String[] nodeIDs = arguments[2].split("+");
-					
-					if (nodeIDs.length < 2)
-					{
-						System.err.println("Cannot load an edge from a line " + 
-								line + ". There aren't enough (2) nodeIDs to connect.");
-						return;
-					}
-					
-					// Connects the nodes with an edge
-					Graph.this.getNodeWithID(nodeIDs[0]).connectNode(
-							Graph.this.getNodeWithID(nodeIDs[1]), arguments[0], 
-							arguments[1], false);
+					if (edge.connectsNodes(nodes.get(startIndex), nodes.get(endIndex)) 
+							&& !foundEdges.contains(edge))
+						foundEdges.add(edge);
 				}
 			}
 		}
+		
+		return foundEdges;
 	}
-	*/
+	
+	/**
+	 * Creates a graph that contains all the nodes that can be reached from a node with 
+	 * the given id. In other words, returns the largest connected Graph that contains the 
+	 * given node. Please note that changes in the subGraph will be seen in this graph 
+	 * as well
+	 * @param includedNodeID The id of the node that should be contained within the graph
+	 * @return The largest solid graph containing the given node.
+	 */
+	public Graph<TNode, TEdge> getSubGraph(String includedNodeID)
+	{
+		Graph<TNode, TEdge> graph = new Graph<>();
+		
+		GraphNode<TNode, TEdge> startNode = getNode(includedNodeID);
+		if (startNode == null)
+			return graph;
+		
+		// Finds out the neighbors of the node, their neighbors and so on until all connected 
+		// nodes have been found
+		List<GraphNode<TNode, TEdge>> foundNodes = new ArrayList<>();
+		List<GraphNode<TNode, TEdge>> lastNeighbors = new ArrayList<>();
+		List<GraphNode<TNode, TEdge>> newNeighbors = new ArrayList<>();
+		
+		lastNeighbors.add(startNode);
+		
+		while (!lastNeighbors.isEmpty())
+		{
+			// Finds the new neighbors
+			for (GraphNode<TNode, TEdge> node : lastNeighbors)
+			{
+				for (GraphNode<TNode, TEdge> neighbor : node.getEndNodes())
+				{
+					if (!newNeighbors.contains(neighbor) && !lastNeighbors.contains(neighbor) 
+							&& !foundNodes.contains(neighbor))
+						newNeighbors.add(neighbor);
+				}
+			}
+			
+			// Prepares for the next possible loop
+			foundNodes.addAll(lastNeighbors);
+			lastNeighbors.clear();
+			lastNeighbors.addAll(newNeighbors);
+			newNeighbors.clear();
+		}
+		
+		// Creates a graph out of the nodes
+		for (GraphNode<TNode, TEdge> node : foundNodes)
+		{
+			graph.addNode(node);
+		}
+		
+		return graph;
+	}
+	
+	/**
+	 * @return Is the graph solid. Solid graphs can't be broken into smaller parts without 
+	 * removing any edges. In solid graphs, all nodes are connected to each other in some way.
+	 */
+	public boolean isSolid()
+	{
+		if (size() == 0)
+			return true;
+		
+		return getSubGraph(getNodeIDs().get(0)).size() == size();
+	}
+	
+	/**
+	 * Checks if the end node can be reached from the start node by any means
+	 * @param startNodeID The identifier of the start node
+	 * @param endNodeID The identifier of the end node
+	 * @return Can the end node be reached from the start node by any means
+	 */
+	public boolean traversingIsPossible(String startNodeID, String endNodeID)
+	{
+		GraphNode<TNode, TEdge> endNode = getNode(endNodeID);
+		
+		if (endNode == null)
+			return false;
+		
+		return getSubGraph(startNodeID).contains(endNode);
+	}
+	
+	/**
+	 * Finds all the edges that are directly connected to the given node (= start from it or 
+	 * end to it).
+	 * @param nodeID The identifier of the node in this graph
+	 * @return All edges in this graph that are connected to the given node
+	 */
+	public ArrayList<GraphEdge<TNode, TEdge>> getDirectlyConnectedEdges(String nodeID)
+	{
+		ArrayList<GraphEdge<TNode, TEdge>> edges = new ArrayList<>();
+		GraphNode<TNode, TEdge> startNode = getNode(nodeID);
+		
+		if (startNode == null)
+			return edges;
+		
+		for (GraphEdge<TNode, TEdge> edge : getEdges())
+		{
+			if (edge.isConnectedTo(startNode) && !edges.contains(edge))
+				edges.add(edge);
+		}
+		
+		return edges;
+	}
+	
+	/**
+	 * Finds all the nodes that are directly connected to this one node
+	 * @param nodeID The identifier of the node in this graph
+	 * @return All nodes directly connected to the given node
+	 */
+	public ArrayList<GraphNode<TNode, TEdge>> getDirectlyConnectedNodes(String nodeID)
+	{
+		GraphNode<TNode, TEdge> startNode = getNode(nodeID);
+		ArrayList<GraphNode<TNode, TEdge>> foundNodes = new ArrayList<>();
+		
+		if (startNode == null)
+			return foundNodes;
+		
+		ArrayList<GraphEdge<TNode, TEdge>> edges = getDirectlyConnectedEdges(nodeID);
+		
+		for (GraphEdge<TNode, TEdge> edge : edges)
+		{
+			for (GraphNode<TNode, TEdge> node : edge.getConnectedNodes())
+			{
+				if (node != startNode && !foundNodes.contains(node))
+					foundNodes.add(node);
+			}
+		}
+		
+		return foundNodes;
+	}
+	
+	/**
+	 * Checks if the two nodes are directly connected to each other
+	 * @param node1ID The identifier of the first node
+	 * @param node2ID The identifier of the second node
+	 * @return Are the two nodes directly connected to each other
+	 */
+	public boolean nodesAreDirectlyConnected(String node1ID, String node2ID)
+	{
+		GraphNode<TNode, TEdge> targetNode = getNode(node2ID);
+		return getDirectlyConnectedNodes(node1ID).contains(targetNode);
+	}
+	
+	/**
+	 * Checks if the two nodes are directly connected to each other
+	 * @param node1 The first node
+	 * @param node2 The second node
+	 * @return Are the two nodes directly connected to each other
+	 */
+	public boolean nodesAreDirectlyConnected(GraphNode<TNode, TEdge> node1, 
+			GraphNode<TNode, TEdge> node2)
+	{
+		List<GraphNode<TNode, TEdge>> nodes = new ArrayList<>();
+		nodes.add(node1);
+		nodes.add(node2);
+		return !getDirectlyConnectingEdges(nodes).isEmpty();
+	}
 }
