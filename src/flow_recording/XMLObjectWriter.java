@@ -1,9 +1,11 @@
-package flow_io;
+package flow_recording;
 
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+
+import flow_io.XMLIOAccessor;
 
 /**
  * XMLObjectWriter writes objects into XML streams.

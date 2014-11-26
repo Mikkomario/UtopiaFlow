@@ -1,4 +1,4 @@
-package flow_io;
+package flow_recording;
 
 import java.util.Map;
 

@@ -1,7 +1,9 @@
-package flow_io;
+package flow_recording;
 
 import java.io.BufferedWriter;
 import java.util.Map;
+
+import flow_io.FileOutputAccessor;
 
 /**
  * TextObjectWriter writes objects into text format

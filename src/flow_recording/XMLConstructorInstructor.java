@@ -1,10 +1,12 @@
-package flow_io;
+package flow_recording;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+
+import flow_io.XMLIOAccessor;
 
 /**
  * This constructor constructs objects by using an xml stream

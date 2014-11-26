@@ -1,7 +1,9 @@
-package flow_io;
+package flow_recording;
 
 import java.io.FileNotFoundException;
 import java.util.List;
+
+import flow_io.AbstractFileReader;
 
 /**
  * TextConstructor uses lines of text when constructing new constructables
