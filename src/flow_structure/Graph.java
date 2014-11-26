@@ -35,6 +35,17 @@ public class Graph<TNode, TEdge>
 		this.nodes = new HashMap<>();
 		this.idGen = new IDGenerator();
 	}
+	
+	
+	// GETTERS & SETTERS	-------------------------
+	
+	/**
+	 * @return The id generator used for generating the ids in this graph
+	 */
+	protected IDGenerator getIDGenerator()
+	{
+		return this.idGen;
+	}
 
 	
 	// OTHER METHODS	------------------------------------------------
@@ -151,9 +162,18 @@ public class Graph<TNode, TEdge>
 		if (!contains(startNodeID) || !contains(endNodeID))
 			return;
 		
-		// Connects the nodes with an edge
-		new GraphEdge<>(getNode(startNodeID), getNode(endNodeID), this.idGen.generateID(), 
-				edgeData, bothWays);
+		// If there is already a connection, modifies it or leaves it as it is
+		GraphEdge<TNode, TEdge> connection = getConnectingEdge(startNodeID, endNodeID);
+		
+		if (connection != null)
+		{
+			if (!connection.isBothWays() && connection.getStartNode().getID() != startNodeID)
+				connection.makeBothWays();
+		}
+		// otherwise connects the nodes with a new edge
+		else
+			new GraphEdge<>(getNode(startNodeID), getNode(endNodeID), this.idGen.generateID(), 
+					edgeData, bothWays);
 	}
 	
 	/**
@@ -238,6 +258,29 @@ public class Graph<TNode, TEdge>
 		}
 		
 		return foundEdges;
+	}
+	
+	/**
+	 * Finds out the edge connecting the two nodes, if there is one
+	 * @param node1ID The identifier of the first node
+	 * @param node2ID The identifier of the second node
+	 * @return An edge connecting the two nodes or null if the two nodes aren't connected
+	 */
+	public GraphEdge<TNode, TEdge> getConnectingEdge(String node1ID, String node2ID)
+	{
+		if (!contains(node1ID) || !contains(node2ID))
+			return null;
+		
+		List<GraphNode<TNode, TEdge>> nodes = new ArrayList<>();
+		nodes.add(getNode(node1ID));
+		nodes.add(getNode(node2ID));
+		
+		List<GraphEdge<TNode, TEdge>> edges = getDirectlyConnectingEdges(nodes);
+		
+		if (edges.isEmpty())
+			return null;
+		
+		return edges.get(0);
 	}
 	
 	/**

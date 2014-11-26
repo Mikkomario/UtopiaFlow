@@ -14,6 +14,8 @@ import java.util.Map;
  */
 public abstract class AbstractConstructor<T extends Constructable<T>>
 {
+	// TODO: Add some kind of closing method
+	
 	// ATTRIBUTES	-------------------------------
 	
 	private Map<String, T> constructs;

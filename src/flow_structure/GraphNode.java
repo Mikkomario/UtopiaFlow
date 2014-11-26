@@ -49,11 +49,29 @@ public class GraphNode<TNode, TEdge>
 	}
 	
 	/**
+	 * Changes the object's id
+	 * @param id The identifier of the object
+	 */
+	protected void setID(String id)
+	{
+		this.id = id;
+	}
+	
+	/**
 	 * @return The data held in the node
 	 */
 	public TNode getData()
 	{
 		return this.data;
+	}
+	
+	/**
+	 * Changes the data held in this node
+	 * @param data The new data that will be put into this node
+	 */
+	public void setData(TNode data)
+	{
+		this.data = data;
 	}
 	
 	

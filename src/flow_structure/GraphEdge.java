@@ -35,7 +35,7 @@ public class GraphEdge<TNode, TEdge>
 	 * @param data The data stored in the edge
 	 * @param bothWays Should the edge connect the nodes both ways.
 	 */
-	public GraphEdge(GraphNode<TNode, TEdge> start, GraphNode<TNode, TEdge> end, String id, 
+	protected GraphEdge(GraphNode<TNode, TEdge> start, GraphNode<TNode, TEdge> end, String id, 
 			TEdge data, boolean bothWays)
 	{
 		// Initializes attributes
@@ -59,6 +59,15 @@ public class GraphEdge<TNode, TEdge>
 	public TEdge getData()
 	{
 		return this.data;
+	}
+	
+	/**
+	 * Changes the data held in this edge
+	 * @param data The data held in this edge
+	 */
+	public void setData(TEdge data)
+	{
+		this.data = data;
 	}
 	
 	/**
