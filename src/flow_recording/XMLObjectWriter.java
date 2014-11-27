@@ -81,8 +81,7 @@ public class XMLObjectWriter extends ObjectWriter
 			return;
 		}
 		
-		writer.writeStartDocument();
-		writer.writeStartElement(documentName);
+		XMLIOAccessor.writeDocumentStart(documentName, writer);
 		this.documentOpen = true;
 	}
 	
@@ -131,8 +130,7 @@ public class XMLObjectWriter extends ObjectWriter
 		// Closes the document (if necessary)
 		if (this.documentOpen)
 		{
-			writer.writeEndElement();
-			writer.writeEndDocument();
+			XMLIOAccessor.writeDocumentEnd(writer);
 			this.documentOpen = false;
 		}
 	}

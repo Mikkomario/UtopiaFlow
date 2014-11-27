@@ -33,7 +33,7 @@ public class TreeFileReader extends ModeUsingFileReader
 		super(modeIndicators);
 		
 		// Initializes attributes
-		this.root = new TreeNode<String>("Document", null);
+		this.root = new TreeNode<String>("root", null);
 		this.currentParent = this.root;
 		this.lastDepth = 0;
 	}

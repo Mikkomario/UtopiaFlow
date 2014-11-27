@@ -179,6 +179,24 @@ public class TreeNode<T>
 	}
 	
 	/**
+	 * @return How many nodes there are in this tree in total (doesn't count the parent or 
+	 * sibling nodes or any node above those)
+	 */
+	public int size()
+	{
+		if (!this.hasChildren())
+			return 1;
+		
+		int size = 1;
+		for (TreeNode<T> child : this.children)
+		{
+			size += child.size();
+		}
+		
+		return size;
+	}
+	
+	/**
 	 * Checks if the given node is a child or an indirect child of this node.
 	 * 
 	 * @param node The node that may be a direct or indirect child of this node.
