@@ -43,6 +43,7 @@ public class GraphEdge<TNode, TEdge>
 		this.end = end;
 		this.data = data;
 		this.twoWays = bothWays;
+		this.id = id;
 		
 		// Adds the edge to the nodes
 		this.start.addLeavingEdge(this);

@@ -129,14 +129,14 @@ public class Graph<TNode, TEdge>
 	 */
 	public void removeNode(String nodeID)
 	{
-		// Removes the node
-		this.nodes.remove(nodeID);
-		
 		// Removes all the edges connected to the node
 		for (GraphEdge<TNode, TEdge> edge : getDirectlyConnectedEdges(nodeID))
 		{
 			edge.remove();
 		}
+		
+		// Removes the node
+		this.nodes.remove(nodeID);
 	}
 	
 	/**
@@ -168,7 +168,7 @@ public class Graph<TNode, TEdge>
 	 * @param data The data that should be held in the edge
 	 * @return The edge with the given data or null if no such edge exists
 	 */
-	public GraphEdge<TNode, TEdge> gindEdgeWithData(TEdge data)
+	public GraphEdge<TNode, TEdge> findEdgeWithData(TEdge data)
 	{
 		for (GraphEdge<TNode, TEdge> edge : getEdges())
 		{
@@ -191,15 +191,15 @@ public class Graph<TNode, TEdge>
 			boolean bothWays)
 	{
 		// Checks the parameters
-		if (!contains(startNodeID) || !contains(endNodeID))
+		if (!contains(startNodeID) || !contains(endNodeID) || startNodeID.equals(endNodeID))
 			return;
 		
 		// If there is already a connection, modifies it or leaves it as it is
-		GraphEdge<TNode, TEdge> connection = getConnectingEdge(startNodeID, endNodeID);
+		GraphEdge<TNode, TEdge> connection = getConnectingEdge(endNodeID, startNodeID);
 		
 		if (connection != null)
 		{
-			if (!connection.isBothWays() && connection.getStartNode().getID() != startNodeID)
+			if (!connection.isBothWays() && !connection.getStartNode().getID().equals(startNodeID))
 				connection.makeBothWays();
 		}
 		// otherwise connects the nodes with a new edge
@@ -280,8 +280,11 @@ public class Graph<TNode, TEdge>
 		{
 			for (GraphEdge<TNode, TEdge> edge : nodes.get(startIndex).getLeavingEdges())
 			{
-				for (int endIndex = startIndex + 1; endIndex < nodes.size(); endIndex ++)
+				for (int endIndex = 0; endIndex < nodes.size(); endIndex ++)
 				{
+					if (startIndex == endIndex)
+						continue;
+					
 					if (edge.connectsNodes(nodes.get(startIndex), nodes.get(endIndex)) 
 							&& !foundEdges.contains(edge))
 						foundEdges.add(edge);
