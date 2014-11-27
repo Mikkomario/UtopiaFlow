@@ -50,7 +50,7 @@ public class XMLConstructorInstructor
 		XMLStreamReader reader = XMLIOAccessor.createReader(stream);
 		
 		while (reader.hasNext())
-		{
+		{	
 			// A new element may be a constructable (contains other elements or attributes) or 
 			// just an attribute or a link with a cdata value
 			if (reader.isStartElement())
@@ -65,7 +65,7 @@ public class XMLConstructorInstructor
 					if (depth == 1)
 						this.constructor.setInstruction(reader.getLocalName());
 					// If no id is found, an element is added to the current object (depth 2)
-					else if (depth == 2)
+					else if (depth >= 2)
 						attributeElementName = reader.getLocalName();
 				}
 				
@@ -76,7 +76,7 @@ public class XMLConstructorInstructor
 			{
 				// If there was no attribute element above this data, can't work properly
 				if (attributeElementName == null)
-					throw new AbstractConstructor.ConstructorException("The XML is not well valid");
+					throw new AbstractConstructor.ConstructorException("The XML is not valid");
 				
 				String value = reader.getText();
 				if (value.startsWith(IDGenerator.ID_INDICATOR))
@@ -90,6 +90,9 @@ public class XMLConstructorInstructor
 				depth --;
 				attributeElementName = null;
 			}
+			
+			// Moves forward
+			reader.next();
 		}
 		
 		XMLIOAccessor.closeReader(reader);

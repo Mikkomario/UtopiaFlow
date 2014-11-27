@@ -17,7 +17,7 @@ public class IDGenerator
 	/**
 	 * A string in the beginning of every ID
 	 */
-	public static final String ID_INDICATOR = "#";
+	public static final String ID_INDICATOR = "UID";
 	
 	private List<String> ids;
 	

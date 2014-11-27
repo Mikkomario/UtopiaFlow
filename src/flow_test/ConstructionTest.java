@@ -69,9 +69,13 @@ public class ConstructionTest
 		TestConstructor constructor = new TestConstructor();
 		XMLConstructorInstructor instructor = new XMLConstructorInstructor(constructor);
 		
+		System.out.println("Instructor ready");
+		
 		try
 		{
 			instructor.constructFrom(stream);
+			
+			System.out.println("Construction ready");
 		}
 		catch (UnsupportedEncodingException | XMLStreamException e)
 		{
@@ -82,6 +86,8 @@ public class ConstructionTest
 		List<TestConstructable> objects = new ArrayList<>();
 		objects.addAll(constructor.getConstructs().values());
 		objects.sort(null);
+		
+		System.out.println("Object list ready");
 		
 		return objects;
 	}
