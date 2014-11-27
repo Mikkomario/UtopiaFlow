@@ -54,12 +54,32 @@ public class GraphTest
 		System.out.println("Graph edge amount after removal: " + graph.getEdges().size());
 		
 		// Prints the graph
+		printGraph(graph);
+		
 		// Checks solidity
+		System.out.println("Graph is solid: " + graph.isSolid());
+		
 		// Creates a subgraph
+		System.out.println("Creating a subgraph ---------");
+		Graph<String, Integer> subGraph = graph.getSubGraph(graph.findNodeWithData("Node 0").getID());
 		// Prints the subgraph
+		printGraph(subGraph);
+		
 		// Checks solidity
+		System.out.println("Subgraph is solid: " + subGraph.isSolid());
+		
 		// Changes the subgraph
+		System.out.println("Removes all nodes in the subGraph");
+		for (String nodeID : subGraph.getNodeIDs())
+		{
+			subGraph.removeNode(nodeID);
+		}
+		
 		// Prints both graphs
+		System.out.println("Subgraph after removal: ");
+		printGraph(subGraph);
+		System.out.println("Graph after removal: ");
+		printGraph(graph);
 	}
 	
 	
