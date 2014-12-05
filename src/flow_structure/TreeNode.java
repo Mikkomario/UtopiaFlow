@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import flow_recording.ObjectFormatException;
 import flow_recording.ObjectParser;
 
 /**
@@ -353,7 +352,7 @@ public class TreeNode<T>
 	 */
 	public static TreeNode<String> constructFromString(String s, TreeNode<String> parent)
 	{
-		return constructFromString(s, new StringParser(), parent);
+		return constructFromString(s, new ObjectParser.StringParser(), parent);
 	}
 	
 	/**
@@ -442,7 +441,7 @@ public class TreeNode<T>
 	 */
 	public static String treeToString(TreeNode<String> tree)
 	{
-		return tree.toString(new StringParser());
+		return tree.toString(new ObjectParser.StringParser());
 	}
 	
 	private boolean containsPath(T[] path, T canBeAnyContent, int checkIndex)
@@ -499,27 +498,5 @@ public class TreeNode<T>
 		}
 		
 		return count;
-	}
-	
-	
-	// SUBCLASSES	----------------------
-	
-	// TODO: Make this class an accessible subclass of objectParser
-	
-	private static class StringParser implements ObjectParser<String>
-	{
-		// IMLEMENTED METHODS	------------------
-		
-		@Override
-		public String parseToString(String object)
-		{
-			return object;
-		}
-
-		@Override
-		public String parseFromString(String s) throws ObjectFormatException
-		{
-			return s;
-		}
 	}
 }

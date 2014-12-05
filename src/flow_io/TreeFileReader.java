@@ -1,8 +1,8 @@
 package flow_io;
 
-import java.io.FileNotFoundException;
 import java.util.List;
 
+import flow_recording.ObjectParser;
 import flow_structure.TreeNode;
 
 /**
@@ -10,16 +10,16 @@ import flow_structure.TreeNode;
  * with overly large files.
  * 
  * @author Mikko Hilpinen
+ * @param <T> The type of object held in the read tree
  * @since 21.11.2014
  */
-public class TreeFileReader extends ModeUsingFileReader
+public class TreeFileReader<T> extends ModeUsingFileReader
 {
-	// TODO: Add support for other tree types than string
-	
 	// ATTRIBUTES	--------------------------------
 	
-	private TreeNode<String> root, currentParent;
+	private TreeNode<T> root, currentParent;
 	private int lastDepth;
+	private ObjectParser<T> parser;
 	
 	
 	// CONSTRUCTOR	--------------------------------
@@ -27,31 +27,37 @@ public class TreeFileReader extends ModeUsingFileReader
 	/**
 	 * Creates a new file reader that uses the given mode indicators
 	 * 
+	 * @param parent The node that will serve as the parent / root node for the read tree
+	 * @param parser The parser that can parse desired content from strings
 	 * @param modeIndicators The strings that indicate a line with a mode introduction. The 
 	 * indicators should be in order depth-wise.
 	 */
-	public TreeFileReader(String[] modeIndicators)
+	public TreeFileReader(TreeNode<T> parent, ObjectParser<T> parser, String[] modeIndicators)
 	{
 		super(modeIndicators);
 		
 		// Initializes attributes
-		this.root = new TreeNode<String>("root", null);
+		this.root = parent;
 		this.currentParent = this.root;
 		this.lastDepth = 0;
+		this.parser = parser;
 	}
 	
 	/**
 	 * Creates a new file reader that uses the default mode indicators. The default indicators 
 	 * are: "&0:", "&1:", ... , "&9:".
+	 * @param parent The node that will serve as the parent / root node for the read tree
+	 * @param parser The parser that can parse desired content from strings
 	 */
-	public TreeFileReader()
+	public TreeFileReader(TreeNode<T> parent, ObjectParser<T> parser)
 	{
 		super();
 		
 		// Initializes attributes
-		this.root = new TreeNode<String>("Document", null);
+		this.root = parent;
 		this.currentParent = this.root;
 		this.lastDepth = 0;
+		this.parser = parser;
 	}
 	
 	
@@ -61,14 +67,14 @@ public class TreeFileReader extends ModeUsingFileReader
 	protected void onLine(String line, List<String> modes)
 	{
 		// Adds content under the latest node
-		new TreeNode<String>(line, this.currentParent);
+		new TreeNode<T>(this.parser.parseFromString(line), this.currentParent);
 	}
 
 	@Override
 	protected void onMode(String newMode, List<String> modes)
 	{
 		// Finds the correct parent for the new node
-		TreeNode<String> parent = this.currentParent;
+		TreeNode<T> parent = this.currentParent;
 		while (this.lastDepth - modes.size() >= 0)
 		{
 			parent = parent.getParent();
@@ -76,29 +82,18 @@ public class TreeFileReader extends ModeUsingFileReader
 		}
 		
 		// Adds a new parent node to the tree
-		this.currentParent = new TreeNode<String>(newMode, parent);
+		this.currentParent = new TreeNode<T>(this.parser.parseFromString(newMode), parent);
 		this.lastDepth ++;
-	}
-	
-	@Override
-	public void readFile(String fileName, String commentIndicator) throws FileNotFoundException
-	{
-		// Clears the previous tree first
-		this.root = new TreeNode<String>("Document", null);
-		this.currentParent = this.root;
-		this.lastDepth = 0;
-		
-		super.readFile(fileName, commentIndicator);
 	}
 	
 	
 	// GETTERS & SETTERS	---------------------------------
 	
 	/**
-	 * @return A tree constructed from the contents of the file. The root node will always 
-	 * be named "Document".
+	 * @return A tree constructed from the contents of the file (the same as the parent node 
+	 * given in the constructor).
 	 */
-	public TreeNode<String> getDocument()
+	public TreeNode<T> getDocument()
 	{
 		return this.root;
 	}

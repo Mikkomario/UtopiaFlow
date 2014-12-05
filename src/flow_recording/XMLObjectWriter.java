@@ -23,7 +23,10 @@ public class XMLObjectWriter extends ObjectWriter
 	// CONSTRUCTOR	------------------------------------
 	
 	/**
-	 * Creates a new XMLObjectWriter
+	 * Creates a new XMLObjectWriter. Please note that the document opening and closing 
+	 * is done through this writer and not through XMLIOAccessor.
+	 * @see #openDocument(String, XMLStreamWriter)
+	 * @see #closeDocument(XMLStreamWriter)
 	 */
 	public XMLObjectWriter()
 	{
@@ -41,6 +44,7 @@ public class XMLObjectWriter extends ObjectWriter
 	 * @param content The object that will be written to the stream
 	 * @param writer The writer that will write the object
 	 * @throws XMLStreamException If the writing failed unexpectedly
+	 * @see #closeDocument(XMLStreamWriter)
 	 */
 	public void writeInto(Writable content, XMLStreamWriter writer) throws XMLStreamException
 	{

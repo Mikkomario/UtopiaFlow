@@ -12,6 +12,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import flow_recording.ObjectParser;
 import flow_structure.TreeNode;
 
 /**
@@ -23,8 +24,6 @@ import flow_structure.TreeNode;
  */
 public class XMLIOAccessor
 {
-	// TODO: Add support for other treetypes than string
-	
 	// CONSTRUCTOR	-------------------------------------------
 	
 	private XMLIOAccessor()
@@ -132,10 +131,12 @@ public class XMLIOAccessor
 	/**
 	 * Writes the tree into an xml stream
 	 * @param tree The tree that will be written into the stream
+	 * @param parser The parser that converts tree data into strings
 	 * @param writer The writer that will do the writing
 	 * @throws XMLStreamException if the writing fails
 	 */
-	public static <T> void writeTree(TreeNode<T> tree, XMLStreamWriter writer) throws XMLStreamException
+	public static <T> void writeTree(TreeNode<T> tree, ObjectParser<T> parser, 
+			XMLStreamWriter writer) throws XMLStreamException
 	{
 		TreeNode<T> currentNode = tree;
 		
@@ -144,14 +145,14 @@ public class XMLIOAccessor
 			// Writes the latest element
 			if (currentNode.hasChildren())
 			{
-				writer.writeStartElement(currentNode.getContent().toString());
+				writer.writeStartElement(parser.parseToString(currentNode.getContent()));
 				
 				// If the current node has children left, handles the first one next
 				currentNode = currentNode.getChild(0);
 			}
 			else
 			{
-				writer.writeEmptyElement(currentNode.getContent().toString());
+				writer.writeEmptyElement(parser.parseToString(currentNode.getContent()));
 			
 				// Otherwise, if the node has a right sibling, handles that next
 				TreeNode<T> sibling = currentNode.getRightSibling();
@@ -218,17 +219,19 @@ public class XMLIOAccessor
 	
 	/**
 	 * Creates a tree from xml stream
+	 * @param parent The parent node for the read tree
+	 * @param parser A parser that is able to parse objects from strings
 	 * @param stream The xml that contains the tree data
-	 * @return A tree constructed from the xml data
+	 * @return A tree constructed from the xml data (same as the given parent node)
 	 * @throws UnsupportedEncodingException If the stream doesn't support UTF-8
 	 * @throws XMLStreamException If the reading failed
 	 */
-	public static TreeNode<String> readTree(InputStream stream) 
-			throws UnsupportedEncodingException, XMLStreamException
+	public static <T> TreeNode<T> readTree(TreeNode<T> parent, ObjectParser<T> parser, 
+			InputStream stream) throws UnsupportedEncodingException, XMLStreamException
 	{
 		XMLStreamReader reader = createReader(stream);
-		TreeNode<String> tree = new TreeNode<>("root", null);
-		TreeNode<String> lastNode = tree;
+		TreeNode<T> tree = parent;
+		TreeNode<T> lastNode = tree;
 		boolean rootElementSkipped = false;
 		
 		while (reader.hasNext() && lastNode != null)
@@ -240,7 +243,8 @@ public class XMLIOAccessor
 				if (!rootElementSkipped)
 					rootElementSkipped = true;
 				else
-					lastNode = new TreeNode<String>(reader.getLocalName(), lastNode);
+					lastNode = new TreeNode<T>(parser.parseFromString(reader.getLocalName()), 
+							lastNode);
 			}
 			// On element end, moves upwards in the tree
 			else if (reader.isEndElement())

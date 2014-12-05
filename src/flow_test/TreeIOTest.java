@@ -13,6 +13,7 @@ import javax.xml.stream.XMLStreamWriter;
 import flow_io.FileOutputAccessor;
 import flow_io.TreeFileReader;
 import flow_io.XMLIOAccessor;
+import flow_recording.ObjectParser;
 import flow_structure.TreeNode;
 
 /**
@@ -62,7 +63,8 @@ public class TreeIOTest
 		FileOutputAccessor.closeWriter(textWriter);
 		
 		// Loads a third tree from the file
-		TreeFileReader treeReader = new TreeFileReader();
+		TreeFileReader<String> treeReader = new TreeFileReader<>(new TreeNode<>("root", null), 
+				new ObjectParser.StringParser());
 		try
 		{
 			treeReader.readFile("TreeIOTest.txt", null);
@@ -83,7 +85,7 @@ public class TreeIOTest
 		{
 			xmlWriter = XMLIOAccessor.createWriter(stream);
 			XMLIOAccessor.writeDocumentStart("root", xmlWriter);
-			XMLIOAccessor.writeTree(tree1, xmlWriter);
+			XMLIOAccessor.writeTree(tree1, new ObjectParser.StringParser(), xmlWriter);
 			XMLIOAccessor.writeDocumentEnd(xmlWriter);
 		}
 		catch (UnsupportedEncodingException | XMLStreamException e)
@@ -100,7 +102,8 @@ public class TreeIOTest
 		// Loads a tree from the stream
 		try
 		{
-			tree2 = XMLIOAccessor.readTree(new ByteArrayInputStream(xml));
+			tree2 = XMLIOAccessor.readTree(new TreeNode<>("root", null), 
+					new ObjectParser.StringParser(), new ByteArrayInputStream(xml));
 			// Prints the fourth tree
 			System.out.println("Tree from xml: " + TreeNode.treeToString(tree2));
 		}
