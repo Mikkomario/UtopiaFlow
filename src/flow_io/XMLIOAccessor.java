@@ -23,6 +23,8 @@ import flow_structure.TreeNode;
  */
 public class XMLIOAccessor
 {
+	// TODO: Add support for other treetypes than string
+	
 	// CONSTRUCTOR	-------------------------------------------
 	
 	private XMLIOAccessor()

@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import flow_recording.ObjectFormatException;
+import flow_recording.ObjectParser;
+
 /**
  * TreeNode is a simple tree-like data structure that can contain treeNodes of any type. 
  * These nodes are connected to each other in parent-child manner. A node with 
@@ -44,30 +47,6 @@ public class TreeNode<T>
 		this.children = new ArrayList<TreeNode<T>>();
 		
 		setParent(parent);
-	}
-	
-	
-	// IMPLEMENTED METHODS	----------------------------------------------
-	
-	@Override
-	public String toString()
-	{
-		String data = getContent().toString();
-		if (getChildAmount() > 0)
-		{
-			data = data.concat("<");
-			
-			for (int i = 0; i < getChildAmount(); i++)
-			{
-				if (i != 0)
-					data = data.concat(",");
-				data = data.concat(getChild(i).toString());
-			}
-			
-			data = data.concat(">");
-		}
-		
-		return data;
 	}
 	
 	
@@ -114,6 +93,32 @@ public class TreeNode<T>
 	
 	
 	// OTHER METHODS	--------------------------------------------------
+	
+	/**
+	 * Parses the tree into a string format using the given object parser.
+	 * 
+	 * @param parser The parser that will parse node contents
+	 * @return A string representing this tree
+	 */
+	public String toString(ObjectParser<T> parser)
+	{
+		String data = parser.parseToString(getContent());
+		if (getChildAmount() > 0)
+		{
+			data += "<";
+			
+			for (int i = 0; i < getChildAmount(); i++)
+			{
+				if (i != 0)
+					data += ",";
+				data += getChild(i).toString(parser);
+			}
+			
+			data += ">";
+		}
+		
+		return data;
+	}
 	
 	/**
 	 * @return Does the node have any children under it
@@ -339,21 +344,38 @@ public class TreeNode<T>
 	}
 	
 	/**
+	 * Parses a string into tree format
+	 * @param s The string that will be parsed into a tree format. Nodes under a node should 
+	 * be indicated with '<' and '>' while nodes under the same parent should be separated 
+	 * with ','. For example "a<b,c>d,e<f<g>>" would be a valid tree.
+	 * @param parent The parent node for the new tree
+	 * @return The parent node for convenience
+	 */
+	public static TreeNode<String> constructFromString(String s, TreeNode<String> parent)
+	{
+		return constructFromString(s, new StringParser(), parent);
+	}
+	
+	/**
 	 * Parses a string into a tree format.
 	 * @param s The string that will be parsed into a tree format. Nodes under a node should 
 	 * be indicated with '<' and '>' while nodes under the same parent should be separated 
 	 * with ','. For example "a<b,c>d,e<f<g>>" would be a valid tree.
-	 * @return A tree constructed from the given string
+	 * @param parser The parser that can construct node data from strings
+	 * @param parent The node that will act as a parent for the new nodes (is returned when 
+	 * the method ends)
+	 * @return The parent node for convenience
 	 */
-	public static TreeNode<String> constructFromString(String s)
+	public static <T> TreeNode<T> constructFromString(String s, ObjectParser<T> parser, 
+			TreeNode<T> parent)
 	{
 		if (countSubStrings(s, "<") != countSubStrings(s, ">"))
 			throw new IllegalArgumentException("Could not create a validation tree based on " + 
 					s + ". The amount of opened and closed elements is unequal");
 		
 		String remainingString = new String(s);
-		TreeNode<String> tree = new TreeNode<String>("root", null);
-		Stack<TreeNode<String>> parents = new Stack<TreeNode<String>>();
+		TreeNode<T> tree = parent;
+		Stack<TreeNode<T>> parents = new Stack<>();
 		parents.push(tree);
 		
 		// Parses each node separately (a node ends at ',' '<' or '>')
@@ -386,10 +408,10 @@ public class TreeNode<T>
 				nodeEndsAt = remainingString.length();
 			
 			// Creates the new node (if there is one)
-			TreeNode<String> newNode = null;
+			TreeNode<T> newNode = null;
 			if (nodeEndsAt != 0)
-				newNode = new TreeNode<String>(remainingString.substring(0, nodeEndsAt), 
-						parents.peek());
+				newNode = new TreeNode<>(parser.parseFromString(remainingString.substring(0, 
+						nodeEndsAt)), parents.peek());
 			
 			// Performs a specific action (depends on the action that ended the current node)
 			switch (nodeEndsWith)
@@ -411,6 +433,16 @@ public class TreeNode<T>
 		}
 		
 		return tree;
+	}
+	
+	/**
+	 * Parses a string type tree into a string
+	 * @param tree The tree that will be written into a string
+	 * @return A string parsed from the tree
+	 */
+	public static String treeToString(TreeNode<String> tree)
+	{
+		return tree.toString(new StringParser());
 	}
 	
 	private boolean containsPath(T[] path, T canBeAnyContent, int checkIndex)
@@ -467,5 +499,27 @@ public class TreeNode<T>
 		}
 		
 		return count;
+	}
+	
+	
+	// SUBCLASSES	----------------------
+	
+	// TODO: Make this class an accessible subclass of objectParser
+	
+	private static class StringParser implements ObjectParser<String>
+	{
+		// IMLEMENTED METHODS	------------------
+		
+		@Override
+		public String parseToString(String object)
+		{
+			return object;
+		}
+
+		@Override
+		public String parseFromString(String s) throws ObjectFormatException
+		{
+			return s;
+		}
 	}
 }

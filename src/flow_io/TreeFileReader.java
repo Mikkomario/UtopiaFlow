@@ -14,6 +14,8 @@ import flow_structure.TreeNode;
  */
 public class TreeFileReader extends ModeUsingFileReader
 {
+	// TODO: Add support for other tree types than string
+	
 	// ATTRIBUTES	--------------------------------
 	
 	private TreeNode<String> root, currentParent;

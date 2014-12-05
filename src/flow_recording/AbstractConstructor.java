@@ -14,8 +14,6 @@ import java.util.Map;
  */
 public abstract class AbstractConstructor<T extends Constructable<T>>
 {
-	// TODO: Add some kind of closing method
-	
 	// ATTRIBUTES	-------------------------------
 	
 	private Map<String, T> constructs;
@@ -32,10 +30,7 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	public AbstractConstructor()
 	{
 		// Initializes attributes
-		this.constructs = new HashMap<>();
-		this.idQuery = new HashMap<>();
-		this.latestConstruct = null;
-		this.currentInstruction = "";
+		reset();
 	}
 	
 	
@@ -168,6 +163,17 @@ public abstract class AbstractConstructor<T extends Constructable<T>>
 	public void setInstruction(String newInstruction)
 	{
 		this.currentInstruction = newInstruction;
+	}
+	
+	/**
+	 * Makes the constructor forget about its previous activities
+	 */
+	public void reset()
+	{
+		this.constructs = new HashMap<>();
+		this.idQuery = new HashMap<>();
+		this.latestConstruct = null;
+		this.currentInstruction = "";
 	}
 	
 	

@@ -42,17 +42,19 @@ public class TreeIOTest
 		// Creates a tree
 		TreeNode<String> tree1 = createTree(10);
 		// Prints the tree
-		System.out.println(tree1);
+		System.out.println(TreeNode.treeToString(tree1));
 		// Prints tree statistics
 		System.out.println("Tree size: " + tree1.size());
 		System.out.println("Tree depth: " + tree1.getDepth());
 		
 		// Constructs another tree from the print
-		TreeNode<String> tree2 = TreeNode.constructFromString(tree1.toString());
+		TreeNode<String> tree2 = TreeNode.constructFromString(TreeNode.treeToString(tree1), 
+				new TreeNode<String>("root", null));
 		// Prints the other tree
-		System.out.println("Copy of tree1: " + tree2);
-		tree2 = TreeNode.constructFromString(tree1.toString() + tree1.toString());
-		System.out.println("Double of tree1: " + tree2);
+		System.out.println("Copy of tree1: " + TreeNode.treeToString(tree2));
+		tree2 = TreeNode.constructFromString(TreeNode.treeToString(tree1) + 
+				TreeNode.treeToString(tree1), new TreeNode<String>("root", null));
+		System.out.println("Double of tree1: " + TreeNode.treeToString(tree2));
 		
 		// Saves the tree into a file
 		BufferedWriter textWriter = FileOutputAccessor.openFile("TreeIOTest.txt");
@@ -72,7 +74,7 @@ public class TreeIOTest
 		}
 		tree2 = treeReader.getDocument();
 		// Prints the third tree
-		System.out.println("Tree read from the file: " + tree2);
+		System.out.println("Tree read from the file: " + TreeNode.treeToString(tree2));
 		
 		// Saves the tree into an xml stream
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -100,7 +102,7 @@ public class TreeIOTest
 		{
 			tree2 = XMLIOAccessor.readTree(new ByteArrayInputStream(xml));
 			// Prints the fourth tree
-			System.out.println("Tree from xml: " + tree2);
+			System.out.println("Tree from xml: " + TreeNode.treeToString(tree2));
 		}
 		catch (UnsupportedEncodingException | XMLStreamException e)
 		{
