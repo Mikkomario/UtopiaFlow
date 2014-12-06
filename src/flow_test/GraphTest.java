@@ -58,7 +58,7 @@ public class GraphTest
 		
 		// Tries to find certain data
 		System.out.println("Node with data 'Node 1': " + graph.findNodeWithData("Node 1").getID());
-		System.out.println("Edge 100: " + graph.findEdgeWithData(100).getID());
+		System.out.println("Edge 101: " + graph.findEdgeWithData(101).getID());
 		
 		
 		// Creates a recording of the graph
@@ -204,11 +204,11 @@ public class GraphTest
 		{
 			String startNodeID = nodeIDs.get(random.nextInt(nodeAmount));
 			String endNodeID = nodeIDs.get(random.nextInt(nodeAmount));
-			graph.connectNodes(startNodeID, endNodeID, i, false);
+			graph.connectNodes(startNodeID, endNodeID, i, false, true);
 		}
-		graph.connectNodes(nodeIDs.get(0), nodeIDs.get(1), 100, false);
-		graph.connectNodes(nodeIDs.get(1), nodeIDs.get(0), 101, false);
-		graph.connectNodes(nodeIDs.get(2), nodeIDs.get(3), 102, true);
+		graph.connectNodes(nodeIDs.get(0), nodeIDs.get(1), 100, false, true);
+		graph.connectNodes(nodeIDs.get(1), nodeIDs.get(0), 101, false, true);
+		graph.connectNodes(nodeIDs.get(2), nodeIDs.get(3), 102, true, true);
 		
 		return graph;
 	}

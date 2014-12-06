@@ -186,9 +186,11 @@ public class Graph<TNode, TEdge>
 	 * @param endNodeID The node the edge ends to
 	 * @param edgeData The data contained within the edge
 	 * @param bothWays If the edge should be two way instead of one way
+	 * @param overWrite Should the previous edge data be overwritten if it exists (true) or 
+	 * should the new edge be parallel to possible previous ones (false)
 	 */
 	public void connectNodes(String startNodeID, String endNodeID, TEdge edgeData, 
-			boolean bothWays)
+			boolean bothWays, boolean overWrite)
 	{
 		// Checks the parameters
 		if (!contains(startNodeID) || !contains(endNodeID) || startNodeID.equals(endNodeID))
@@ -199,13 +201,22 @@ public class Graph<TNode, TEdge>
 		
 		if (connection != null)
 		{
-			if (!connection.isBothWays() && !connection.getStartNode().getID().equals(startNodeID))
-				connection.makeBothWays();
+			// Overwrites (/ modifies) the previous edge
+			if (overWrite || connection.getData().equals(edgeData))
+			{
+				if (!connection.isBothWays() && !connection.getStartNode().getID().equals(startNodeID))
+				{
+					connection.makeBothWays();
+					connection.setData(edgeData);
+				}
+				
+				return;
+			}
 		}
-		// otherwise connects the nodes with a new edge
-		else
-			new GraphEdge<>(getNode(startNodeID), getNode(endNodeID), this.idGen.generateID(), 
-					edgeData, bothWays);
+		
+		// If there was no previous edge or it wasn't overwritten, connects the nodes with a new edge
+		new GraphEdge<>(getNode(startNodeID), getNode(endNodeID), this.idGen.generateID(), 
+				edgeData, bothWays);
 	}
 	
 	/**
