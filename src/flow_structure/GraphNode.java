@@ -136,6 +136,24 @@ public class GraphNode<TNode, TEdge>
 	}
 	
 	/**
+	 * Finds all the leaving edges that have the given data in them
+	 * @param data The data that should be found from the returned edges
+	 * @return All edges leaving from this node that have the given data
+	 */
+	public ArrayList<GraphEdge<TNode, TEdge>> getLeavingEdgesWithData(TEdge data)
+	{
+		ArrayList<GraphEdge<TNode, TEdge>> edges = new ArrayList<>();
+		
+		for (GraphEdge<TNode, TEdge> edge : getLeavingEdges())
+		{
+			if (edge.getData().equals(data))
+				edges.add(edge);
+		}
+		
+		return edges;
+	}
+	
+	/**
 	 * @return A list containing all the edges leaving from this node
 	 */
 	public ArrayList<GraphEdge<TNode, TEdge>> getLeavingEdges()
