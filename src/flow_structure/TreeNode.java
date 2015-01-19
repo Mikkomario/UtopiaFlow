@@ -94,6 +94,27 @@ public class TreeNode<T>
 	// OTHER METHODS	--------------------------------------------------
 	
 	/**
+	 * Removes the given node from under this node
+	 * @param child The child that will be removed
+	 */
+	public void removeChild(TreeNode<T> child)
+	{
+		this.children.remove(child);
+		
+		if (child != null && child.getParent() != null && child.getParent().equals(this))
+			child.setParent(null);
+	}
+	
+	/**
+	 * Removes the child at the given index from the nodes under this node
+	 * @param index The index of the child that will be removed
+	 */
+	public void removeChild(int index)
+	{
+		removeChild(getChild(index));
+	}
+	
+	/**
 	 * Parses the tree into a string format using the given object parser.
 	 * 
 	 * @param parser The parser that will parse node contents
@@ -117,6 +138,16 @@ public class TreeNode<T>
 		}
 		
 		return data;
+	}
+	
+	/**
+	 * Checks if the given node is a direct child of this node
+	 * @param node The node that may be a child of this node
+	 * @return Is the given node a direct child of this node
+	 */
+	public boolean hasChild(TreeNode<T> node)
+	{
+		return this.children.contains(node);
 	}
 	
 	/**
@@ -163,9 +194,14 @@ public class TreeNode<T>
 		// Null parent is always acceptable
 		if (parent == null)
 		{
-			boolean parentWasNull = (this.parent == null);
+			if (getParent() == null)
+				return false;
+			
+			TreeNode<T> previousParent = getParent();
 			this.parent = null;
-			return !parentWasNull;
+			
+			previousParent.removeChild(this);
+			return true;
 		}
 		
 		// If the node is already the parent of this one, does nothing
@@ -176,8 +212,11 @@ public class TreeNode<T>
 			return false;
 		
 		// Adds the node as a parent and adds this node as its child
+		TreeNode<T> previousParent = getParent();
 		this.parent = parent;
 		this.parent.addChild(this);
+		
+		previousParent.removeChild(this);
 		
 		return true;
 	}
