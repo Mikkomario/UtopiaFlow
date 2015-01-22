@@ -216,7 +216,8 @@ public class TreeNode<T>
 		this.parent = parent;
 		this.parent.addChild(this);
 		
-		previousParent.removeChild(this);
+		if (previousParent != null)
+			previousParent.removeChild(this);
 		
 		return true;
 	}
