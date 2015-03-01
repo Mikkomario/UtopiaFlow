@@ -95,13 +95,43 @@ public class XMLIOAccessor
 	 * 
 	 * @param linkUrl the whole url to the target
 	 * @param writer The XMLStreamWriter that will write the link into a stream
+	 * @param writeNamespace Should the namespace be introduced at this point (optional, 
+	 * default = true)
+	 * @throws XMLStreamException In case something goes wrong during the write
+	 */
+	public static void writeLinkAsAttribute(String linkUrl, XMLStreamWriter writer, 
+			boolean writeNamespace) throws XMLStreamException
+	{
+		if (writeNamespace)
+		{
+			writeXLinkNamespaceIntroduction(writer);
+			writer.writeAttribute("xlink", "http://www.w3.org/1999/xlink", "href", linkUrl);
+		}
+		else
+			writer.writeAttribute("xlink:href", linkUrl);
+	}
+	
+	/**
+	 * Writes a resource link with the given writer
+	 * 
+	 * @param linkUrl the whole url to the target
+	 * @param writer The XMLStreamWriter that will write the link into a stream
 	 * @throws XMLStreamException In case something goes wrong during the write
 	 */
 	public static void writeLinkAsAttribute(String linkUrl, XMLStreamWriter writer) throws 
 			XMLStreamException
 	{
+		writeLinkAsAttribute(linkUrl, writer, true);
+	}
+	
+	/**
+	 * Introduces the XLink namespace
+	 * @param writer The writer that will write the namespace
+	 * @throws XMLStreamException If the namespace couldn't be written
+	 */
+	public static void writeXLinkNamespaceIntroduction(XMLStreamWriter writer) throws XMLStreamException
+	{
 		writer.writeNamespace("xlink", "http://www.w3.org/1999/xlink");
-		writer.writeAttribute("xlink", "http://www.w3.org/1999/xlink", "href", linkUrl);
 	}
 	
 	/**
