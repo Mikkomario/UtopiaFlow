@@ -1,5 +1,6 @@
 package flow_io;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -223,7 +224,22 @@ public class XMLIOAccessor
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
 		
-		return factory.createXMLStreamReader(reader);
+		try
+		{
+			return factory.createXMLStreamReader(reader);
+		}
+		catch (XMLStreamException e)
+		{
+			try
+			{
+				reader.close();
+			}
+			catch (IOException e1)
+			{
+				// Ignored
+			}
+			throw e;
+		}
 	}
 	
 	/**
@@ -261,30 +277,36 @@ public class XMLIOAccessor
 	{
 		XMLStreamReader reader = createReader(stream);
 		TreeNode<T> tree = parent;
-		TreeNode<T> lastNode = tree;
-		boolean rootElementSkipped = false;
 		
-		while (reader.hasNext() && lastNode != null)
+		try
 		{
-			// On new element, creates a new node
-			if (reader.isStartElement())
-			{
-				// Skips the root element
-				if (!rootElementSkipped)
-					rootElementSkipped = true;
-				else
-					lastNode = new TreeNode<T>(parser.parseFromString(reader.getLocalName()), 
-							lastNode);
-			}
-			// On element end, moves upwards in the tree
-			else if (reader.isEndElement())
-				lastNode = lastNode.getParent();
-			
-			reader.next();
-		}
+			TreeNode<T> lastNode = tree;
+			boolean rootElementSkipped = false;
 		
-		// Closes the reader as well
-		closeReader(reader);
+			while (reader.hasNext() && lastNode != null)
+			{
+				// On new element, creates a new node
+				if (reader.isStartElement())
+				{
+					// Skips the root element
+					if (!rootElementSkipped)
+						rootElementSkipped = true;
+					else
+						lastNode = new TreeNode<T>(parser.parseFromString(reader.getLocalName()), 
+								lastNode);
+				}
+				// On element end, moves upwards in the tree
+				else if (reader.isEndElement())
+					lastNode = lastNode.getParent();
+				
+				reader.next();
+			}
+		}
+		finally
+		{
+			// Closes the reader as well
+			closeReader(reader);
+		}
 		
 		return tree;
 	}

@@ -90,6 +90,17 @@ public class TreeNode<T>
 		return this.children.get(index);
 	}
 	
+	/**
+	 * @return The child nodes of this node. The list is a copy and the changes made to it 
+	 * won't affect the node.
+	 */
+	public List<TreeNode<T>> getChildren()
+	{
+		List<TreeNode<T>> children = new ArrayList<>();
+		children.addAll(this.children);
+		return children;
+	}
+	
 	
 	// OTHER METHODS	--------------------------------------------------
 	
@@ -112,6 +123,17 @@ public class TreeNode<T>
 	public void removeChild(int index)
 	{
 		removeChild(getChild(index));
+	}
+	
+	/**
+	 * Removes all the child nodes under this node
+	 */
+	public void removeChildren()
+	{
+		for (TreeNode<T> child : getChildren())
+		{
+			removeChild(child);
+		}
 	}
 	
 	/**
@@ -223,8 +245,8 @@ public class TreeNode<T>
 	}
 	
 	/**
-	 * @return How many nodes there are in this tree in total (doesn't count the parent or 
-	 * sibling nodes or any node above those)
+	 * @return How many nodes there are in this tree in total, including this node. 
+	 * (Doesn't count the parent or sibling nodes or any node above those)
 	 */
 	public int size()
 	{
