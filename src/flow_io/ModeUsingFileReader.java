@@ -1,5 +1,6 @@
 package flow_io;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,11 +106,11 @@ public abstract class ModeUsingFileReader extends AbstractFileReader
 	}
 	
 	@Override
-	public void readFile(String fileName, String commentIndicator) throws FileNotFoundException
+	public void readFile(File file, String commentIndicator) throws FileNotFoundException
 	{
 		// Clears the previous data
 		this.currentModes = new ArrayList<String>();
 		
-		super.readFile(fileName, commentIndicator);
+		super.readFile(file, commentIndicator);
 	}
 }

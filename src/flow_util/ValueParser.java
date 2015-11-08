@@ -1,5 +1,7 @@
 package flow_util;
 
+import java.util.Collection;
+
 /**
  * An instance of this class can parse a value into an object
  * @author Mikko Hilpinen
@@ -13,18 +15,28 @@ public interface ValueParser
 	 * @param from The type of the provided value 
 	 * @param to The type of the return value
 	 * @return An object parsed from the provided value to the desired type
+	 * @throws ValueParseException If the parsing failed
 	 */
-	public Object parse(Object value, DataType from, DataType to);
+	public Object parse(Object value, DataType from, DataType to) throws ValueParseException;
+	
+	/**
+	 * Parses an value to a certain object type
+	 * @param value The value that should be parsed
+	 * @param to The type of the return value
+	 * @return An object parsed from the provided value to the desired type
+	 * @throws ValueParseException If the parsing failed
+	 */
+	public Object parse(Value value, DataType to) throws ValueParseException;
 	
 	/**
 	 * @return The value types the parser is willing to take
 	 */
-	public DataType[] getSupportedInputTypes();
+	public Collection<? extends DataType> getSupportedInputTypes();
 	
 	/**
 	 * @return The value types the parser is willing to produce
 	 */
-	public DataType[] getSupportedOutputTypes();
+	public Collection<? extends DataType> getSupportedOutputTypes();
 	
 	
 	// SUBCLASSES	------------------

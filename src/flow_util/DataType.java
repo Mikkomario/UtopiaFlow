@@ -13,24 +13,10 @@ public interface DataType
 	 * @param other The other data type
 	 * @return Are these data types the same
 	 */
-	public boolean isSameTypeAs(DataType other);
+	public boolean equals(DataType other);
 	
 	/**
 	 * @return The name of the data type
 	 */
 	public String getName();
-	
-	/**
-	 * @return The class that instantiates the values of this data type
-	 */
-	public Class<?> getValueClass();
-	// TODO: Remove this?
-	
-	/**
-	 * Does the data type belong in another data type. For example, an integer is also a 
-	 * numeric, but a numeric is not necessarily an integer.
-	 * @param other The other data type
-	 * @return Does this data type belong to the other data type
-	 */
-	//public boolean isOfType(DataType other);
 }

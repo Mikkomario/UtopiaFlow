@@ -1,20 +1,25 @@
 package flow_util;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This static interface keeps track of the different data type hierarchies, etc.
  * @author Mikko Hilpinen
  * @since 7.11.2015
  */
-public class DataTypes
+public class DataTypes implements ValueParser
 {
 	// ATTRIBUTES	------------------
 	
 	private static DataTypes instance = null;
 	
 	private List<DataTypeTreeNode> dataTypes;
+	private LinkedList<ValueParser> parsers;
+	private Set<DataType> supportedInput, supportedOutput;
 	
 	
 	// CONSTRUCTOR	------------------
@@ -22,6 +27,21 @@ public class DataTypes
 	private DataTypes()
 	{
 		this.dataTypes = new ArrayList<>();
+		this.parsers = new LinkedList<>();
+		
+		// Initialises the basic data types
+		for (DataType type : BasicDataType.values())
+		{
+			add(new DataTypeTreeNode(type));
+		}
+		// Connects number types
+		DataTypeTreeNode number = get(BasicDataType.NUMBER);
+		get(BasicDataType.INTEGER).setParent(number);
+		get(BasicDataType.DOUBLE).setParent(number);
+		get(BasicDataType.LONG).setParent(number);
+		
+		// Adds parsing support for basic data types
+		addParser(BasicValueParser.getInstance(), true);
 	}
 	
 	/**
@@ -33,6 +53,47 @@ public class DataTypes
 			instance = new DataTypes();
 		
 		return instance;
+	}
+	
+	
+	// IMPLEMENTED METHODS	----------
+	
+	@Override
+	public Object parse(Object value, DataType from, DataType to) throws ValueParseException
+	{	
+		for (ValueParser parser : this.parsers)
+		{
+			if (parser.getSupportedInputTypes().contains(from) && 
+					parser.getSupportedOutputTypes().contains(to))
+				return parser.parse(value, from, to);
+		}
+		
+		throw new ValueParseException(value, from, to);
+	}
+
+	@Override
+	public Object parse(Value value, DataType to) throws ValueParseException
+	{
+		for (ValueParser parser : this.parsers)
+		{
+			if (parser.getSupportedInputTypes().contains(value.getType()) && 
+					parser.getSupportedOutputTypes().contains(to))
+				return parser.parse(value, to);
+		}
+		
+		throw new ValueParseException(value, value.getType(), to);
+	}
+
+	@Override
+	public Collection<? extends DataType> getSupportedInputTypes()
+	{
+		return this.supportedInput;
+	}
+
+	@Override
+	public Collection<? extends DataType> getSupportedOutputTypes()
+	{
+		return this.supportedOutput;
 	}
 
 	
@@ -48,7 +109,7 @@ public class DataTypes
 	public static boolean dataTypeIsOfType(DataType type, DataType other) throws 
 		DataTypeNotIntroducedException
 	{
-		if (type.isSameTypeAs(other))
+		if (type.equals(other))
 			return true;
 		
 		return getInstance().get(type).isOfType(other);
@@ -101,11 +162,34 @@ public class DataTypes
 		}
 	}
 	
+	/**
+	 * Adds a new parser to the parsers used with data types
+	 * @param parser The parser that should be used
+	 * @param isPrimary Will the new parser become the primary parser for its supported 
+	 * data types (true) or will it be used when others wouldn't work (false).
+	 */
+	public void addParser(ValueParser parser, boolean isPrimary)
+	{
+		if (parser == null || parser.equals(this))
+			return;
+		
+		if (!this.parsers.contains(parser))
+		{
+			if (isPrimary)
+				this.parsers.addFirst(parser);
+			else
+				this.parsers.addLast(parser);
+			
+			this.supportedInput.addAll(parser.getSupportedInputTypes());
+			this.supportedOutput.addAll(parser.getSupportedOutputTypes());
+		}
+	}
+	
 	private DataTypeTreeNode getNode(DataType type)
 	{
 		for (DataTypeTreeNode node : this.dataTypes)
 		{
-			if (node.getContent().isSameTypeAs(type))
+			if (node.getContent().equals(type))
 				return node;
 		}
 		

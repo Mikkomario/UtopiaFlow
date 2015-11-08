@@ -1,5 +1,11 @@
 package flow_util;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+
 /**
  * This value parser is able to parse between all basic data types
  * @author Mikko Hilpinen
@@ -10,13 +16,18 @@ public class BasicValueParser implements ValueParser
 	// ATTRIBUTES	-------------------
 	
 	private static BasicValueParser instance = null;
+	private Collection<DataType> supportedDataTypes;
 	
 	
 	// CONSTRUCTOR	-------------------
 	
 	private BasicValueParser()
 	{
-		// Static interface
+		this.supportedDataTypes = new ArrayList<>();
+		for (DataType type : BasicDataType.values())
+		{
+			this.supportedDataTypes.add(type);
+		}
 	}
 	
 	/**
@@ -34,22 +45,46 @@ public class BasicValueParser implements ValueParser
 	// IMPLEMENTED METHODS	-----------
 
 	@Override
-	public Object parse(Object value, DataType from, DataType to)
+	public Object parse(Object value, DataType from, DataType to) throws ValueParseException
 	{
-		// TODO Auto-generated method stub
-		return null;
+		if (to.equals(BasicDataType.BOOLEAN))
+			return parseBoolean(value, from);
+		if (to.equals(BasicDataType.DATE))
+			return parseDate(value, from);
+		if (to.equals(BasicDataType.DATETIME))
+			return parseDateTime(value, from);
+		if (to.equals(BasicDataType.DOUBLE))
+			return parseDouble(value, from);
+		if (to.equals(BasicDataType.EXTRA_BOOLEAN))
+			return parseExtraBoolean(value, from);
+		if (to.equals(BasicDataType.INTEGER))
+			return parseInteger(value, from);
+		if (to.equals(BasicDataType.LONG))
+			return parseLong(value, from);
+		if (to.equals(BasicDataType.NUMBER))
+			return parseNumber(value, from);
+		if (to.equals(BasicDataType.STRING))
+			return parseString(value);
+
+		throw new ValueParseException(value, from, to);
+	}
+	
+	@Override
+	public Object parse(Value value, DataType to) throws ValueParseException
+	{
+		return parse(value.getObjectValue(), value.getType(), to);
 	}
 
 	@Override
-	public DataType[] getSupportedInputTypes()
+	public Collection<? extends DataType> getSupportedInputTypes()
 	{
-		return BasicDataTypes.values();
+		return this.supportedDataTypes;
 	}
 
 	@Override
-	public DataType[] getSupportedOutputTypes()
+	public Collection<? extends DataType> getSupportedOutputTypes()
 	{
-		return BasicDataTypes.values();
+		return this.supportedDataTypes;
 	}
 	
 	
@@ -60,7 +95,7 @@ public class BasicValueParser implements ValueParser
 	 * @param value The value that is parsed
 	 * @return The value casted to string
 	 */
-	public static String parseToString(Object value)
+	public static String parseString(Object value)
 	{
 		if (value == null)
 			return null;
@@ -68,88 +103,276 @@ public class BasicValueParser implements ValueParser
 		return value.toString();
 	}
 	
-	public static Number parseToNumber(Object value, DataType type)
+	/**
+	 * Parses an object value to a number.
+	 * @param value The value
+	 * @param type The data type of the provided value. Numbers, strings, booleans and extra 
+	 * booleans are supported.
+	 * @return A number parsed from the provided value
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static Number parseNumber(Object value, DataType type) throws ValueParseException
 	{
 		if (value == null)
 			return 0;
 		
-		if (DataTypes.dataTypeIsOfType(type, BasicDataTypes.NUMBER))
+		if (DataTypes.dataTypeIsOfType(type, BasicDataType.NUMBER))
 			return (Number) value;
-		// TODO: Parse strings through double
-		// TODO: Parse booleans through integer
-		// TODO: Date values through long
 		
-		return 0;
+		if (type.equals(BasicDataType.STRING) || type.equals(BasicDataType.EXTRA_BOOLEAN))
+			return parseDouble(value, type);
+		
+		if (type.equals(BasicDataType.BOOLEAN))
+			return parseInteger(value, type);
+		
+		throw new ValueParseException(value, type, BasicDataType.NUMBER);
 	}
 	
-	public static Integer parseToInteger(Object value, DataType type)
+	/**
+	 * Parses an object value to an integer.
+	 * @param value The value
+	 * @param type The data type of the provided value. Numbers, strings, booleans and extra 
+	 * booleans are supported.
+	 * @return An integer parsed from the provided value
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static Integer parseInteger(Object value, DataType type)
 	{
 		if (value == null)
 			return 0;
 		
-		// Integers are good as they are
-		if (type.isSameTypeAs(BasicDataTypes.INTEGER))
+		if (type.equals(BasicDataType.INTEGER))
 			return (Integer) value;
 		
-		// Other numbers can be easily casted
-		if (DataTypes.dataTypeIsOfType(type, BasicDataTypes.NUMBER))
-			return parseToNumber(value, type).intValue();
+		if (DataTypes.dataTypeIsOfType(type, BasicDataType.NUMBER))
+			return parseNumber(value, type).intValue();
 		
-		// Strings can be parsed
-		if (type.isSameTypeAs(BasicDataTypes.STRING))
+		if (type.equals(BasicDataType.STRING))
 		{
 			try
 			{
-				// TODO: Parse through double instead?
 				return Integer.parseInt((String) value);
 			}
 			catch (NumberFormatException e)
 			{
-				// TODO: Check if the string represented a double instead
-				throw new ValueParseException(value, type, BasicDataTypes.INTEGER, e);
+				// The string may contain decimal numbers
+				return parseDouble(value, type).intValue();
 			}
 		}
-		// TODO: Also from boolean / extraboolean
 		
-		return 0;
+		if (type.equals(BasicDataType.BOOLEAN))
+			return parseBoolean(value, type) ? 1 : 0;
+		
+		if (type.equals(BasicDataType.EXTRA_BOOLEAN))
+			return parseExtraBoolean(value, type).toInteger();
+		
+		throw new ValueParseException(value, type, BasicDataType.INTEGER);
 	}
 	
-	public Boolean parseToBoolean(Object value, DataType type)
+	/**
+	 * Parses an object value to a double.
+	 * @param value The value
+	 * @param type The data type of the provided value. Numbers, strings, booleans and extra 
+	 * booleans are supported.
+	 * @return A double parsed from the provided value
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static Double parseDouble(Object value, DataType type)
+	{
+		if (value == null)
+			return 0.0;
+		
+		if (type.equals(BasicDataType.DOUBLE))
+			return (Double) value;
+		
+		if (DataTypes.dataTypeIsOfType(type, BasicDataType.NUMBER))
+			return parseNumber(value, type).doubleValue();
+		
+		if (type.equals(BasicDataType.STRING))
+		{
+			try
+			{
+				return Double.parseDouble(parseString(value));
+			}
+			catch (NumberFormatException e)
+			{
+				throw new ValueParseException(value, type, BasicDataType.DOUBLE, e);
+			}
+		}
+		
+		if (type.equals(BasicDataType.EXTRA_BOOLEAN))
+			return parseExtraBoolean(value, type).toDouble();
+		
+		if (type.equals(BasicDataType.BOOLEAN))
+			return parseBoolean(value, type) ? 1.0 : 0.0;
+		
+		throw new ValueParseException(value, type, BasicDataType.DOUBLE);
+	}
+	
+	/**
+	 * Parses an object value to a long.
+	 * @param value The value
+	 * @param type The data type of the provided value. Numbers, strings, booleans and extra 
+	 * booleans are supported.
+	 * @return A long parsed from the provided value
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static Long parseLong(Object value, DataType type)
+	{
+		if (value == null)
+			return 0l;
+		
+		if (type.equals(BasicDataType.LONG))
+			return (Long) value;
+		
+		if (DataTypes.dataTypeIsOfType(type, BasicDataType.NUMBER))
+			return parseNumber(value, type).longValue();
+		
+		if (type.equals(BasicDataType.BOOLEAN))
+			return parseBoolean(value, type) ? 1l : 0l;
+		
+		if (type.equals(BasicDataType.EXTRA_BOOLEAN))
+			return parseExtraBoolean(value, type).toBoolean() ? 1l : 0l;
+		
+		if (type.equals(BasicDataType.STRING))
+		{
+			try
+			{
+				return Long.parseLong(parseString(value));
+			}
+			catch (NumberFormatException e)
+			{
+				return parseDouble(value, type).longValue();
+			}
+		}
+		
+		throw new ValueParseException(value, type, BasicDataType.LONG);
+	}
+	
+	/**
+	 * Parses an object value to a boolean.
+	 * @param value The value
+	 * @param type The data type of the provided value. Numbers, strings, booleans and extra 
+	 * booleans are supported.
+	 * @return A boolean parsed from the provided value
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static Boolean parseBoolean(Object value, DataType type)
 	{
 		if (value == null)
 			return false;
 		
-		// TODO: Cast extra boolean
-		
-		if (type.isSameTypeAs(BasicDataTypes.BOOLEAN))
+		if (type.equals(BasicDataType.BOOLEAN))
 			return (Boolean) value;
 		
-		if (type.isSameTypeAs(BasicDataTypes.STRING))
-		{
-			// Parses strings through extra boolean
-		}
+		// Parses strings through extra boolean as well
+		if (type.equals(BasicDataType.EXTRA_BOOLEAN) || 
+				type.equals(BasicDataType.STRING))
+			return parseExtraBoolean(value, type).toBoolean();
 		
-		// Parse double through extra boolean
+		if (DataTypes.dataTypeIsOfType(type, BasicDataType.NUMBER))
+			return parseNumber(value, type).intValue() != 0;
 		
-		if (DataTypes.dataTypeIsOfType(type, BasicDataTypes.NUMBER))
-			return parseToInteger(value, type) != 0;
-		
-		return false;
+		throw new ValueParseException(value, type, BasicDataType.BOOLEAN);
 	}
 	
-	// TODO: Here, when using parseTo, use static methods of DataTypes instead?
-	
-	public ExtraBoolean parseToExtraBoolean(Object value, DataType type)
+	/**
+	 * Parses an object value to an extra boolean.
+	 * @param value The value
+	 * @param type The data type of the provided value. Numbers, strings, booleans and extra 
+	 * booleans are supported.
+	 * @return An extra boolean parsed from the provided value
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static ExtraBoolean parseExtraBoolean(Object value, DataType type)
 	{
 		if (value == null)
-			return ExtraBoolean.EXTRA_FALSE;
+			return null;
 		
-		if (type.isSameTypeAs(BasicDataTypes.EXTRA_BOOLEAN))
+		if (type.equals(BasicDataType.EXTRA_BOOLEAN))
 			return (ExtraBoolean) value;
 		
-		if (type.isSameTypeAs(BasicDataTypes.BOOLEAN))
-			return ExtraBoolean.parseFromBoolean(parseToBoolean(value, type));
+		if (type.equals(BasicDataType.BOOLEAN))
+			return ExtraBoolean.parseFromBoolean(parseBoolean(value, type));
 		
-		return ExtraBoolean.EXTRA_FALSE;
+		if (DataTypes.dataTypeIsOfType(type, BasicDataType.NUMBER))
+			return ExtraBoolean.parseFromDouble(parseDouble(value, type));
+		
+		if (type.equals(BasicDataType.STRING))
+		{
+			ExtraBoolean parsed = ExtraBoolean.parseFromString(parseString(value));
+			if (parsed == null)
+				throw new ValueParseException(value, type, BasicDataType.EXTRA_BOOLEAN);
+			else
+				return parsed;
+		}
+		
+		throw new ValueParseException(value, type, BasicDataType.EXTRA_BOOLEAN);
+	}
+	
+	/**
+	 * Parses an object value to a local date.
+	 * @param value The value
+	 * @param type The data type of the provided value. Date, datetime and string are supported.
+	 * @return A local date parsed from the provided value
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static LocalDate parseDate(Object value, DataType type)
+	{
+		if (value == null)
+			return null;
+		
+		if (type.equals(BasicDataType.DATE))
+			return (LocalDate) value;
+		
+		if (type.equals(BasicDataType.DATETIME))
+			return parseDateTime(value, type).toLocalDate();
+		
+		if (type.equals(BasicDataType.STRING))
+		{
+			try
+			{
+				return LocalDate.parse(parseString(value));
+			}
+			catch (DateTimeParseException e)
+			{
+				throw new ValueParseException(value, type, BasicDataType.DATE, e);
+			}
+		}
+		
+		throw new ValueParseException(value, type, BasicDataType.DATE);
+	}
+	
+	/**
+	 * Parses an object value to a local date time.
+	 * @param value The value
+	 * @param type The data type of the provided value. Date, datetime and string are supported.
+	 * @return A local date time parsed from the provided value
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static LocalDateTime parseDateTime(Object value, DataType type)
+	{
+		if (value == null)
+			return null;
+		
+		if (type.equals(BasicDataType.DATETIME))
+			return (LocalDateTime) value;
+		
+		if (type.equals(BasicDataType.DATE))
+			return parseDate(value, type).atStartOfDay();
+		
+		if (type.equals(BasicDataType.STRING))
+		{
+			try
+			{
+				return LocalDateTime.parse(parseString(value));
+			}
+			catch (DateTimeParseException e)
+			{
+				throw new ValueParseException(value, type, BasicDataType.DATETIME, e);
+			}
+		}
+		
+		throw new ValueParseException(value, type, BasicDataType.DATETIME);
 	}
 }

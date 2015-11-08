@@ -1,5 +1,6 @@
 package flow_io;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +40,11 @@ public class ListFileReader extends AbstractFileReader
 	}
 
 	@Override
-	public void readFile(String fileName, String commentIndicator) throws FileNotFoundException
+	public void readFile(File file, String commentIndicator) throws FileNotFoundException
 	{
 		// Empties the last read results first
 		this.lines.clear();
-		super.readFile(fileName, commentIndicator);
+		super.readFile(file, commentIndicator);
 	}
 	
 	

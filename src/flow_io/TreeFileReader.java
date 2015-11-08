@@ -51,8 +51,6 @@ public class TreeFileReader<T> extends ModeUsingFileReader
 	 */
 	public TreeFileReader(TreeNode<T> parent, ObjectParser<T> parser)
 	{
-		super();
-		
 		// Initializes attributes
 		this.root = parent;
 		this.currentParent = this.root;
@@ -67,7 +65,7 @@ public class TreeFileReader<T> extends ModeUsingFileReader
 	protected void onLine(String line, List<String> modes)
 	{
 		// Adds content under the latest node
-		new TreeNode<T>(this.parser.parseFromString(line), this.currentParent);
+		new TreeNode<>(this.parser.parseFromString(line)).setParent(this.currentParent);
 	}
 
 	@Override

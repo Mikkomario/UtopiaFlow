@@ -17,10 +17,8 @@ public abstract class AbstractFileReader
 	
 	/**
 	 * This method is called each time a line is read from a file with the 
-	 * readFile method
-	 *
+	 * {@link #readFile(File, String)} method
 	 * @param line The line read from the file
-	 * @see #readFile(String, String)
 	 */
 	protected abstract void onLine(String line);
 	
@@ -37,56 +35,43 @@ public abstract class AbstractFileReader
 	// OTHER METHODS	--------------------------------------------------
 	
 	/**
-	 * Checks if a certain file exists
-	 *
-	 * @param filename the name of the file (data/ is included automatically)
-	 * @return Does the file exist
-	 */
-	public static boolean checkFile(String filename)
-	{
-		File test = new File("data/" + filename);
-		return test.isFile();
-	}
-	
-	/**
 	 * Reads a file and makes the object react to it somehow. Skips all the 
-	 * empty lines in the file and calls the onLine method at each line read.<br>
-	 * Doesn't read a file that doesn't exist and prints an error message if 
-	 * no file was found
-	 *
-	 * @param filename The name of the file read (data/ is added 
-	 * automatically to the beginning)
+	 * empty lines in the file and calls the onLine method at each line read.
+	 * @param file The file that will be read
 	 * @param commentIndicator The lines starting with this string will be ignored as comments
 	 * @throws FileNotFoundException If the file wasn't found
 	 */
-	public void readFile(String filename, String commentIndicator) throws FileNotFoundException
+	public void readFile(File file, String commentIndicator) throws FileNotFoundException
 	{
-		// First checks if the file actually exists
-		File file = new File("data/" + filename);
 		Scanner scanner = null;
 		
 		// Tries to open the file
 		scanner = new Scanner(file);
-		
-		String line = "";
-		
-		// Reads the file
-		// Loops until the file ends
-		while (scanner.hasNextLine())
-		{	
-			line = scanner.nextLine();
+		try
+		{
+			String line = "";
 			
-			// Skips the empty lines
-			if (line.length() == 0)
-				continue;
-			
-			// Skips the lines recognised as comments
-			if (commentIndicator != null && line.startsWith(commentIndicator))
-				continue;
-			
-			onLine(line);
+			// Reads the file
+			// Loops until the file ends
+			while (scanner.hasNextLine())
+			{	
+				line = scanner.nextLine();
+				
+				// Skips the empty lines
+				if (line.isEmpty())
+					continue;
+				
+				// Skips the lines recognised as comments
+				if (commentIndicator != null && line.startsWith(commentIndicator))
+					continue;
+				
+				onLine(line);
+			}
 		}
-		// Closes the file in the end
-		scanner.close();
+		finally
+		{
+			// Closes the file in the end
+			scanner.close();
+		}
 	}
 }

@@ -14,12 +14,21 @@ public class DataTypeTreeNode extends TreeNode<DataType>
 	
 	/**
 	 * Creates a new data type tree node
-	 * @param content
-	 * @param parent
+	 * @param content The data type of this node
+	 * @param parent The parent data types of this node
 	 */
 	public DataTypeTreeNode(DataType content, TreeNode<DataType> parent)
 	{
 		super(content, parent);
+	}
+	
+	/**
+	 * Creates a new data type tree node
+	 * @param content The data type of this node
+	 */
+	public DataTypeTreeNode(DataType content)
+	{
+		super(content);
 	}
 	
 	
@@ -32,13 +41,13 @@ public class DataTypeTreeNode extends TreeNode<DataType>
 	 */
 	public boolean isOfType(DataType other)
 	{
-		if (getContent().isSameTypeAs(other))
+		if (getContent().equals(other))
 			return true;
 		
 		TreeNode<DataType> parent = getParent();
 		while (parent != null)
 		{
-			if (parent.getContent().isSameTypeAs(other))
+			if (parent.getContent().equals(other))
 				return true;
 			parent = parent.getParent();
 		}

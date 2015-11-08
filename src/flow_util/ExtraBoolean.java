@@ -36,16 +36,38 @@ public enum ExtraBoolean
 	{
 		this.value = value;
 	}
+	
+	
+	// ACCESSORS	---------------------
+	
+	/**
+	 * @return The double value of this extra boolean
+	 */
+	public double toDouble()
+	{
+		return this.value;
+	}
 
 	
 	// OTHER METHODS	-----------------
 	
 	/**
-	 * @return The boolean value of this extra boolean
+	 * @return The boolean value of this extra boolean [0, 1]
 	 */
 	public boolean toBoolean()
 	{
 		return this.value >= 0.5;
+	}
+	
+	/**
+	 * @return An integer value representing this boolean [0, 1]
+	 */
+	public int toInteger()
+	{
+		if (toBoolean())
+			return 1;
+		else
+			return 0;
 	}
 	
 	/**

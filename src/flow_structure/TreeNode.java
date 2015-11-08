@@ -34,7 +34,6 @@ public class TreeNode<T>
 	
 	/**
 	 * Creates a new node that is attached to the given parent.
-	 * 
 	 * @param content The information this node contains.
 	 * @param parent The parent this node is attached to. Null indicates that 
 	 * this node will be a root of a tree.
@@ -46,6 +45,16 @@ public class TreeNode<T>
 		this.children = new ArrayList<TreeNode<T>>();
 		
 		setParent(parent);
+	}
+	
+	/**
+	 * Creates a new node.
+	 * @param content The node's content
+	 */
+	public TreeNode(T content)
+	{
+		this.content = content;
+		this.children = new ArrayList<>();
 	}
 	
 	
