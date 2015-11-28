@@ -1,4 +1,4 @@
-package flow_util;
+package flow_generics;
 
 /**
  * These exceptions are thrown when dealing with data types. They are usually caused by 

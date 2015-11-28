@@ -3,6 +3,7 @@ package flow_test;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
@@ -58,16 +59,24 @@ public class TreeIOTest
 		System.out.println("Double of tree1: " + TreeNode.treeToString(tree2));
 		
 		// Saves the tree into a file
-		BufferedWriter textWriter = FileOutputAccessor.openFile("TreeIOTest.txt");
-		FileOutputAccessor.writeTree(textWriter, tree1);
-		FileOutputAccessor.closeWriter(textWriter);
+		BufferedWriter textWriter = null;
+		try
+		{
+			textWriter = FileOutputAccessor.openFile("TreeIOTest.txt");
+			FileOutputAccessor.writeTree(textWriter, tree1);
+			FileOutputAccessor.closeWriter(textWriter);
+		}
+		finally
+		{
+			FileOutputAccessor.closeWriter(textWriter);
+		}
 		
 		// Loads a third tree from the file
 		TreeFileReader<String> treeReader = new TreeFileReader<>(new TreeNode<>("root", null), 
 				new ObjectParser.StringParser());
 		try
 		{
-			treeReader.readFile("TreeIOTest.txt", null);
+			treeReader.readFile(new File("TreeIOTest.txt"), null);
 		}
 		catch (FileNotFoundException e)
 		{
@@ -128,7 +137,7 @@ public class TreeIOTest
 			int newDestination = random.nextInt(currentNode.getChildAmount() + 1);
 			if (newDestination == 0)
 			{
-				new TreeNode<String>("Node" + nodesCreated, currentNode);
+				new TreeNode<String>("Node" + nodesCreated).setParent(currentNode);
 				currentNode = tree;
 				nodesCreated ++;
 			}

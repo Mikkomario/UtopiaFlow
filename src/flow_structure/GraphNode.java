@@ -1,152 +1,179 @@
 package flow_structure;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
- * Nodes are used in graphs and they contain data. Nodes can be connected via Edges
- * 
+ * Graph nodes can be stored in graphs and connected via edges. Each node contains content 
+ * of some description.
  * @author Mikko Hilpinen
- * @param <TNode> The type of data contained within the nodes in this Graph
- * @param <TEdge> The type of data contained within the edges in this Graph
- * @since 1.5.2014
+ * @since 21.11.2015
+ * @param <NodeContent> The type of content stored in this node
+ * @param <EdgeContent> The type of content stored in the edges leaving from this node
  */
-public class GraphNode<TNode, TEdge>
+public class GraphNode<NodeContent, EdgeContent>
 {
-	// ATTRIBUTES	-----------------------------------------------------
+	// ATTRIBUTES	-------------------
 	
-	private TNode data;
-	private String id;
-	private Map<String, GraphEdge<TNode, TEdge>> leavingEdges;
+	private NodeContent content;
+	private Set<GraphEdge<NodeContent, EdgeContent>> edges;
 	
 	
-	// CONSTRUCTOR	-----------------------------------------------------
+	// CONSTRUCTOR	-------------------
 	
 	/**
-	 * Creates a new node with the given unique id and data
-	 * 
-	 * @param id The name of the node unique to this specific instance
-	 * @param data The data held in the node
+	 * Creates a new node
+	 * @param content The contents of the node
 	 */
-	public GraphNode(String id, TNode data)
+	public GraphNode(NodeContent content)
 	{
-		// Initializes attributes
-		this.id = id;
-		this.data = data;
-		this.leavingEdges = new HashMap<>();
+		this.content = content;
+		this.edges = new HashSet<>();
+	}
+	
+	/**
+	 * Creates a new node by copying another
+	 * @param other The other node
+	 */
+	public GraphNode(GraphNode<NodeContent, EdgeContent> other)
+	{
+		this.content = other.getContent();
+		this.edges = new HashSet<>();
+		
+		for(GraphEdge<NodeContent, EdgeContent> edge : other.getLeavingEdges())
+		{
+			this.edges.add(new GraphEdge<>(edge));
+		}
 	}
 
 	
-	// GETTERS & SETTERS	--------------------------------------------
+	// ACCESSORS	------------------
 	
 	/**
-	 * @return The id unique to this specific node
+	 * @return The node's current content
 	 */
-	public String getID()
+	public NodeContent getContent()
 	{
-		return this.id;
+		return this.content;
 	}
 	
 	/**
-	 * Changes the object's id
-	 * @param id The identifier of the object
+	 * Updates the node's contents
+	 * @param content The node's new contents
 	 */
-	protected void setID(String id)
+	public void setContent(NodeContent content)
 	{
-		this.id = id;
+		this.content = content;
 	}
 	
 	/**
-	 * @return The data held in the node
+	 * @return The edges connected to this node. The returned set is a copy and changes made 
+	 * to it won't affect the original.
 	 */
-	public TNode getData()
+	public Set<GraphEdge<NodeContent, EdgeContent>> getLeavingEdges()
 	{
-		return this.data;
+		return new HashSet<>(this.edges);
 	}
 	
 	/**
-	 * Changes the data held in this node
-	 * @param data The new data that will be put into this node
+	 * Adds a new (leaving) edge to the node
+	 * @param edge The edge that starts from this node
 	 */
-	public void setData(TNode data)
+	public void addEdge(GraphEdge<NodeContent, EdgeContent> edge)
 	{
-		this.data = data;
-	}
-	
-	
-	// OTHER METHODS	------------------------------------------------
-	
-	/**
-	 * Checks if the node registers the edge as leaving from this node
-	 * @param edge The edge that is checked
-	 * @return Does the edge leave from this node
-	 */
-	public boolean contains(GraphEdge<?, ?> edge)
-	{
-		return this.leavingEdges.containsValue(edge);
+		if (edge != null)
+			this.edges.add(edge);
 	}
 	
 	/**
-	 * Checks if the node registers the edge as leaving from this node
-	 * @param edgeID The unique ID of edge that is checked
-	 * @return Does the edge leave from this node
+	 * Removes an existing edge from the node
+	 * @param edge The edge that will be removed from the node
 	 */
-	public boolean contains(String edgeID)
+	public void removeEdge(GraphEdge<?, ?> edge)
 	{
-		return this.leavingEdges.containsKey(edgeID);
+		if (edge != null)
+			this.edges.remove(edge);
+	}
+	
+	
+	// OTHER METHODS	-----------------
+	
+	/**
+	 * Checks whether the node contains the provided edge
+	 * @param edge The edge that could leave from this node
+	 * @return Does such an edge leave from this node
+	 */
+	public boolean containsEdge(GraphEdge<?, ?> edge)
+	{
+		return this.edges.contains(edge);
 	}
 	
 	/**
-	 * Registers the edge as an edge leaving from this node
-	 * @param edge The new edge from this node
+	 * @return A set that contains each node this node has edges pointing towards
 	 */
-	protected void addLeavingEdge(GraphEdge<TNode, TEdge> edge)
+	public Set<GraphNode<NodeContent, EdgeContent>> getEndNodes()
 	{
-		if (!contains(edge))
-			this.leavingEdges.put(edge.getID(), edge);
-	}
-	
-	/**
-	 * Removes the edge from the edges that leave from this node
-	 * @param edge The edge that will be removed from this node
-	 */
-	protected void removeEdge(GraphEdge<TNode, TEdge> edge)
-	{
-		if (contains(edge))
-			this.leavingEdges.remove(edge.getID());
-	}
-	
-	/**
-	 * @return The number of edges this node uses
-	 */
-	public int getLeavingEdgeAmount()
-	{
-		return this.leavingEdges.size();
-	}
-	
-	/**
-	 * Returns a connected edge with the given identifier
-	 * @param edgeID The unique identifier the edge should have
-	 * @return The edge with the given id or null if no such edge exists
-	 */
-	public GraphEdge<TNode, TEdge> getLeavingEdge(String edgeID)
-	{
-		return this.leavingEdges.get(edgeID);
-	}
-	
-	/**
-	 * Finds all the leaving edges that have the given data in them
-	 * @param data The data that should be found from the returned edges
-	 * @return All edges leaving from this node that have the given data
-	 */
-	public ArrayList<GraphEdge<TNode, TEdge>> getLeavingEdgesWithData(TEdge data)
-	{
-		ArrayList<GraphEdge<TNode, TEdge>> edges = new ArrayList<>();
+		Set<GraphNode<NodeContent, EdgeContent>> nodes = new HashSet<>();
 		
-		for (GraphEdge<TNode, TEdge> edge : getLeavingEdges())
+		for (GraphEdge<NodeContent, EdgeContent> edge : getLeavingEdges())
 		{
-			if (edge.getData().equals(data))
+			if (edge.getEndNode() != null)
+				nodes.add(edge.getEndNode());
+		}
+		
+		return nodes;
+	}
+	
+	/**
+	 * Finds the edge that leaves from this node and points to the provided node.
+	 * @param endNode The other node the edge is connected to
+	 * @return An edge that leaves from this node and points towards the other. Null if no 
+	 * such edge exists.
+	 */
+	public GraphEdge<NodeContent, EdgeContent> getConnectingEdge(GraphNode<?, ?> endNode)
+	{
+		for (GraphEdge<NodeContent, EdgeContent> edge : getLeavingEdges())
+		{
+			if (edge.getEndNode() != null && edge.getEndNode().equals(endNode))
+				return edge;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Checks whether there is an edge leaving from this node that connects it to the 
+	 * provided node
+	 * @param endNode The node this one may be connected to
+	 * @return Is there an edge leaving from this node, connecting the two nodes
+	 */
+	public boolean hasEdgeTowards(GraphNode<?, ?> endNode)
+	{
+		if (getConnectingEdge(endNode) == null)
+			return false;
+		else
+			return true;
+	}
+	
+	/**
+	 * Finds all the edges leaving from this node that have the provided content
+	 * @param content The content of the edges
+	 * @return The edges leaving from this node that have the provided content
+	 */
+	public List<GraphEdge<NodeContent, EdgeContent>> findEdges(EdgeContent content)
+	{
+		List<GraphEdge<NodeContent, EdgeContent>> edges = new ArrayList<>();
+		for (GraphEdge<NodeContent, EdgeContent> edge : getLeavingEdges())
+		{
+			if (edge.getContent() == null)
+			{
+				if (content == null)
+					edges.add(edge);
+			}
+			else if (content != null && edge.getContent().equals(content))
 				edges.add(edge);
 		}
 		
@@ -154,39 +181,71 @@ public class GraphNode<TNode, TEdge>
 	}
 	
 	/**
-	 * @return A list containing all the edges leaving from this node
+	 * Finds all the routes that connect this node to another node. The routes may visit a 
+	 * node only once, so they won't contain any loops.
+	 * @param end Another node
+	 * @return The routes leading to the other node. Null if the two nodes aren't connected. 
+	 * An empty list if this is the target node.
 	 */
-	public ArrayList<GraphEdge<TNode, TEdge>> getLeavingEdges()
+	public List<LinkedList<GraphEdge<NodeContent, EdgeContent>>> findConnectingRoutes(
+			GraphNode<NodeContent, EdgeContent> end)
 	{
-		ArrayList<GraphEdge<TNode, TEdge>> edges = new ArrayList<>();
-		edges.addAll(this.leavingEdges.values());
-		return edges;
+		List<GraphNode<NodeContent, EdgeContent>> pastNodes = new ArrayList<>();
+		pastNodes.add(this);
+		
+		return findConnectingRoutes(end, pastNodes);
 	}
 	
-	/**
-	 * @return A list containing the IDs of all the edges leaving from this node
-	 */
-	public ArrayList<String> getLeavingEdgeIDs()
+	private List<LinkedList<GraphEdge<NodeContent, EdgeContent>>> findConnectingRoutes(
+			GraphNode<NodeContent, EdgeContent> end, List<? extends GraphNode<NodeContent, 
+			EdgeContent>> pastNodes)
 	{
-		ArrayList<String> edgeIDs = new ArrayList<>();
-		edgeIDs.addAll(this.leavingEdges.keySet());
-		return edgeIDs;
-	}
-	
-	/**
-	 * @return All nodes that this node has edges to
-	 */
-	public ArrayList<GraphNode<TNode, TEdge>> getEndNodes()
-	{
-		ArrayList<GraphNode<TNode, TEdge>> nodes = new ArrayList<>();
-		for (GraphEdge<TNode, TEdge> edge : getLeavingEdges())
+		// Collects all the found routes to a list
+		List<LinkedList<GraphEdge<NodeContent, EdgeContent>>> routes = new ArrayList<>();
+		
+		if (this.equals(end))
+			return routes;
+		
+		// Keeps track of the nodes that have already been visited, this included
+		List<GraphNode<NodeContent, EdgeContent>> newPastNodes = new ArrayList<>(pastNodes);
+		newPastNodes.add(this);
+		
+		// Each edge may contain a new route to the target node
+		for (GraphEdge<NodeContent, EdgeContent> edge : getLeavingEdges())
 		{
-			if (edge.getEndNode() == this)
-				nodes.add(edge.getStartNode());
-			else
-				nodes.add(edge.getEndNode());
+			// A node can only be visited once
+			if (!pastNodes.contains(edge.getEndNode()))
+			{
+				// If a direct route is found, uses that
+				if (end.equals(edge.getEndNode()))
+				{
+					LinkedList<GraphEdge<NodeContent, EdgeContent>> route = new LinkedList<>();
+					route.add(edge);
+					routes.add(route);
+				}
+				// Otherwise tries to find an indirect route
+				else
+				{
+					// The routes are searched recirsively, but nodes will be visited only once
+					List<LinkedList<GraphEdge<NodeContent, EdgeContent>>> foundRoutes = 
+							edge.getEndNode().findConnectingRoutes(end, newPastNodes);
+					if (foundRoutes != null)
+					{
+						// Creates a new route for each route that lead to the target node. 
+						// The route includes the used edge
+						for (LinkedList<GraphEdge<NodeContent, EdgeContent>> route : foundRoutes)
+						{
+							route.addFirst(edge);
+							routes.add(route);
+						}
+					}
+				}
+			}
 		}
 		
-		return nodes;
+		if (routes.isEmpty())
+			return null;
+		else
+			return routes;
 	}
 }

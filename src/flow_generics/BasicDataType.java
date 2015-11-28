@@ -1,4 +1,4 @@
-package flow_util;
+package flow_generics;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

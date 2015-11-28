@@ -3,6 +3,7 @@ package flow_test;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class ConstructionTest
 		}
 	}
 	
-	private static List<TestConstructable> getConstructablesFromFile(String fileName)
+	private static List<TestConstructable> getConstructablesFromFile(File file)
 	{
 		TestConstructor constructor = new TestConstructor();
 		TextConstructorInstructor instructor = new TextConstructorInstructor(constructor);
@@ -47,7 +48,7 @@ public class ConstructionTest
 		// Reads the constructables
 		try
 		{
-			instructor.constructFromFile(fileName, null);
+			instructor.constructFromFile(file, null);
 		}
 		catch (FileNotFoundException e)
 		{
@@ -114,13 +115,14 @@ public class ConstructionTest
 		
 		// Saves the objects into a file and also xml stream
 		TextObjectWriter textWriter = new TextObjectWriter();
-		BufferedWriter writer = FileOutputAccessor.openFile("ConstructionTest.txt");
+		BufferedWriter writer = null;
 		XMLObjectWriter xmlWriter = new XMLObjectWriter();
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		XMLStreamWriter streamWriter = null;
 		
 		try
 		{
+			writer = FileOutputAccessor.openFile("ConstructionTest.txt");
 			streamWriter = XMLIOAccessor.createWriter(stream);
 			
 			xmlWriter.openDocument("ConstructionTest", streamWriter);
@@ -130,7 +132,7 @@ public class ConstructionTest
 				if (lastUnder == null || !lastUnder.equals(t.getBornUnder()))
 				{
 					lastUnder = t.getBornUnder();
-					textWriter.writeInstruction(lastUnder, writer);
+					TextObjectWriter.writeInstruction(lastUnder, writer);
 					xmlWriter.openInstruction(lastUnder, streamWriter);
 				}
 				textWriter.writeInto(t, writer);
@@ -151,7 +153,8 @@ public class ConstructionTest
 		
 		
 		// Reads the objects from a file
-		List<TestConstructable> readObjects = getConstructablesFromFile("ConstructionTest.txt");
+		List<TestConstructable> readObjects = getConstructablesFromFile(
+				new File("ConstructionTest.txt"));
 		printObjects(readObjects);
 		
 		

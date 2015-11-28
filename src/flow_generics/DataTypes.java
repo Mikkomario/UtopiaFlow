@@ -1,7 +1,8 @@
-package flow_util;
+package flow_generics;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -11,15 +12,18 @@ import java.util.Set;
  * @author Mikko Hilpinen
  * @since 7.11.2015
  */
-public class DataTypes implements ValueParser
+public class DataTypes implements ValueParser, ValueCreator
 {
 	// ATTRIBUTES	------------------
 	
 	private static DataTypes instance = null;
 	
 	private List<DataTypeTreeNode> dataTypes;
-	private LinkedList<ValueParser> parsers;
-	private Set<DataType> supportedInput, supportedOutput;
+	private Set<DataType> supportedCreationTypes;
+	private LinkedList<ValueCreator> creators;
+	
+	// TODO: Create a graph for data type casting. Then casting can be done via the shortest 
+	// paths
 	
 	
 	// CONSTRUCTOR	------------------
@@ -27,7 +31,10 @@ public class DataTypes implements ValueParser
 	private DataTypes()
 	{
 		this.dataTypes = new ArrayList<>();
-		this.parsers = new LinkedList<>();
+		this.creators = new LinkedList<>();
+		// TODO: Intialise conversion graph
+		
+		this.supportedCreationTypes = new HashSet<>();
 		
 		// Initialises the basic data types
 		for (DataType type : BasicDataType.values())
@@ -42,6 +49,8 @@ public class DataTypes implements ValueParser
 		
 		// Adds parsing support for basic data types
 		addParser(BasicValueParser.getInstance(), true);
+		// Adds creating support for basic values
+		addCreator(new BasicValueCreator(), true);
 	}
 	
 	/**
@@ -61,12 +70,13 @@ public class DataTypes implements ValueParser
 	@Override
 	public Object parse(Object value, DataType from, DataType to) throws ValueParseException
 	{	
-		for (ValueParser parser : this.parsers)
-		{
-			if (parser.getSupportedInputTypes().contains(from) && 
-					parser.getSupportedOutputTypes().contains(to))
-				return parser.parse(value, from, to);
-		}
+		//for (ValueParser parser : this.parsers)
+		//{
+			// TODO: Use conversion graph instead
+			//if (parser.getSupportedInputTypes().contains(from) && 
+			//		parser.getSupportedOutputTypes().contains(to))
+				//return parser.parse(value, from, to);
+		//}
 		
 		throw new ValueParseException(value, from, to);
 	}
@@ -74,30 +84,72 @@ public class DataTypes implements ValueParser
 	@Override
 	public Object parse(Value value, DataType to) throws ValueParseException
 	{
+		/*
 		for (ValueParser parser : this.parsers)
 		{
 			if (parser.getSupportedInputTypes().contains(value.getType()) && 
 					parser.getSupportedOutputTypes().contains(to))
 				return parser.parse(value, to);
 		}
+		*/
+		// TODO: Use conversion graph
 		
 		throw new ValueParseException(value, value.getType(), to);
 	}
-
+	
 	@Override
-	public Collection<? extends DataType> getSupportedInputTypes()
+	public Value wrap(Object object, DataType to) throws DataTypeException
 	{
-		return this.supportedInput;
+		for (ValueCreator creator : this.creators)
+		{
+			if (creator.getSupportedDataTypes().contains(to))
+				return creator.wrap(object, to);
+		}
+		
+		throw new DataTypeException(to, "DataTypes can't wrap into value of type " + 
+				to.getName());
 	}
 
 	@Override
-	public Collection<? extends DataType> getSupportedOutputTypes()
+	public Collection<? extends DataType> getSupportedDataTypes()
 	{
-		return this.supportedOutput;
+		return this.supportedCreationTypes;
+	}
+	
+	@Override
+	public Collection<? extends Conversion> getConversions()
+	{
+		// TODO Use conversion graph
+		return null;
 	}
 
 	
 	// OTHER METHODS	--------------
+	
+	/**
+	 * Casts a value to another value
+	 * @param value the value that will be cast 
+	 * @param to The data type the value will be cast to
+	 * @return The provided value cast to a different data type
+	 * @throws DataTypeException If the operation fails
+	 */
+	public static Value cast(Value value, DataType to) throws DataTypeException
+	{
+		return getInstance().wrap(getInstance().parse(value, to), to);
+	}
+	
+	/**
+	 * Creates a new value
+	 * @param value The object value of the value
+	 * @param from The data type of the provided object value
+	 * @param to The data type the object will be cast to
+	 * @return A value based on the provided attributes
+	 * @throws DataTypeException If the operation fails
+	 */
+	public static Value createValue(Object value, DataType from, DataType to) throws DataTypeException
+	{
+		return getInstance().wrap(getInstance().parse(value, from, to), to);
+	}
 	
 	/**
 	 * Checks if the first data type belongs to the second data type
@@ -173,6 +225,8 @@ public class DataTypes implements ValueParser
 		if (parser == null || parser.equals(this))
 			return;
 		
+		// TODO: use conversion graph
+		/*
 		if (!this.parsers.contains(parser))
 		{
 			if (isPrimary)
@@ -183,6 +237,29 @@ public class DataTypes implements ValueParser
 			this.supportedInput.addAll(parser.getSupportedInputTypes());
 			this.supportedOutput.addAll(parser.getSupportedOutputTypes());
 		}
+		*/
+	}
+	
+	/**
+	 * Adds a new value creator to the value creators used for wrapping objects
+	 * @param creator A value creator
+	 * @param isPrimary Should the value creator become the new default option (true), or be 
+	 * used only when other creator's aren't suitable (false).
+	 */
+	public void addCreator(ValueCreator creator, boolean isPrimary)
+	{
+		if (creator == null || creator.equals(this))
+			return;
+		
+		if (!this.creators.contains(creator))
+		{
+			if (isPrimary)
+				this.creators.addFirst(creator);
+			else
+				this.creators.addLast(creator);
+		}
+		
+		this.supportedCreationTypes.addAll(creator.getSupportedDataTypes());
 	}
 	
 	private DataTypeTreeNode getNode(DataType type)

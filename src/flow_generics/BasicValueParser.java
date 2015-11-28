@@ -1,4 +1,4 @@
-package flow_util;
+package flow_generics;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,18 +16,62 @@ public class BasicValueParser implements ValueParser
 	// ATTRIBUTES	-------------------
 	
 	private static BasicValueParser instance = null;
-	private Collection<DataType> supportedDataTypes;
+	private Collection<Conversion> conversions;
 	
 	
 	// CONSTRUCTOR	-------------------
 	
 	private BasicValueParser()
 	{
-		this.supportedDataTypes = new ArrayList<>();
+		// Initialises the possible conversions
+		this.conversions = new ArrayList<>();
+		
+		// Can reliably cast from any basic data type to a string
 		for (DataType type : BasicDataType.values())
 		{
-			this.supportedDataTypes.add(type);
+			addConversion(type, BasicDataType.STRING, ConversionReliability.RELIABLE);
 		}
+		
+		// Can perfectly cast from int, double and long to number, but the backwards conversion 
+		// is not perfect
+		addConversion(BasicDataType.INTEGER, BasicDataType.NUMBER, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.DOUBLE, BasicDataType.NUMBER, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.LONG, BasicDataType.NUMBER, ConversionReliability.PERFECT);
+		
+		addConversion(BasicDataType.NUMBER, BasicDataType.INTEGER, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.NUMBER, BasicDataType.LONG, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.NUMBER, BasicDataType.DOUBLE, ConversionReliability.RELIABLE);
+		
+		// Integers and long can be parsed from booleans and extra booleans reliably
+		addConversion(BasicDataType.BOOLEAN, BasicDataType.INTEGER, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.INTEGER, ConversionReliability.RELIABLE);
+		
+		addConversion(BasicDataType.BOOLEAN, BasicDataType.LONG, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.LONG, ConversionReliability.RELIABLE);
+		
+		// Doubles as well. Doubles can also be cast from Strings, although that is unreliable
+		// (That's why we skipped String -> integer conversion completely and do it through 
+		// double instead)
+		addConversion(BasicDataType.BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.STRING, BasicDataType.DOUBLE, ConversionReliability.UNRELIABLE);
+		
+		// Boolean values can be cast from numbers and extra booleans
+		addConversion(BasicDataType.NUMBER, BasicDataType.BOOLEAN, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.BOOLEAN, ConversionReliability.RELIABLE);
+		
+		// Extra booleans can be cast from booleans, doubles and strings
+		addConversion(BasicDataType.BOOLEAN, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.DOUBLE, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.STRING, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.UNRELIABLE);
+		
+		// Dates can be cast from datetimes and string
+		addConversion(BasicDataType.DATETIME, BasicDataType.DATE, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.STRING, BasicDataType.DATE, ConversionReliability.UNRELIABLE);
+		
+		// Datetimes can be cast from date and string
+		addConversion(BasicDataType.DATE, BasicDataType.DATETIME, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.STRING, BasicDataType.DATETIME, ConversionReliability.UNRELIABLE);
 	}
 	
 	/**
@@ -74,21 +118,20 @@ public class BasicValueParser implements ValueParser
 	{
 		return parse(value.getObjectValue(), value.getType(), to);
 	}
-
+	
 	@Override
-	public Collection<? extends DataType> getSupportedInputTypes()
+	public Collection<? extends Conversion> getConversions()
 	{
-		return this.supportedDataTypes;
-	}
-
-	@Override
-	public Collection<? extends DataType> getSupportedOutputTypes()
-	{
-		return this.supportedDataTypes;
+		return this.conversions;
 	}
 	
 	
 	// OTHER METHODS	---------------
+	
+	private void addConversion(DataType from, DataType to, ConversionReliability reliability)
+	{
+		this.conversions.add(new Conversion(from, to, reliability));
+	}
 	
 	/**
 	 * Parses a value into string format. Works the same for all data types

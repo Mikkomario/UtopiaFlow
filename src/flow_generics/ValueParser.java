@@ -1,4 +1,4 @@
-package flow_util;
+package flow_generics;
 
 import java.util.Collection;
 
@@ -29,14 +29,9 @@ public interface ValueParser
 	public Object parse(Value value, DataType to) throws ValueParseException;
 	
 	/**
-	 * @return The value types the parser is willing to take
+	 * @return The conversions the parser is able to make
 	 */
-	public Collection<? extends DataType> getSupportedInputTypes();
-	
-	/**
-	 * @return The value types the parser is willing to produce
-	 */
-	public Collection<? extends DataType> getSupportedOutputTypes();
+	public Collection<? extends Conversion> getConversions();
 	
 	
 	// SUBCLASSES	------------------

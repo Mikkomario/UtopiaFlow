@@ -45,7 +45,8 @@ public class TextObjectWriter extends ObjectWriter
 	 * @param instruction The content of the instruction
 	 * @param writer The writer that will write the instruction
 	 */
-	public void writeInstruction(String instructionIndicator, String instruction, BufferedWriter writer)
+	public static void writeInstruction(String instructionIndicator, String instruction, 
+			BufferedWriter writer)
 	{
 		FileOutputAccessor.writeLine(writer, instructionIndicator + instruction);
 	}
@@ -56,7 +57,7 @@ public class TextObjectWriter extends ObjectWriter
 	 * @param instruction The content of the instruction
 	 * @param writer The writer that will write the instruction
 	 */
-	public void writeInstruction(String instruction, BufferedWriter writer)
+	public static void writeInstruction(String instruction, BufferedWriter writer)
 	{
 		writeInstruction("%CHECK:", instruction, writer);
 	}

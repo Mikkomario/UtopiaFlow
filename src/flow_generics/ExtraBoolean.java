@@ -1,4 +1,4 @@
-package flow_util;
+package flow_generics;
 
 /**
  * This simple piece of data resembles Boolean, but has more states

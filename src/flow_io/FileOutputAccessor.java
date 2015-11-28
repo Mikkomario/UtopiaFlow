@@ -116,9 +116,16 @@ public class FileOutputAccessor
 	 */
 	public static void writeLines(String fileName, List<String> lines)
 	{
-		BufferedWriter writer = openFile(fileName);
-		writeLines(writer, lines);
-		closeWriter(writer);
+		BufferedWriter writer = null;
+		try
+		{
+			writer = openFile(fileName);
+			writeLines(writer, lines);
+		}
+		finally
+		{
+			closeWriter(writer);
+		}
 	}
 	
 	/**
@@ -202,9 +209,16 @@ public class FileOutputAccessor
 	 */
 	public static <T> void writeTree(String fileName, TreeNode<T> tree, String[] modeIndicators)
 	{
-		BufferedWriter writer = openFile(fileName);
-		writeTree(writer, tree, modeIndicators);
-		closeWriter(writer);
+		BufferedWriter writer = null;
+		try
+		{
+			writer = openFile(fileName);
+			writeTree(writer, tree, modeIndicators);
+		}
+		finally
+		{
+			closeWriter(writer);
+		}
 	}
 	
 	/**

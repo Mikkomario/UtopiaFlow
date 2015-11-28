@@ -1,9 +1,9 @@
-package flow_util;
+package flow_generics;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import flow_util.ValueParser.ValueParseException;
+import flow_generics.ValueParser.ValueParseException;
 
 /**
  * This is an immutable value class that has extra support for the basic data types
@@ -162,10 +162,33 @@ public class BasicValue implements Value
 	{
 		return BasicValueParser.parseString(getObjectValue());
 	}
+	
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+		result = prime * result + ((this.value == null) ? 0 : this.value.hashCode());
+		return result;
+	}
 
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Value))
+			return false;
+		
+		return Value.valuesAreEqual(this, (Value) obj);
+	}
+	
 	
 	// OTHER METHODS	--------------
-	
+
 	/**
 	 * @return The value casted to boolean
 	 */

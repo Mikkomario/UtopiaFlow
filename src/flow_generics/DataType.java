@@ -1,4 +1,4 @@
-package flow_util;
+package flow_generics;
 
 /**
  * All data type classes / enumerations should implement this interface so that they can be 

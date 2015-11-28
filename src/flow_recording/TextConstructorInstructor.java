@@ -1,5 +1,6 @@
 package flow_recording;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -96,14 +97,14 @@ public class TextConstructorInstructor
 	/**
 	 * Constructs objects according to instructions in the given file
 	 * 
-	 * @param fileName The name of the file that will be read ("data/" automatically included)
+	 * @param file the file that will be read
 	 * @param commentIndicator The indicates which lines are comments
 	 * @throws FileNotFoundException If a file with the given name can't be found
 	 */
-	public void constructFromFile(String fileName, String commentIndicator) throws FileNotFoundException
+	public void constructFromFile(File file, String commentIndicator) throws FileNotFoundException
 	{
 		TextFileReader reader = new TextFileReader();
-		reader.readFile(fileName, commentIndicator);
+		reader.readFile(file, commentIndicator);
 	}
 	
 	
