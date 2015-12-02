@@ -16,12 +16,12 @@ import flow_structure.Pair;
  * @author Mikko Hilpinen
  * @since 27.11.2015
  */
-public class DataTypeCoversionGraph
+public class ConversionGraph
 {
 	// ATTRIBUTES	-------------------
 	
 	private Graph<DataType, Pair<ValueParser, ConversionReliability>> conversionGraph;
-	private Map<Pair<DataType, DataType>, List<Pair<Conversion, ValueParser>>> optimalConversions;
+	private Map<Pair<DataType, DataType>, ConversionRoute> optimalConversions;
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -29,7 +29,7 @@ public class DataTypeCoversionGraph
 	/**
 	 * Creates a new data type conversion graph
 	 */
-	public DataTypeCoversionGraph()
+	public ConversionGraph()
 	{
 		this.conversionGraph = new Graph<>();
 		this.optimalConversions = new HashMap<>();
@@ -37,6 +37,19 @@ public class DataTypeCoversionGraph
 	
 	
 	// OTHER METHODS	---------------
+	
+	/**
+	 * Adds each possible conversion of a value parser to the graph (where suitable)
+	 * @param parser A parser that will be used by this graph
+	 */
+	public void addParser(ValueParser parser)
+	{
+		for (Conversion conversion : parser.getConversions())
+		{
+			addConversion(conversion.getSourceType(), conversion.getTargetType(), parser, 
+					conversion.getReliability());
+		}
+	}
 	
 	/**
 	 * Adds a new conversion between the two data types
@@ -103,31 +116,104 @@ public class DataTypeCoversionGraph
 		if (from.equals(to))
 			return value;
 		
-		List<? extends Pair<Conversion, ValueParser>> conversions = 
-				findOptimalConversionsBetween(from, to);
-		if (conversions == null)
+		ConversionRoute route = findOptimalRouteBetween(from, to);
+		if (route == null)
 			throw new ValueParser.ValueParseException(value, from, to);
 		
-		Object castValue = value;
-		for (Pair<Conversion, ValueParser> conversion : conversions)
-		{
-			castValue = conversion.getSecond().parse(castValue, 
-					conversion.getFirst().getSourceType(), 
-					conversion.getFirst().getTargetType());
-		}
-		
-		return castValue;
+		return route.cast(value);
 	}
 	
-	private List<? extends Pair<Conversion, ValueParser>> findOptimalConversionsBetween(
-			DataType from, DataType to)
+	/**
+	 * Calculates the conversion reliability of casting a value from one data type to 
+	 * another
+	 * @param from The source value data type
+	 * @param to The target data type
+	 * @return How reliable the conversion is. Null if the conversion is impossible. In a 
+	 * perfect conversion, each separate conversion is perfect.
+	 */
+	public ConversionReliability getConversionReliability(DataType from, DataType to)
+	{
+		if (from == null || to == null)
+			return null;
+		
+		if (from.equals(to))
+			return ConversionReliability.PERFECT;
+		
+		ConversionRoute route = findOptimalRouteBetween(from, to);
+		if (route == null)
+			return null;
+		else
+			return route.getReliability();
+	}
+	
+	/**
+	 * Calculates the 'cost' of casting a value from one data type to another
+	 * @param from The source value data type
+	 * @param to The target data type
+	 * @return The cost of the conversion. The higher value, the more changes the value 
+	 * will experience. A negative number is returned for impossible conversions.
+	 */
+	public int getConversionCost(DataType from, DataType to)
+	{
+		if (from == null || to == null)
+			return -1;
+		
+		if (from.equals(to))
+			return 0;
+		
+		ConversionRoute route = findOptimalRouteBetween(from, to);
+		if (route == null)
+			return -1;
+		else
+			return route.getCost();
+	}
+	
+	/**
+	 * Finds out whether a conversion between the two values is possible
+	 * @param from The source value data type
+	 * @param to The target data type
+	 * @return Is the conversion between the two data types possible using this graph
+	 */
+	public boolean conversionIsPossible(DataType from, DataType to)
+	{
+		if (from == null || to == null)
+			return false;
+		
+		if (from.equals(to))
+			return true;
+		
+		return findOptimalRouteBetween(from, to) != null;
+	}
+	
+	/**
+	 * @return All the possible single cast conversions available through this graph
+	 */
+	public List<Conversion> getPossibleConversions()
+	{
+		List<Conversion> conversions = new ArrayList<>();
+		for (GraphNode<DataType, Pair<ValueParser, ConversionReliability>> node : 
+			this.conversionGraph.getNodes())
+		{
+			DataType startType = node.getContent();
+			for (GraphEdge<DataType, Pair<ValueParser, ConversionReliability>> edge : 
+				node.getLeavingEdges())
+			{
+				conversions.add(new Conversion(startType, edge.getEndNode().getContent(), 
+						edge.getContent().getSecond()));
+			}
+		}
+		
+		return conversions;
+	}
+	
+	private ConversionRoute findOptimalRouteBetween(DataType from, DataType to)
 	{
 		if (from == null || to == null)
 			return null;
 		
 		// If the data types are already equal, returns an empty list
 		if (from.equals(to))
-			return new ArrayList<>();
+			return new ConversionRoute(new ArrayList<>());
 		
 		// Checks if the optimal conversion check has already been made
 		Pair<DataType, DataType> cast = new Pair<>(from, to);
@@ -156,7 +242,7 @@ public class DataTypeCoversionGraph
 		// If there is only a single route, uses that
 		if (routes.size() == 1)
 		{
-			List<Pair<Conversion, ValueParser>> route = parseRoute(routes.get(0), from);
+			ConversionRoute route = parseRoute(routes.get(0), from);
 			this.optimalConversions.put(cast, route);
 			return route;
 		}
@@ -175,7 +261,7 @@ public class DataTypeCoversionGraph
 				}
 			}
 			
-			List<Pair<Conversion, ValueParser>> route = parseRoute(bestRoute, from);
+			ConversionRoute route = parseRoute(bestRoute, from);
 			this.optimalConversions.put(cast, route);
 			return route;
 		}
@@ -191,8 +277,8 @@ public class DataTypeCoversionGraph
 			return nodes.get(0);
 	}
 	
-	private static List<Pair<Conversion, ValueParser>> parseRoute(List<
-			GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> route, DataType startType)
+	private static ConversionRoute parseRoute(List<GraphEdge<DataType, 
+			Pair<ValueParser, ConversionReliability>>> route, DataType startType)
 	{
 		List<Pair<Conversion, ValueParser>> parsed = new ArrayList<>();
 		
@@ -205,7 +291,7 @@ public class DataTypeCoversionGraph
 			lastType = nextType;
 		}
 		
-		return parsed;
+		return new ConversionRoute(parsed);
 	}
 	
 	private static int calculateRouteCost(List<
@@ -226,5 +312,76 @@ public class DataTypeCoversionGraph
 	{
 		return new GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>(
 				new Pair<>(parser, reliability), targetNode);
+	}
+	
+	private static class ConversionRoute
+	{
+		// ATTRIBUTES	-----------------
+		
+		private List<Pair<Conversion, ValueParser>> steps;
+		private int cost;
+		private ConversionReliability reliability;
+		
+		
+		// CONSTRUCTOR	----------------
+		
+		public ConversionRoute(List<Pair<Conversion, ValueParser>> steps)
+		{
+			this.steps = steps;
+			this.cost = -1;
+			this.reliability = null;
+		}
+		
+		
+		// ACCESSORS	-----------------
+		
+		public int getCost()
+		{
+			if (this.cost < 0)
+			{
+				this.cost = 0;
+				for (Pair<Conversion, ValueParser> step : this.steps)
+				{
+					this.cost += step.getFirst().getReliability().getCost();
+				}
+			}
+			
+			return this.cost;
+		}
+		
+		public ConversionReliability getReliability()
+		{
+			if (this.reliability == null)
+			{
+				this.reliability = ConversionReliability.PERFECT;
+				for (Pair<Conversion, ValueParser> step : this.steps)
+				{
+					ConversionReliability stepReliability = step.getFirst().getReliability();
+					if (this.reliability.isBetterThan(stepReliability))
+					{
+						this.reliability = stepReliability;
+						if (stepReliability == ConversionReliability.UNRELIABLE)
+							break;
+					}
+				}
+			}
+			
+			return this.reliability;
+		}
+		
+		
+		// OTHER METHODS	-------------------
+		
+		public Object cast(Object source)
+		{
+			Object castValue = source;
+			for (Pair<Conversion, ValueParser> step : this.steps)
+			{
+				castValue = step.getSecond().parse(castValue, step.getFirst().getSourceType(), 
+						step.getFirst().getTargetType());
+			}
+			
+			return castValue;
+		}
 	}
 }

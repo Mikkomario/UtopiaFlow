@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * @author Mikko Hilpinen
  * @since 10.11.2015
  */
-public class Variable implements Value
+public class Variable
 {
 	// ATTRIBUTES	-------------------
 	
@@ -40,7 +40,7 @@ public class Variable implements Value
 	{
 		this.dataType = type;
 		this.name = name;
-		this.value = new NullValue(type);
+		this.value = Value.NullValue(type);
 	}
 	
 	/**
@@ -54,7 +54,7 @@ public class Variable implements Value
 	{
 		this.dataType = type;
 		this.name = name;
-		this.value = DataTypes.getInstance().wrap(value, type);
+		this.value = new Value(value, type);
 	}
 	
 	/**
@@ -68,7 +68,10 @@ public class Variable implements Value
 	{
 		this.dataType = type;
 		this.name = name;
-		this.value = DataTypes.cast(value, type);
+		if (value != null)
+			this.value = value.castTo(type);
+		else
+			this.value = Value.NullValue(type);
 	}
 	
 	/**
@@ -83,7 +86,7 @@ public class Variable implements Value
 	{
 		this.dataType = type;
 		this.name = name;
-		this.value = DataTypes.createValue(value, valueType, type);
+		this.value = new Value(new Value(value, valueType), type);
 	}
 	
 	/**
@@ -100,19 +103,25 @@ public class Variable implements Value
 	
 	// IMPLEMENTED METHODS	----------------
 
-	@Override
-	public Object getObjectValue()
+	/**
+	 * @return The value currently stored in this variable
+	 */
+	public Value getValue()
 	{
-		return this.value.getObjectValue();
+		return this.value;
 	}
 
-	@Override
+	/**
+	 * @return The variable's data type
+	 */
 	public DataType getType()
 	{
 		return this.dataType;
 	}
 
-	@Override
+	/**
+	 * @return Does the variable hold a null value
+	 */
 	public boolean isNull()
 	{
 		return this.value.isNull();
@@ -143,7 +152,7 @@ public class Variable implements Value
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
-		result = prime * result + ((this.value == null) ? 0 : this.value.hashCode());
+		result = prime * result + ((getValue() == null) ? 0 : getValue().hashCode());
 		return result;
 	}
 
@@ -157,7 +166,21 @@ public class Variable implements Value
 		if (!(obj instanceof Variable))
 			return false;
 		
-		return equals((Variable) obj).toBoolean();
+		Variable other = (Variable) obj;
+		if (getName() == null)
+		{
+			if (other.getName() != null)
+				return false;
+		}
+		else if (other.getName() == null)
+			return false;
+		else if (!getName().equals(other.getName()))
+			return false;
+		
+		if (!hasEqualValueWith(other))
+			return false;
+		
+		return true;
 	}
 	
 	
@@ -178,55 +201,21 @@ public class Variable implements Value
 	 */
 	public void setValue(Value value)
 	{
-		this.value = DataTypes.cast(value, getType());
+		this.value = value.castTo(getType());
 	}
 	
 	
 	// OTHER METHODS	--------------
 	
 	/**
-	 * Checks how equal the two values are
-	 * @param other Another value
-	 * @return EXTRA TRUE if the other value is a variable with the same name 
-	 * (case-sensitive) and equal value<br>
-	 * WEAK_TRUE if the other value is a variable with the same name (case-insensitive) and 
-	 * equal value<br>
-	 * WEAK_FALSE if the other value is a variable with equal value or a value that equals this 
-	 * variable's value<br>
-	 * EXTRA FALSE otherwise
+	 * Wraps the variable to a model
+	 * @return A model that contains only this one variable
 	 */
-	public ExtraBoolean equals(Value other)
+	public Model wrapToModel()
 	{
-		if (other == null)
-			return ExtraBoolean.EXTRA_FALSE;
-		
-		if (other instanceof Variable)
-			return equals((Variable) other);
-		
-		if (Value.valuesAreEqual(this, other))
-			return ExtraBoolean.WEAK_FALSE;
-		
-		return ExtraBoolean.EXTRA_FALSE;
-	}
-	
-	private ExtraBoolean equals(Variable other)
-	{
-		if (other == null)
-			return ExtraBoolean.EXTRA_FALSE;
-		
-		if (!getName().equals(other.getName()))
-		{
-			if (getName().equalsIgnoreCase(other.getName()) && Value.valuesAreEqual(this, other))
-				return ExtraBoolean.WEAK_TRUE;
-			if (Value.valuesAreEqual(this, other))
-				return ExtraBoolean.WEAK_FALSE;
-			else
-				return ExtraBoolean.EXTRA_FALSE;
-		}
-		else if (Value.valuesAreEqual(this, other))
-			return ExtraBoolean.EXTRA_TRUE;
-		else
-			return ExtraBoolean.EXTRA_FALSE;
+		Model model = new Model();
+		model.addAttribute(this, true);
+		return model;
 	}
 	
 	/**
@@ -239,7 +228,12 @@ public class Variable implements Value
 		if (other == null)
 			return false;
 		
-		return Value.valuesAreEqual(this.value, other.value);
+		if (getValue() == null)
+			return other.getValue() == null;
+		else if (other.getValue() == null)
+			return false;
+		else
+			return getValue().equals(other.getValue());
 	}
 	
 	/**
@@ -250,7 +244,7 @@ public class Variable implements Value
 	 */
 	public void setValue(Object value, DataType type)
 	{
-		this.value = DataTypes.createValue(value, type, getType());
+		this.value = new Value(value, type).castTo(getType());
 	}
 	
 	/**
@@ -261,9 +255,7 @@ public class Variable implements Value
 	 */
 	public Object getObjectValue(DataType desiredType)
 	{
-		if (isNull())
-			return null;
-		return DataTypes.getInstance().parse(getObjectValue(), getType(), desiredType);
+		return getValue().parseTo(desiredType);
 	}
 	
 	/**
@@ -271,7 +263,7 @@ public class Variable implements Value
 	 */
 	public String getStringValue()
 	{
-		return (String) getObjectValue(BasicDataType.STRING);
+		return getValue().toString();
 	}
 	
 	/**
@@ -279,7 +271,7 @@ public class Variable implements Value
 	 */
 	public Number getNumberValue()
 	{
-		return (Number) getObjectValue(BasicDataType.NUMBER);
+		return getValue().toNumber();
 	}
 	
 	/**
@@ -287,7 +279,7 @@ public class Variable implements Value
 	 */
 	public Integer getIntegerValue()
 	{
-		return (Integer) getObjectValue(BasicDataType.INTEGER);
+		return getValue().toInteger();
 	}
 	
 	/**
@@ -295,7 +287,7 @@ public class Variable implements Value
 	 */
 	public Double getDoubleValue()
 	{
-		return (Double) getObjectValue(BasicDataType.DOUBLE);
+		return getValue().toDouble();
 	}
 	
 	/**
@@ -303,7 +295,7 @@ public class Variable implements Value
 	 */
 	public Long getLongValue()
 	{
-		return (Long) getObjectValue(BasicDataType.LONG);
+		return getValue().toLong();
 	}
 	
 	/**
@@ -311,7 +303,7 @@ public class Variable implements Value
 	 */
 	public Boolean getBooleanValue()
 	{
-		return (Boolean) getObjectValue(BasicDataType.BOOLEAN);
+		return getValue().toBoolean();
 	}
 	
 	/**
@@ -319,7 +311,7 @@ public class Variable implements Value
 	 */
 	public ExtraBoolean getExtraBooleanValue()
 	{
-		return (ExtraBoolean) getObjectValue(BasicDataType.EXTRA_BOOLEAN);
+		return getValue().toExtraBoolean();
 	}
 	
 	/**
@@ -327,7 +319,7 @@ public class Variable implements Value
 	 */
 	public LocalDate getDateValue()
 	{
-		return (LocalDate) getObjectValue(BasicDataType.DATE);
+		return getValue().toLocalDate();
 	}
 	
 	/**
@@ -335,6 +327,22 @@ public class Variable implements Value
 	 */
 	public LocalDateTime getDateTimeValue()
 	{
-		return (LocalDateTime) getObjectValue(BasicDataType.DATETIME);
+		return getValue().toLocalDateTime();
+	}
+	
+	/**
+	 * @return The variable's value as a variable
+	 */
+	public Variable getVariableValue()
+	{
+		return getValue().toVariable();
+	}
+	
+	/**
+	 * @return The variable's value as a model
+	 */
+	public Model getModelValue()
+	{
+		return getValue().toModel();
 	}
 }

@@ -46,7 +46,15 @@ public enum BasicDataType implements DataType
 	/**
 	 * @see ExtraBoolean
 	 */
-	EXTRA_BOOLEAN;
+	EXTRA_BOOLEAN,
+	/**
+	 * @see Variable
+	 */
+	VARIABLE,
+	/**
+	 * @See Model
+	 */
+	MODEL;
 	
 	
 	// IMPLEMENTED METHODS	-------------

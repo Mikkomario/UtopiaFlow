@@ -20,15 +20,6 @@ public interface ValueParser
 	public Object parse(Object value, DataType from, DataType to) throws ValueParseException;
 	
 	/**
-	 * Parses an value to a certain object type
-	 * @param value The value that should be parsed
-	 * @param to The type of the return value
-	 * @return An object parsed from the provided value to the desired type
-	 * @throws ValueParseException If the parsing failed
-	 */
-	public Object parse(Value value, DataType to) throws ValueParseException;
-	
-	/**
 	 * @return The conversions the parser is able to make
 	 */
 	public Collection<? extends Conversion> getConversions();

@@ -45,6 +45,22 @@ public class Graph<NodeContent, EdgeContent>
 	// OTHER METHODS	-------------------
 	
 	/**
+	 * @return All the edges from each node in this graph
+	 */
+	/*
+	public Set<GraphEdge<NodeContent, EdgeContent>> getEdges()
+	{
+		Set<GraphEdge<NodeContent, EdgeContent>> edges = new HashSet<>();
+		for (GraphNode<NodeContent, EdgeContent> node : getNodes())
+		{
+			edges.addAll(node.getLeavingEdges());
+		}
+		
+		return edges;
+	}
+	*/
+	
+	/**
 	 * Adds a new node to the graph
 	 * @param node The node that will be added to the graph
 	 */

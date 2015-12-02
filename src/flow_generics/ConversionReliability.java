@@ -24,7 +24,7 @@ public enum ConversionReliability
 	 * unreliable conversion. Also, a conversion from a string to a boolean would be an 
 	 * unreliable conversion since the meaning may be lost ("a string" -> false).
 	 */
-	UNRELIABLE(50);
+	UNRELIABLE(25);
 	
 	
 	// ATTRIBUTES	-----------------

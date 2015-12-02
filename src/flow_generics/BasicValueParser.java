@@ -72,6 +72,17 @@ public class BasicValueParser implements ValueParser
 		// Datetimes can be cast from date and string
 		addConversion(BasicDataType.DATE, BasicDataType.DATETIME, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.STRING, BasicDataType.DATETIME, ConversionReliability.UNRELIABLE);
+		
+		// Variables can be cast to any other data type, but it is unreliable 
+		// whether the cast will succeed since the variable's data type is not known
+		for (DataType type : BasicDataType.values())
+		{
+			// Variables can easily be wrapped to models
+			if (type == BasicDataType.MODEL)
+				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.RELIABLE);
+			else if (type != BasicDataType.VARIABLE)
+				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.UNRELIABLE);
+		}
 	}
 	
 	/**
@@ -91,6 +102,23 @@ public class BasicValueParser implements ValueParser
 	@Override
 	public Object parse(Object value, DataType from, DataType to) throws ValueParseException
 	{
+		if (from == null || to == null)
+			throw new ValueParseException(value, from, to);
+		// Null stays the same no matter the data type
+		if (value == null)
+			return null;
+		
+		if (from.equals(BasicDataType.VARIABLE))
+		{
+			Variable var = (Variable) value;
+			// May wrap the variable into a model (exception for model type variables)
+			if (to.equals(BasicDataType.MODEL) && !var.getType().equals(BasicDataType.MODEL))
+				return var.wrapToModel();
+			// Otherwise tries to cast the variable value
+			else
+				return var.getObjectValue(to);
+		}
+		
 		if (to.equals(BasicDataType.BOOLEAN))
 			return parseBoolean(value, from);
 		if (to.equals(BasicDataType.DATE))
@@ -111,12 +139,6 @@ public class BasicValueParser implements ValueParser
 			return parseString(value);
 
 		throw new ValueParseException(value, from, to);
-	}
-	
-	@Override
-	public Object parse(Value value, DataType to) throws ValueParseException
-	{
-		return parse(value.getObjectValue(), value.getType(), to);
 	}
 	
 	@Override

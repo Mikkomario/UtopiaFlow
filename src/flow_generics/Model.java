@@ -206,9 +206,10 @@ public class Model
 			return ExtraBoolean.EXTRA_FALSE;
 		else
 		{
-			ExtraBoolean attributesEqual = attribute.equals(corresponding);
-			if (attributesEqual.toBoolean())
-				return attributesEqual;
+			if (attribute.equals(corresponding))
+				return ExtraBoolean.EXTRA_TRUE;
+			else if (attribute.hasEqualValueWith(corresponding))
+				return ExtraBoolean.WEAK_TRUE;
 			else
 				return ExtraBoolean.WEAK_FALSE;
 		}
