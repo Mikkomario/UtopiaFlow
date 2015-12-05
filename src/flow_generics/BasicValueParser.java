@@ -26,10 +26,11 @@ public class BasicValueParser implements ValueParser
 		// Initialises the possible conversions
 		this.conversions = new ArrayList<>();
 		
-		// Can reliably cast from any basic data type to a string
+		// Can reliably cast from any basic data type to a string. All of the data may not 
+		// be present in the final form
 		for (DataType type : BasicDataType.values())
 		{
-			addConversion(type, BasicDataType.STRING, ConversionReliability.RELIABLE);
+			addConversion(type, BasicDataType.STRING, ConversionReliability.DATA_LOSS);
 		}
 		
 		// Can perfectly cast from int, double and long to number, but the backwards conversion 
@@ -38,51 +39,69 @@ public class BasicValueParser implements ValueParser
 		addConversion(BasicDataType.DOUBLE, BasicDataType.NUMBER, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.LONG, BasicDataType.NUMBER, ConversionReliability.PERFECT);
 		
-		addConversion(BasicDataType.NUMBER, BasicDataType.INTEGER, ConversionReliability.RELIABLE);
-		addConversion(BasicDataType.NUMBER, BasicDataType.LONG, ConversionReliability.RELIABLE);
-		addConversion(BasicDataType.NUMBER, BasicDataType.DOUBLE, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.NUMBER, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
+		addConversion(BasicDataType.NUMBER, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
+		addConversion(BasicDataType.NUMBER, BasicDataType.DOUBLE, ConversionReliability.DATA_LOSS);
 		
 		// Integers and long can be parsed from booleans and extra booleans reliably
-		addConversion(BasicDataType.BOOLEAN, BasicDataType.INTEGER, ConversionReliability.RELIABLE);
-		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.INTEGER, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.BOOLEAN, BasicDataType.INTEGER, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
+		addConversion(BasicDataType.STRING, BasicDataType.INTEGER, ConversionReliability.DANGEROUS);
 		
-		addConversion(BasicDataType.BOOLEAN, BasicDataType.LONG, ConversionReliability.RELIABLE);
-		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.LONG, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.BOOLEAN, BasicDataType.LONG, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
+		addConversion(BasicDataType.STRING, BasicDataType.LONG, ConversionReliability.DANGEROUS);
 		
 		// Doubles as well. Doubles can also be cast from Strings, although that is unreliable
-		// (That's why we skipped String -> integer conversion completely and do it through 
-		// double instead)
-		addConversion(BasicDataType.BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.STRING, BasicDataType.DOUBLE, ConversionReliability.UNRELIABLE);
+		addConversion(BasicDataType.STRING, BasicDataType.DOUBLE, ConversionReliability.DANGEROUS);
+		addConversion(BasicDataType.INTEGER, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
 		
 		// Boolean values can be cast from numbers and extra booleans
-		addConversion(BasicDataType.NUMBER, BasicDataType.BOOLEAN, ConversionReliability.RELIABLE);
-		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.BOOLEAN, ConversionReliability.RELIABLE);
+		addConversion(BasicDataType.NUMBER, BasicDataType.BOOLEAN, ConversionReliability.MEANING_LOSS);
+		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.BOOLEAN, ConversionReliability.DATA_LOSS);
 		
 		// Extra booleans can be cast from booleans, doubles and strings
 		addConversion(BasicDataType.BOOLEAN, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.DOUBLE, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.RELIABLE);
-		addConversion(BasicDataType.STRING, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.UNRELIABLE);
+		addConversion(BasicDataType.DOUBLE, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.MEANING_LOSS);
+		addConversion(BasicDataType.STRING, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.DANGEROUS);
 		
 		// Dates can be cast from datetimes and string
-		addConversion(BasicDataType.DATETIME, BasicDataType.DATE, ConversionReliability.RELIABLE);
-		addConversion(BasicDataType.STRING, BasicDataType.DATE, ConversionReliability.UNRELIABLE);
+		addConversion(BasicDataType.DATETIME, BasicDataType.DATE, ConversionReliability.DATA_LOSS);
+		addConversion(BasicDataType.STRING, BasicDataType.DATE, ConversionReliability.DANGEROUS);
 		
 		// Datetimes can be cast from date and string
 		addConversion(BasicDataType.DATE, BasicDataType.DATETIME, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.STRING, BasicDataType.DATETIME, ConversionReliability.UNRELIABLE);
+		addConversion(BasicDataType.STRING, BasicDataType.DATETIME, ConversionReliability.DANGEROUS);
 		
 		// Variables can be cast to any other data type, but it is unreliable 
 		// whether the cast will succeed since the variable's data type is not known
 		for (DataType type : BasicDataType.values())
 		{
-			// Variables can easily be wrapped to models
+			// Variables can easily be wrapped to models and variable declarations
+			// But it is a bit dangerou
 			if (type == BasicDataType.MODEL)
-				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.RELIABLE);
+				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.PERFECT);
+			if (type == BasicDataType.VARIABLE_DECLARATION)
+				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.DATA_LOSS);
 			else if (type != BasicDataType.VARIABLE)
-				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.UNRELIABLE);
+				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.DANGEROUS);
 		}
+		
+		// Variable declarations can be cast to variables and model 
+		// declarations perfectly
+		addConversion(BasicDataType.VARIABLE_DECLARATION, BasicDataType.VARIABLE, 
+				ConversionReliability.PERFECT);
+		addConversion(BasicDataType.VARIABLE_DECLARATION, BasicDataType.MODEL_DECLARATION, 
+				ConversionReliability.PERFECT);
+		
+		// Model declarations can be cast to models perfectly, but model back to declarations 
+		// only reliably
+		addConversion(BasicDataType.MODEL_DECLARATION, BasicDataType.MODEL, 
+				ConversionReliability.PERFECT);
+		addConversion(BasicDataType.MODEL, BasicDataType.MODEL_DECLARATION, 
+				ConversionReliability.DATA_LOSS);
 	}
 	
 	/**
@@ -114,10 +133,29 @@ public class BasicValueParser implements ValueParser
 			// May wrap the variable into a model (exception for model type variables)
 			if (to.equals(BasicDataType.MODEL) && !var.getType().equals(BasicDataType.MODEL))
 				return var.wrapToModel();
+			// Variable declaration is also a possibility
+			if (to.equals(BasicDataType.VARIABLE_DECLARATION) && !var.getType().equals(
+					BasicDataType.VARIABLE_DECLARATION))
+				return var.getDeclaration();
 			// Otherwise tries to cast the variable value
 			else
 				return var.getObjectValue(to);
 		}
+		else if (from.equals(BasicDataType.VARIABLE_DECLARATION))
+		{
+			VariableDeclaration declaration = (VariableDeclaration) value;
+			// Variable declarations can be wrapped to model declarations
+			if (to.equals(BasicDataType.MODEL_DECLARATION))
+				return declaration.wrapToModelDeclaration();
+			// Can also be instantiated to variables
+			if (to.equals(BasicDataType.VARIABLE))
+				return declaration.assignNullValue();
+		}
+		else if (from.equals(BasicDataType.MODEL) && to.equals(BasicDataType.MODEL_DECLARATION))
+			return ((Model) value).getDeclaration();
+		else if (from.equals(BasicDataType.MODEL_DECLARATION) && to.equals(BasicDataType.MODEL))
+			return ((ModelDeclaration) value).instantiate();
+			
 		
 		if (to.equals(BasicDataType.BOOLEAN))
 			return parseBoolean(value, from);

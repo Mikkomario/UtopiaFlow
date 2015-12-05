@@ -1,7 +1,9 @@
 package flow_generics;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -33,6 +35,41 @@ public class Model
 	public Model(Collection<? extends Variable> variables)
 	{
 		this.attributes = new HashSet<>(variables);
+	}
+	
+	/**
+	 * Creates a new model by copying another
+	 * @param other A model that will be copied
+	 */
+	public Model(Model other)
+	{
+		this.attributes = new HashSet<>();
+		
+		if (other != null)
+		{
+			for (Variable attribute : other.getAttributes())
+			{
+				addAttribute(new Variable(attribute), true);
+			}
+		}
+	}
+	
+	
+	// IMPLEMENTED METHODS	-------------
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder s = new StringBuilder();
+		
+		s.append("Model");
+		for (Variable attribute : getAttributes())
+		{
+			s.append("\n");
+			s.append(attribute);
+		}
+		
+		return s.toString();
 	}
 	
 	
@@ -114,6 +151,26 @@ public class Model
 	public Variable findCorrespondingAttribute(Variable attribute)
 	{
 		return findAttribute(attribute.getName());
+	}
+	
+	/**
+	 * Finds the provided attributes and wraps them into a model format
+	 * @param attributeNames The names of the attributes that should be included in the 
+	 * returned model
+	 * @return A model containing the provided attributes. Changes made to the attributes 
+	 * will affect this model as well.
+	 */
+	public Model findAttributes(String... attributeNames)
+	{
+		Model model = new Model();
+		for (String attributeName : attributeNames)
+		{
+			Variable attribute = findAttribute(attributeName);
+			if (attribute != null)
+				model.addAttribute(attribute, true);
+		}
+		
+		return model;
 	}
 	
 	/**
@@ -213,6 +270,20 @@ public class Model
 			else
 				return ExtraBoolean.WEAK_FALSE;
 		}
+	}
+	
+	/**
+	 * @return A declaration for each of the attributes in this model
+	 */
+	public ModelDeclaration getDeclaration()
+	{
+		List<VariableDeclaration> declarations = new ArrayList<>();
+		for (Variable attribute : getAttributes())
+		{
+			declarations.add(attribute.getDeclaration());
+		}
+		
+		return new ModelDeclaration(declarations);
 	}
 	
 	

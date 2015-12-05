@@ -360,7 +360,7 @@ public class ConversionGraph
 					if (this.reliability.isBetterThan(stepReliability))
 					{
 						this.reliability = stepReliability;
-						if (stepReliability == ConversionReliability.UNRELIABLE)
+						if (stepReliability == ConversionReliability.DANGEROUS)
 							break;
 					}
 				}

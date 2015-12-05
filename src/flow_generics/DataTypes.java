@@ -157,6 +157,35 @@ public class DataTypes implements ValueParser
 		this.graph.addParser(parser);
 	}
 	
+	/**
+	 * Calculates the reliability of a conversion between two data types
+	 * @param from The source data type
+	 * @param to The target data type
+	 * @return How reliable the conversion is. Null if the conversion is impossible.
+	 */
+	public ConversionReliability getConversionReliability(DataType from, DataType to)
+	{
+		return this.graph.getConversionReliability(from, to);
+	}
+	
+	/**
+	 * Finds the data type represented by the string
+	 * @param s a string representing a data type
+	 * @return The data type represented by the string
+	 * @throws DataTypeNotIntroducedException if the string doesn't represent an introduced 
+	 * data type
+	 */
+	public static DataType parseType(String s) throws DataTypeNotIntroducedException
+	{
+		for (DataTypeTreeNode typeNode : DataTypes.getInstance().dataTypes)
+		{
+			if (typeNode.getContent().toString().equalsIgnoreCase(s))
+				return typeNode.getContent();
+		}
+		
+		throw new DataTypeNotIntroducedException(s + " doesn't represent a known data type");
+	}
+	
 	private DataTypeTreeNode getNode(DataType type)
 	{
 		for (DataTypeTreeNode node : this.dataTypes)

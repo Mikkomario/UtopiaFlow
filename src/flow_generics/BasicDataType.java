@@ -54,7 +54,15 @@ public enum BasicDataType implements DataType
 	/**
 	 * @See Model
 	 */
-	MODEL;
+	MODEL,
+	/**
+	 * @see VariableDeclaration
+	 */
+	VARIABLE_DECLARATION,
+	/**
+	 * @see ModelDeclaration
+	 */
+	MODEL_DECLARATION;
 	
 	
 	// IMPLEMENTED METHODS	-------------
@@ -62,7 +70,7 @@ public enum BasicDataType implements DataType
 	@Override
 	public boolean equals(DataType other)
 	{
-		return equals(other);
+		return this == other;
 	}
 
 	@Override

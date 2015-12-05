@@ -32,7 +32,7 @@ public class Variable
 	}
 	
 	/**
-	 * Creates a new 'uninitialised' variable with a null value.
+	 * Creates a new variable with a null value.
 	 * @param name The name of the variable.
 	 * @param type The data type of the variable.
 	 */
@@ -216,6 +216,14 @@ public class Variable
 		Model model = new Model();
 		model.addAttribute(this, true);
 		return model;
+	}
+	
+	/**
+	 * @return A declaration for a variable similar to this
+	 */
+	public VariableDeclaration getDeclaration()
+	{
+		return new VariableDeclaration(getName(), getType());
 	}
 	
 	/**
