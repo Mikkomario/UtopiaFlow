@@ -3,6 +3,7 @@ package flow_generics;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import flow_generics.ValueOperation.ValueOperationException;
 import flow_generics.ValueParser.ValueParseException;
 
 /**
@@ -137,6 +138,56 @@ public class Value
 	}
 	
 	/**
+	 * Wraps a string value
+	 * @param string a string object
+	 * @return A string value
+	 */
+	public static Value String(String string)
+	{
+		return new Value(string, BasicDataType.STRING);
+	}
+	
+	/**
+	 * Wraps a variable object value
+	 * @param var a variable object
+	 * @return a variable value
+	 */
+	public static Value Variable(Variable var)
+	{
+		return new Value(var, BasicDataType.VARIABLE);
+	}
+	
+	/**
+	 * Wraps a model object value
+	 * @param model a model object value
+	 * @return a model value
+	 */
+	public static Value Model(Model model)
+	{
+		return new Value(model, BasicDataType.MODEL);
+	}
+	
+	/**
+	 * Wraps a variable declaration object value
+	 * @param declaration a variable declaration
+	 * @return a variable declaration value
+	 */
+	public static Value VariableDeclaration(VariableDeclaration declaration)
+	{
+		return new Value(declaration, BasicDataType.VARIABLE_DECLARATION);
+	}
+	
+	/**
+	 * Wraps a model declaration object
+	 * @param declaration a model declaration
+	 * @return a model declaration value
+	 */
+	public static Value ModelDeclaration(ModelDeclaration declaration)
+	{
+		return new Value(declaration, BasicDataType.MODEL_DECLARATION);
+	}
+	
+	/**
 	 * Creates a new null value
 	 * @param type The data type of the null value
 	 * @return A null value
@@ -227,6 +278,26 @@ public class Value
 	// OTHER METHODS	--------------
 
 	/**
+	 * @return A description of this value, containing the object value and the data type. 
+	 * For example "test (STRING)" or "null (INTEGER)"
+	 */
+	public String getDescription()
+	{
+		StringBuilder s = new StringBuilder();
+		
+		if (isNull())
+			s.append("null");
+		else
+			s.append(toString());
+		
+		s.append(" (");
+		s.append(getType());
+		s.append(")");
+		
+		return s.toString();
+	}
+	
+	/**
 	 * Returns the value's object value in a specific data type
 	 * @param type The desired data type
 	 * @return The value's object value in the desired data type
@@ -252,6 +323,39 @@ public class Value
 			return this;
 		
 		return new Value(parseTo(type), type);
+	}
+	
+	/**
+	 * Casts the value to a new value with one a different data type
+	 * @param types The data types the end result may have
+	 * @return The value cast to one of the desired data types
+	 * @throws DataTypeException If the casting failed
+	 */
+	public Value castTo(Iterable<? extends DataType> types) throws DataTypeException
+	{
+		return DataTypes.getInstance().parse(this, types);
+	}
+	
+	/**
+	 * Performs a value operation on this and another value
+	 * @param operation The operation performed
+	 * @param other Another value
+	 * @return The result of the operation
+	 * @throws ValueOperationException If the operation failed
+	 */
+	public Value operate(ValueOperation operation, Value other) throws ValueOperationException
+	{
+		return DataTypes.getInstance().operate(this, operation, other);
+	}
+	
+	/**
+	 * Combines the two values together
+	 * @param other Another value
+	 * @return a combination of the two values
+	 */
+	public Value plus(Value other)
+	{
+		return operate(BasicValueOperation.PLUS, other);
 	}
 	
 	/**
@@ -332,5 +436,21 @@ public class Value
 	public Model toModel()
 	{
 		return (Model) parseTo(BasicDataType.MODEL);
+	}
+	
+	/**
+	 * @return The value casted to variable declaration
+	 */
+	public VariableDeclaration toVariableDeclaration()
+	{
+		return (VariableDeclaration) parseTo(BasicDataType.VARIABLE_DECLARATION);
+	}
+	
+	/**
+	 * @return The value casted to model declaration
+	 */
+	public ModelDeclaration toModelDeclaration()
+	{
+		return (ModelDeclaration) parseTo(BasicDataType.MODEL_DECLARATION);
 	}
 }

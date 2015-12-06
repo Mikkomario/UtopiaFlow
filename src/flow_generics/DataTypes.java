@@ -2,7 +2,12 @@ package flow_generics;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import flow_generics.ValueOperation.ValueOperationException;
+import flow_structure.Pair;
 
 /**
  * This static interface keeps track of the different data type hierarchies, etc.
@@ -17,6 +22,7 @@ public class DataTypes implements ValueParser
 	
 	private List<DataTypeTreeNode> dataTypes;
 	private ConversionGraph graph;
+	private List<ValueOperator> operators;
 	
 	
 	// CONSTRUCTOR	------------------
@@ -25,6 +31,7 @@ public class DataTypes implements ValueParser
 	{
 		this.dataTypes = new ArrayList<>();
 		this.graph = new ConversionGraph();
+		this.operators = new ArrayList<>();
 		
 		// Initialises the basic data types
 		for (DataType type : BasicDataType.values())
@@ -39,6 +46,7 @@ public class DataTypes implements ValueParser
 		
 		// Adds parsing support for basic data types
 		addParser(BasicValueParser.getInstance());
+		addOperator(BasicPlusOperator.getInstance());
 	}
 	
 	/**
@@ -73,6 +81,31 @@ public class DataTypes implements ValueParser
 		return this.graph.parse(value.getObjectValue(), value.getType(), to);
 	}
 	
+	/**
+	 * Parses an object value to one of the provided data types
+	 * @param value The source value
+	 * @param from The source data type
+	 * @param to The target data type(s)
+	 * @return The object value parsed to one of the provided data types
+	 * @throws ValueParseException If the parsing failed
+	 */
+	public Value parse(Object value, DataType from, Iterable<? extends DataType> to) throws ValueParseException
+	{
+		return this.graph.parse(value, from, to);
+	}
+	
+	/**
+	 * Parses a value to one of the provided data types
+	 * @param value The source value
+	 * @param to The target data type(s)
+	 * @return The object value parsed to one of the provided data types
+	 * @throws ValueParseException If the parsing failed
+	 */
+	public Value parse(Value value, Iterable<? extends DataType> to) throws ValueParseException
+	{
+		return this.graph.parse(value.getObjectValue(), value.getType(), to);
+	}
+	
 	@Override
 	public Collection<? extends Conversion> getConversions()
 	{
@@ -81,6 +114,68 @@ public class DataTypes implements ValueParser
 
 	
 	// OTHER METHODS	--------------
+	
+	/**
+	 * Performs a value operation on two values
+	 * @param first The first value
+	 * @param operation The operation performed on the two values
+	 * @param second The second value
+	 * @return The result value of the operation
+	 * @throws ValueOperationException If the operation couldn't be performed or it failed
+	 */
+	public Value operate(Value first, ValueOperation operation, Value second) throws ValueOperationException
+	{
+		if (first == null)
+			throw new ValueOperationException(operation, first, second);
+		if (second == null)
+			return first;
+		
+		// Finds the suitable operator(s)
+		List<ValueOperator> operators = new ArrayList<>();
+		for (ValueOperator operator : this.operators)
+		{
+			if (operator.getOperation().equals(operation))
+				operators.add(operator);
+		}
+		
+		if (operators.isEmpty())
+			throw new ValueOperation.ValueOperationException(
+					"No operator provided for operation " + operation);
+		
+		// Finds the compatible target data types (and their operators)
+		List<DataType> targetTypes = new ArrayList<>();
+		Map<DataType, ValueOperator> targetOperators = new HashMap<>();
+		for (ValueOperator operator : operators)
+		{
+			for (Pair<DataType, DataType> parameterTypes : operator.getPossibleParameterTypes())
+			{
+				if (parameterTypes.getFirst().equals(first.getType()) && 
+						!targetTypes.contains(parameterTypes.getSecond()))
+				{
+					// If a straight match is found, uses that
+					if (parameterTypes.getSecond().equals(second.getType()))
+						return operator.operate(first, second);
+					
+					targetTypes.add(parameterTypes.getSecond());
+					targetOperators.put(parameterTypes.getSecond(), operator);
+				}
+			}
+		}
+		
+		// Casts the second value to a compatible data type
+		Value casted = null;
+		try
+		{
+			casted = parse(second, targetTypes);
+		}
+		catch (DataTypeException e)
+		{
+			throw new ValueOperation.ValueOperationException(operation, first, second, e);
+		}
+		
+		// Performs the actual operation
+		return targetOperators.get(casted.getType()).operate(first, casted);
+	}
 	
 	/**
 	 * Checks if the first data type belongs to the second data type
@@ -155,6 +250,16 @@ public class DataTypes implements ValueParser
 			return;
 		
 		this.graph.addParser(parser);
+	}
+	
+	/**
+	 * Adds a new value operator to the available value operators
+	 * @param operator A value operator that could be used
+	 */
+	public void addOperator(ValueOperator operator)
+	{
+		if (operator != null && !this.operators.contains(operator))
+			this.operators.add(operator);
 	}
 	
 	/**

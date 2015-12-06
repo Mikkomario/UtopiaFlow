@@ -45,7 +45,7 @@ public interface ValueParser
 		 */
 		public ValueParseException(Object value, DataType from)
 		{
-			super(from, parseMessage(value, from, null));
+			super(parseMessage(value, from, null));
 		}
 		
 		/**
@@ -56,7 +56,7 @@ public interface ValueParser
 		 */
 		public ValueParseException(Object value, DataType from, DataType to)
 		{
-			super(from, parseMessage(value, from, to));
+			super(parseMessage(value, from, to));
 		}
 		
 		/**
@@ -67,7 +67,7 @@ public interface ValueParser
 		 */
 		public ValueParseException(Object value, DataType from, Throwable cause)
 		{
-			super(from, parseMessage(value, from, null), cause);
+			super(parseMessage(value, from, null), cause);
 		}
 		
 		/**
@@ -79,7 +79,7 @@ public interface ValueParser
 		 */
 		public ValueParseException(Object value, DataType from, DataType to, Throwable cause)
 		{
-			super(from, parseMessage(value, from, to), cause);
+			super(parseMessage(value, from, to), cause);
 		}
 		
 		

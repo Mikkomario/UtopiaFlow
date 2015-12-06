@@ -155,4 +155,19 @@ public class VariableDeclaration
 		declarations.add(this);
 		return new ModelDeclaration(declarations);
 	}
+	
+	/**
+	 * Combines the two variable declarations into a model declaration
+	 * @param other Another variable declaration
+	 * @return A model declaration that contains the two variable declarations
+	 */
+	public ModelDeclaration plus(VariableDeclaration other)
+	{
+		List<VariableDeclaration> declarations = new ArrayList<>();
+		declarations.add(this);
+		if (other != null)
+			declarations.add(other);
+		
+		return new ModelDeclaration(declarations);
+	}
 }

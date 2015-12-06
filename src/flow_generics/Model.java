@@ -286,6 +286,46 @@ public class Model
 		return new ModelDeclaration(declarations);
 	}
 	
+	/**
+	 * Combines the two models into a new separate model. The model still contains the same 
+	 * attributes the two models had, and changes to those attributes reflect to multiple 
+	 * models.
+	 * @param other Another model.
+	 * @return A new model that is combined from the two models
+	 */
+	public Model plus(Model other)
+	{	
+		Model model = new Model();
+		
+		for (Variable attribute : getAttributes())
+		{
+			model.addAttribute(attribute, true);
+		}
+		if (other != null)
+		{
+			for (Variable attribute : other.getAttributes())
+			{
+				model.addAttribute(attribute, true);
+			}
+		}
+		
+		return model;
+	}
+	
+	/**
+	 * Creates a new model with the provided variable added. The attributes are shared between 
+	 * the two models and changes made to one will affect the other.
+	 * @param variable A variable
+	 * @return A model containing each of this model's attributes plus the provided variable
+	 */
+	public Model plus(Variable variable)
+	{
+		Model model = new Model(getAttributes());
+		model.addAttribute(variable, true);
+		
+		return model;
+	}
+	
 	
 	// SUBCLASSES	----------------------
 	

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import flow_generics.ValueParser.ValueParseException;
 import flow_structure.Graph;
 import flow_structure.GraphEdge;
 import flow_structure.GraphNode;
@@ -121,6 +122,50 @@ public class ConversionGraph
 			throw new ValueParser.ValueParseException(value, from, to);
 		
 		return route.cast(value);
+	}
+	
+	/**
+	 * Parses the value to one of the target data types, whichever conversion is the most 
+	 * reliable
+	 * @param value The source value
+	 * @param from The data type of the source value
+	 * @param to The target data types
+	 * @return a value parsed from the source value into one of the target data types
+	 * @throws ValueParseException If the value can't be parsed into any of the target types 
+	 * or if the conversion fails.
+	 */
+	public Value parse(Object value, DataType from, Iterable<? extends DataType> to) throws 
+			ValueParseException
+	{
+		DataType optimalTarget = findOptimalTargetType(from, to);
+		
+		if (optimalTarget == null)
+			throw new ValueParser.ValueParseException(value, from);
+		else
+			return new Value(parse(value, from, optimalTarget), optimalTarget);
+	}
+	
+	/**
+	 * Finds the optimal target data type for a conversion between two data types
+	 * @param from The source data type
+	 * @param to The target data types
+	 * @return The target data types which the source data type can be cast from most reliably. 
+	 * Null if the source data type can't be converted to any of the target data types.
+	 */
+	public DataType findOptimalTargetType(DataType from, Iterable<? extends DataType> to)
+	{
+		// Finds the optimal target data type
+		DataType optimalTarget = null;
+		int smallestCost = -1;
+		
+		for (DataType type : to)
+		{
+			int cost = getConversionCost(from, type);
+			if (cost >= 0 && (optimalTarget == null || cost < smallestCost))
+				optimalTarget = type;
+		}
+		
+		return optimalTarget;
 	}
 	
 	/**

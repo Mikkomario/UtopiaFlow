@@ -11,7 +11,6 @@ public class DataTypeException extends RuntimeException
 	// ATTIRIBUTES	------------------
 	
 	private static final long serialVersionUID = -868729120876227165L;
-	private DataType dataType;
 	
 	
 	// CONSTRUCTOR	------------------
@@ -22,21 +21,16 @@ public class DataTypeException extends RuntimeException
 	 */
 	public DataTypeException(DataType type)
 	{
-		super("Invalid use of data type " + type.getName());
-		
-		this.dataType = type;
+		super("Invalid use of data type " + type == null ? "null" : type.getName());
 	}
 
 	/**
 	 * Creates a new exception
-	 * @param type The data type that was misused
 	 * @param message The message sent along with the exception
 	 */
-	public DataTypeException(DataType type, String message)
+	public DataTypeException(String message)
 	{
 		super(message);
-		
-		this.dataType = type;
 	}
 
 	/**
@@ -47,31 +41,15 @@ public class DataTypeException extends RuntimeException
 	public DataTypeException(DataType type, Throwable cause)
 	{
 		super(cause);
-		
-		this.dataType = type;
 	}
 
 	/**
 	 * Creates a new exception
-	 * @param type The data type that was misused
 	 * @param message The message sent along with the exception
 	 * @param cause The exception that caused this exception
 	 */
-	public DataTypeException(DataType type, String message, Throwable cause)
+	public DataTypeException(String message, Throwable cause)
 	{
 		super(message, cause);
-		
-		this.dataType = type;
-	}
-	
-	
-	// ACCESSORS	---------------
-	
-	/**
-	 * @return The data type that was misused
-	 */
-	public DataType getDataType()
-	{
-		return this.dataType;
 	}
 }

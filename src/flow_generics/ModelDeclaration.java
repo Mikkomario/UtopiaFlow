@@ -164,4 +164,76 @@ public class ModelDeclaration
 		
 		return model;
 	}
+	
+	/**
+	 * Combines the two model declarations to form a larger model declaration
+	 * @param other Another model declaration
+	 * @return A model declaration that contains the attributes from both declarations
+	 */
+	public ModelDeclaration plus(ModelDeclaration other)
+	{
+		if (other == null)
+			return this;
+		
+		Set<VariableDeclaration> combinedDeclarations = new HashSet<>();
+		combinedDeclarations.addAll(this.attributeDeclarations);
+		combinedDeclarations.addAll(other.attributeDeclarations);
+		
+		return new ModelDeclaration(combinedDeclarations);
+	}
+	
+	/**
+	 * Combines this model declaration with an attribute declaration in order to form 
+	 * a larger declaration
+	 * @param attributeDeclaration An attribute declaration
+	 * @return A model declaration that contains the provided declaration
+	 */
+	public ModelDeclaration plus(VariableDeclaration attributeDeclaration)
+	{
+		if (attributeDeclaration == null)
+			return this;
+		
+		Set<VariableDeclaration> declarations = getAttributeDeclarations();
+		declarations.add(attributeDeclaration);
+		
+		return new ModelDeclaration(declarations);
+	}
+	
+	/**
+	 * Creates a new model declaration based on this model declaration that doesn't share 
+	 * any attributes with the other model declaration
+	 * @param other Another model declaration
+	 * @return a model declaration that has the attribute declarations of this model 
+	 * declaration that are not shared between the two declarations.
+	 */
+	public ModelDeclaration minus(ModelDeclaration other)
+	{
+		if (other == null)
+			return this;
+		
+		Set<VariableDeclaration> declarations = getAttributeDeclarations();
+		if (declarations.removeAll(other.attributeDeclarations))
+			return new ModelDeclaration(declarations);
+		else
+			return this;
+	}
+	
+	/**
+	 * Creates a new model declaration without the provided attribute
+	 * @param attributeDeclaration An attribute declaration
+	 * @return A model declaration that doesn't contain the provided declaration
+	 */
+	public ModelDeclaration minus(VariableDeclaration attributeDeclaration)
+	{
+		if (attributeDeclaration == null)
+			return this;
+		else if (containsAttribute(attributeDeclaration))
+		{
+			Set<VariableDeclaration> declarations = getAttributeDeclarations();
+			declarations.remove(attributeDeclaration);
+			return new ModelDeclaration(declarations);
+		}
+		else
+			return this;
+	}
 }

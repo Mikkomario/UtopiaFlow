@@ -81,6 +81,40 @@ public enum ExtraBoolean
 	}
 	
 	/**
+	 * Combines the two extra booleans with logical and. The result is EXTRA_TRUE only if 
+	 * both of the values are EXTRA_TRUE.
+	 * @param other Another extra boolean
+	 * @return The one of the extra booleans that is more false.
+	 */
+	public ExtraBoolean and(ExtraBoolean other)
+	{
+		if (other == null)
+			return this;
+		
+		if (!isAtLeastAsTrueAs(other))
+			return this;
+		else
+			return other;
+	}
+	
+	/**
+	 * Combines the two extra booleans with logical or. The result is EXTRA_TRUE if either 
+	 * of the values is EXTRA_TRUE.
+	 * @param other Another extra boolean.
+	 * @return The one of the extra booleans that is more true.
+	 */
+	public ExtraBoolean or(ExtraBoolean other)
+	{
+		if (other == null)
+			return this;
+		
+		if (isAtLeastAsTrueAs(other))
+			return this;
+		else
+			return other;
+	}
+	
+	/**
 	 * Checks if the two extra booleans have the same value
 	 * @param other The other extra boolean value
 	 * @return Extra true if the values are exactly equal, weak true if only the boolean 
@@ -132,14 +166,14 @@ public enum ExtraBoolean
 	 */
 	public static ExtraBoolean parseFromDouble(double d)
 	{
-		if (d <= EXTRA_FALSE.value)
-			return EXTRA_FALSE;
-		if (d <= WEAK_FALSE.value)
-			return WEAK_FALSE;
-		if (d <= WEAK_TRUE.value)
+		if (d >= EXTRA_TRUE.value)
+			return EXTRA_TRUE;
+		else if (d >= WEAK_TRUE.value)
 			return WEAK_TRUE;
-		
-		return EXTRA_TRUE;
+		else if (d >= WEAK_FALSE.value)
+			return WEAK_FALSE;
+		else
+			return EXTRA_FALSE;
 	}
 	
 	/**

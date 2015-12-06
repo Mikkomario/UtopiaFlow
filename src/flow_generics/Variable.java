@@ -227,6 +227,21 @@ public class Variable
 	}
 	
 	/**
+	 * Combines the two variables into a model
+	 * @param other another variable
+	 * @return A model containing the two variables
+	 */
+	public Model plus(Variable other)
+	{
+		Model model = new Model();
+		model.addAttribute(this, true);
+		
+		if (other != null)
+			model.addAttribute(other, true);
+		return model;
+	}
+	
+	/**
 	 * Checks if the two variables have equal values
 	 * @param other The other variable
 	 * @return Do the variables have equal values (same data type and object value)
@@ -352,5 +367,21 @@ public class Variable
 	public Model getModelValue()
 	{
 		return getValue().toModel();
+	}
+	
+	/**
+	 * @return The variable's value as a variable declaration
+	 */
+	public VariableDeclaration getVariableDeclarationValue()
+	{
+		return getValue().toVariableDeclaration();
+	}
+	
+	/**
+	 * @return The variable's value as a model declaration
+	 */
+	public ModelDeclaration getModelDeclarationValue()
+	{
+		return getValue().toModelDeclaration();
 	}
 }
