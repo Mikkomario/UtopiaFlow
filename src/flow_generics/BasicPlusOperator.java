@@ -34,8 +34,8 @@ public class BasicPlusOperator implements ValueOperator
 		addTypes(BasicDataType.DOUBLE, BasicDataType.NUMBER);
 		addTypes(BasicDataType.DATE, BasicDataType.LONG);
 		addTypes(BasicDataType.DATETIME, BasicDataType.LONG);
-		addTypes(BasicDataType.VARIABLE, BasicDataType.VARIABLE);
-		addTypes(BasicDataType.VARIABLE, BasicDataType.MODEL);
+		//addTypes(BasicDataType.VARIABLE, BasicDataType.VARIABLE);
+		//addTypes(BasicDataType.VARIABLE, BasicDataType.MODEL);
 		addTypes(BasicDataType.MODEL, BasicDataType.MODEL);
 		addTypes(BasicDataType.MODEL, BasicDataType.VARIABLE);
 		addTypes(BasicDataType.VARIABLE_DECLARATION, BasicDataType.VARIABLE_DECLARATION);
@@ -43,8 +43,10 @@ public class BasicPlusOperator implements ValueOperator
 		addTypes(BasicDataType.MODEL_DECLARATION, BasicDataType.MODEL_DECLARATION);
 		addTypes(BasicDataType.MODEL_DECLARATION, BasicDataType.VARIABLE_DECLARATION);
 		
-		// TODO: Add support for variable + any (tries to add the second value to the 
-		// variable's value)
+		for (BasicDataType type : BasicDataType.values())
+		{
+			addTypes(BasicDataType.VARIABLE, type);
+		}
 	}
 	
 	/**
@@ -120,12 +122,19 @@ public class BasicPlusOperator implements ValueOperator
 				return Value.DateTime(first.toLocalDateTime().plusSeconds(second.toLong()));
 		}
 		// Variables can be combined with variables and models to create models
+		// Also, variables can try to combine their values with the provided value
 		else if (firstType.equals(BasicDataType.VARIABLE))
 		{
 			if (secondType.equals(BasicDataType.VARIABLE))
 				return Value.Model(first.toVariable().plus(second.toVariable()));
 			else if (secondType.equals(BasicDataType.MODEL))
 				return Value.Model(second.toModel().plus(first.toVariable()));
+			else
+			{
+				Variable var = first.toVariable();
+				var.setValue(var.getValue().plus(second));
+				return first;
+			}
 		}
 		// Models can be combined with variables and other models
 		else if (firstType.equals(BasicDataType.MODEL))

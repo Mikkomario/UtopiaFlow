@@ -8,6 +8,8 @@ import flow_generics.DataType;
 import flow_generics.DataTypeException;
 import flow_generics.DataTypes;
 import flow_generics.ExtraBoolean;
+import flow_generics.Variable;
+import flow_generics.VariableDeclaration;
 
 /**
  * This class tests the generic value conversion
@@ -64,6 +66,25 @@ public class ConversionTest
 		convert(dateTime, BasicDataType.DATETIME, BasicDataType.DATE);
 		
 		convert(l, BasicDataType.LONG, BasicDataType.INTEGER);
+		
+		System.out.println("\nVariable Conversions");
+		Variable stringVar = new Variable("StringVar", BasicDataType.STRING, string);
+		Variable doubleVar = new Variable("DoubleVar", BasicDataType.DOUBLE, d);
+		//Variable booleanVar = new Variable("BooleanVar", BasicDataType.BOOLEAN, bool);
+		
+		convert(stringVar, BasicDataType.VARIABLE, BasicDataType.STRING);
+		convert(stringVar, BasicDataType.VARIABLE, BasicDataType.DOUBLE);
+		
+		convert(doubleVar, BasicDataType.VARIABLE, BasicDataType.DOUBLE);
+		convert(doubleVar, BasicDataType.VARIABLE, BasicDataType.MODEL);
+		convert(doubleVar, BasicDataType.VARIABLE, BasicDataType.VARIABLE_DECLARATION);
+		
+		VariableDeclaration dec = new VariableDeclaration("TestVar", BasicDataType.BOOLEAN);
+		
+		convert(dec, BasicDataType.VARIABLE_DECLARATION, BasicDataType.MODEL_DECLARATION);
+		convert(dec, BasicDataType.VARIABLE_DECLARATION, BasicDataType.VARIABLE);
+		convert(dec, BasicDataType.VARIABLE_DECLARATION, BasicDataType.STRING);
+		convert(dec, BasicDataType.VARIABLE_DECLARATION, BasicDataType.BOOLEAN);
 	}
 	
 	

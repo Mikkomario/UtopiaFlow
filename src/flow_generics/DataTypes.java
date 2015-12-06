@@ -78,6 +78,8 @@ public class DataTypes implements ValueParser
 	 */
 	public Object parse(Value value, DataType to) throws ValueParseException
 	{
+		if (value == null)
+			return null;
 		return this.graph.parse(value.getObjectValue(), value.getType(), to);
 	}
 	
