@@ -37,8 +37,8 @@ public class ValueOperationTest
 	 */
 	public static void main(String[] args)
 	{
-		Value string = Value.String("76");
-		Value i = Value.Integer(32);
+		Value string = Value.String("77");
+		Value i = Value.Integer(2);
 		Value d = Value.Double(77.7);
 		Value l = Value.Long(14l);
 		Value date = Value.Date(LocalDate.now());
@@ -63,6 +63,19 @@ public class ValueOperationTest
 		plus(dateTime, d);
 		plus(dateTime, bool);
 		
+		
+		minus(Value.String("77677"), string);
+		minus(string, Value.Integer(2));
+		
+		minus(i, string);
+		minus(i, d);
+		minus(i, bool);
+		
+		minus(d, l);
+		minus(l, i);
+		
+		minus(date, l);
+		minus(dateTime, l);
 		
 		Value stringVar = Value.Variable(new Variable("stringVar", string));
 		Value intVar = Value.Variable(new Variable("intVar", i));
@@ -91,9 +104,21 @@ public class ValueOperationTest
 		
 		plus(modelDeclVar, boolVarDecl);
 		plus(modelDeclVar, stringVar);
+		
+		minus(stringVar, intVar);
+		minus(stringVar, string);
+		minus(stringVar, Value.Integer(1));
+		
+		minus(modelVar, stringVar);
+		minus(modelDeclVar, doubleVarDecl);
 	}
 	
 	// OTHER METHODS	-----------
+	
+	private static void minus(Value first, Value second)
+	{
+		operate(first, BasicValueOperation.MINUS, second);
+	}
 	
 	private static void plus(Value first, Value second)
 	{

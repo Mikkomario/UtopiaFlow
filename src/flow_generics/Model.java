@@ -326,6 +326,61 @@ public class Model
 		return model;
 	}
 	
+	/**
+	 * Creates a new model that doesn't have the provided attribute
+	 * @param variable an attribute
+	 * @return A copy of this model that doesn't contain the specified attribute
+	 */
+	public Model minus(Variable variable)
+	{
+		Model model = new Model(getAttributes());
+		model.removeAttribute(variable);
+		return model;
+	}
+	
+	/**
+	 * Creates a new model that doesn't have an attribute that has the provided declaration
+	 * @param declaration a variable declaration
+	 * @return A copy of this model that doesn't contain an attribute that would have 
+	 * the provided declaration
+	 */
+	public Model minus(VariableDeclaration declaration)
+	{	
+		Model model = new Model(getAttributes());
+
+		if (declaration == null)
+			return model;
+		
+		Variable corresponding = model.findAttribute(declaration.getName());
+		if (corresponding != null && corresponding.getType().equals(declaration.getType()))
+			model.removeAttribute(corresponding);
+		
+		return model;
+	}
+	
+	/**
+	 * Creates a new model that doesn't contain any of the attributes declared in the 
+	 * provided model declaration
+	 * @param declaration a model declaration
+	 * @return a copy of this model without any of the declared attributes
+	 */
+	public Model minus(ModelDeclaration declaration)
+	{
+		Model model = new Model(getAttributes());
+		
+		if (declaration == null)
+			return model;
+		
+		for (VariableDeclaration varDec : declaration.getAttributeDeclarations())
+		{
+			Variable corresponding = model.findAttribute(varDec.getName());
+			if (corresponding != null && corresponding.getType().equals(varDec.getType()))
+				model.removeAttribute(corresponding);
+		}
+		
+		return model;
+	}
+	
 	
 	// SUBCLASSES	----------------------
 	

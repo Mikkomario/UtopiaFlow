@@ -242,6 +242,50 @@ public class Variable
 	}
 	
 	/**
+	 * Adds a new value to the variables existing value (+=)
+	 * @param value A value
+	 */
+	public void add(Value value)
+	{
+		setValue(getValue().plus(value));
+	}
+	
+	/**
+	 * Returns a combination of this variable and the value. This creates a new variable 
+	 * entirely (+). This won't affect this variable instance.
+	 * @param value The value that is combined with this variable.
+	 * @return A variable that contains the combined values.
+	 */
+	public Variable plus(Value value)
+	{
+		Variable copy = new Variable(this);
+		copy.add(value);
+		return copy;
+	}
+	
+	/**
+	 * Subtracts a value from the variable's existing value (-=)
+	 * @param value A value
+	 */
+	public void subtract(Value value)
+	{
+		setValue(getValue().minus(value));
+	}
+	
+	/**
+	 * Returns a subtraction of this variable and the provided value. This creates a new 
+	 * variable instance and won't affect this variable.
+	 * @param value The value that is subtracted with this variable
+	 * @return A new variable that contains the value after the operation
+	 */
+	public Variable minus(Value value)
+	{
+		Variable copy = new Variable(this);
+		copy.subtract(value);
+		return copy;
+	}
+	
+	/**
 	 * Checks if the two variables have equal values
 	 * @param other The other variable
 	 * @return Do the variables have equal values (same data type and object value)

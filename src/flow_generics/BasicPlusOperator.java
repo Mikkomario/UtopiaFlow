@@ -130,11 +130,7 @@ public class BasicPlusOperator implements ValueOperator
 			else if (secondType.equals(BasicDataType.MODEL))
 				return Value.Model(second.toModel().plus(first.toVariable()));
 			else
-			{
-				Variable var = first.toVariable();
-				var.setValue(var.getValue().plus(second));
-				return first;
-			}
+				return Value.Variable(first.toVariable().plus(second));
 		}
 		// Models can be combined with variables and other models
 		else if (firstType.equals(BasicDataType.MODEL))

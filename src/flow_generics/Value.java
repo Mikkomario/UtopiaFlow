@@ -359,6 +359,16 @@ public class Value
 	}
 	
 	/**
+	 * Subtracts a value from this value
+	 * @param other Another value
+	 * @return The result of the operation
+	 */
+	public Value minus(Value other)
+	{
+		return operate(BasicValueOperation.MINUS, other);
+	}
+	
+	/**
 	 * @return The value casted to boolean
 	 */
 	public Boolean toBoolean()
