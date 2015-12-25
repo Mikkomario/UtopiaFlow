@@ -27,13 +27,17 @@ public class BasicMultiplyOperator implements ValueOperator
 		
 		addTypes(BasicDataType.STRING, BasicDataType.INTEGER);
 		
+		addTypes(BasicDataType.INTEGER, BasicDataType.DOUBLE);
 		addTypes(BasicDataType.INTEGER, BasicDataType.INTEGER);
+		addTypes(BasicDataType.INTEGER, BasicDataType.LONG);
 		addTypes(BasicDataType.INTEGER, BasicDataType.NUMBER);
 		
 		addTypes(BasicDataType.DOUBLE, BasicDataType.DOUBLE);
 		addTypes(BasicDataType.DOUBLE, BasicDataType.NUMBER);
 		
+		addTypes(BasicDataType.LONG, BasicDataType.DOUBLE);
 		addTypes(BasicDataType.LONG, BasicDataType.LONG);
+		addTypes(BasicDataType.LONG, BasicDataType.INTEGER);
 		addTypes(BasicDataType.LONG, BasicDataType.NUMBER);
 		
 		for (BasicDataType type : BasicDataType.values())
@@ -98,10 +102,14 @@ public class BasicMultiplyOperator implements ValueOperator
 		// Numbers can be multiplied with each other as well
 		else if (firstType.equals(BasicDataType.INTEGER))
 		{
-			if (secondType.equals(BasicDataType.INTEGER))
+			if (secondType.equals(BasicDataType.DOUBLE))
+				return Value.Double(first.toInteger() * second.toDouble());
+			else if (secondType.equals(BasicDataType.INTEGER))
 				return Value.Integer(first.toInteger() * second.toInteger());
+			else if (secondType.equals(BasicDataType.LONG))
+				return Value.Long(first.toInteger() * second.toLong());
 			else if (secondType.equals(BasicDataType.NUMBER))
-				return Value.Integer(first.toInteger() * second.toNumber().intValue());
+				return Value.Double(first.toInteger() * second.toNumber().doubleValue());
 		}
 		else if (firstType.equals(BasicDataType.DOUBLE))
 		{
@@ -112,10 +120,14 @@ public class BasicMultiplyOperator implements ValueOperator
 		}
 		else if (firstType.equals(BasicDataType.LONG))
 		{
-			if (secondType.equals(BasicDataType.LONG))
+			if (secondType.equals(BasicDataType.DOUBLE))
+				return Value.Double(first.toLong() * second.toDouble());
+			else if (secondType.equals(BasicDataType.LONG))
 				return Value.Long(first.toLong() * second.toLong());
+			else if (secondType.equals(BasicDataType.INTEGER))
+				return Value.Long(first.toLong() * second.toInteger());
 			else if (secondType.equals(BasicDataType.NUMBER))
-				return Value.Long(first.toLong() * second.toNumber().longValue());
+				return Value.Double(first.toLong() * second.toNumber().doubleValue());
 		}
 		// Variable values may also be operatable
 		else if (firstType.equals(BasicDataType.VARIABLE))

@@ -8,6 +8,7 @@ import java.util.List;
 import flow_generics.BasicDataType;
 import flow_generics.BasicValueOperation;
 import flow_generics.DataTypeException;
+import flow_generics.ExtraBoolean;
 import flow_generics.Model;
 import flow_generics.Value;
 import flow_generics.ValueOperation;
@@ -85,6 +86,18 @@ public class ValueOperationTest
 		times(l, i);
 		times(d, d);
 		
+		divide(i, d);
+		divide(i, i);
+		divide(i, l);
+		
+		divide(d, i);
+		divide(d, string);
+		
+		divide(l, i);
+		divide(l, l);
+		divide(l, d);
+		divide(l, Value.ExtraBoolean(ExtraBoolean.WEAK_FALSE));
+		
 		Value stringVar = Value.Variable(new Variable("stringVar", string));
 		Value intVar = Value.Variable(new Variable("intVar", i));
 		Value doubleVarDecl = Value.VariableDeclaration(new VariableDeclaration("doubleVar", 
@@ -123,6 +136,9 @@ public class ValueOperationTest
 		times(stringVar, i);
 		times(stringVar, intVar);
 		times(intVar, doubleVarDecl);
+		
+		divide(intVar, stringVar);
+		divide(intVar, bool);
 	}
 	
 	// OTHER METHODS	-----------
@@ -142,6 +158,11 @@ public class ValueOperationTest
 		operate(first, BasicValueOperation.MULTIPLY, second);
 	}
 	
+	private static void divide(Value first, Value second)
+	{
+		operate(first, BasicValueOperation.DIVIDE, second);
+	}
+	
 	private static void operate(Value first, ValueOperation operation, Value second)
 	{
 		try
@@ -153,7 +174,7 @@ public class ValueOperationTest
 		catch (DataTypeException e)
 		{
 			System.out.println("Operation failed");
-			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }

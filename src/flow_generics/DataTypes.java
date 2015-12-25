@@ -46,9 +46,12 @@ public class DataTypes implements ValueParser
 		
 		// Adds parsing support for basic data types
 		addParser(BasicValueParser.getInstance());
+		
+		// Adds operators for basic data types
 		addOperator(BasicPlusOperator.getInstance());
 		addOperator(BasicMinusOperator.getInstance());
 		addOperator(BasicMultiplyOperator.getInstance());
+		addOperator(BasicDivideOperator.getInstance());
 	}
 	
 	/**

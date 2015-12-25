@@ -379,6 +379,16 @@ public class Value
 	}
 	
 	/**
+	 * Divides this value with another value
+	 * @param other The value that divides this value
+	 * @return The result of the operation
+	 */
+	public Value divided(Value other)
+	{
+		return operate(BasicValueOperation.DIVIDE, other);
+	}
+	
+	/**
 	 * @return The value casted to boolean
 	 */
 	public Boolean toBoolean()

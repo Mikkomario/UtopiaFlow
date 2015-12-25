@@ -17,6 +17,8 @@ public interface ValueOperation
 	
 	// NESTED CLASSES	----------------
 	
+	// TODO: Add more detailed exception types (cast, unsupported operation, null pointer)
+	
 	/**
 	 * These exceptions are thrown when value operations are misused or when they fail
 	 * @author Mikko Hilpinen

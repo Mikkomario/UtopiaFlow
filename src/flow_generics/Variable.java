@@ -314,6 +314,30 @@ public class Variable
 	}
 	
 	/**
+	 * Divides the value of this variable
+	 * @param value The value that divides this variable's value
+	 * @see #divided(Value)
+	 */
+	public void divide(Value value)
+	{
+		setValue(getValue().divided(value));
+	}
+	
+	/**
+	 * Returns a new variable with this variable's value divided with another value. This 
+	 * method doesn't affect this variable instance.
+	 * @param value A value that is used in the operation
+	 * @return A new variable with the divided value
+	 * @see #divide(Value)
+	 */
+	public Variable divided(Value value)
+	{
+		Variable copy = new Variable(this);
+		copy.divide(value);
+		return copy;
+	}
+	
+	/**
 	 * Checks if the two variables have equal values
 	 * @param other The other variable
 	 * @return Do the variables have equal values (same data type and object value)
