@@ -244,6 +244,7 @@ public class Variable
 	/**
 	 * Adds a new value to the variables existing value (+=)
 	 * @param value A value
+	 * @see #plus(Value)
 	 */
 	public void add(Value value)
 	{
@@ -255,6 +256,7 @@ public class Variable
 	 * entirely (+). This won't affect this variable instance.
 	 * @param value The value that is combined with this variable.
 	 * @return A variable that contains the combined values.
+	 * @see #add(Value)
 	 */
 	public Variable plus(Value value)
 	{
@@ -266,6 +268,7 @@ public class Variable
 	/**
 	 * Subtracts a value from the variable's existing value (-=)
 	 * @param value A value
+	 * @see #minus(Value)
 	 */
 	public void subtract(Value value)
 	{
@@ -277,11 +280,36 @@ public class Variable
 	 * variable instance and won't affect this variable.
 	 * @param value The value that is subtracted with this variable
 	 * @return A new variable that contains the value after the operation
+	 * @see #subtract(Value)
 	 */
 	public Variable minus(Value value)
 	{
 		Variable copy = new Variable(this);
 		copy.subtract(value);
+		return copy;
+	}
+	
+	/**
+	 * Multiplies the value in this variable
+	 * @param value A value that is multiplied with the variable's value
+	 * @see #times(Value)
+	 */
+	public void multiply(Value value)
+	{
+		setValue(getValue().times(value));
+	}
+	
+	/**
+	 * Returns a multiplication of this variable and the provided value. This creates a new 
+	 * variable and won't affect this instance.
+	 * @param value The value that is multiplied with this variable's value
+	 * @return A new variable with the multiplied value
+	 * @see #multiply(Value)
+	 */
+	public Variable times(Value value)
+	{
+		Variable copy = new Variable(this);
+		copy.multiply(value);
 		return copy;
 	}
 	

@@ -369,6 +369,16 @@ public class Value
 	}
 	
 	/**
+	 * Multiplies this value with another value
+	 * @param other A value that multiplies this value
+	 * @return The multiplication of the two values
+	 */
+	public Value times(Value other)
+	{
+		return operate(BasicValueOperation.MULTIPLY, other);
+	}
+	
+	/**
 	 * @return The value casted to boolean
 	 */
 	public Boolean toBoolean()

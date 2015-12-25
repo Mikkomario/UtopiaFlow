@@ -73,7 +73,7 @@ public class BasicPlusOperator implements ValueOperator
 	{
 		if (first == null)
 			throw new ValueOperation.ValueOperationException(getOperation(), first, second);
-		if (second == null)
+		if (first.isNull() || second == null || second.isNull())
 			return first;
 		
 		DataType firstType = first.getType();

@@ -77,6 +77,14 @@ public class ValueOperationTest
 		minus(date, l);
 		minus(dateTime, l);
 		
+		times(string, i);
+		times(string, bool);
+		
+		times(i, i);
+		times(d, i);
+		times(l, i);
+		times(d, d);
+		
 		Value stringVar = Value.Variable(new Variable("stringVar", string));
 		Value intVar = Value.Variable(new Variable("intVar", i));
 		Value doubleVarDecl = Value.VariableDeclaration(new VariableDeclaration("doubleVar", 
@@ -111,6 +119,10 @@ public class ValueOperationTest
 		
 		minus(modelVar, stringVar);
 		minus(modelDeclVar, doubleVarDecl);
+		
+		times(stringVar, i);
+		times(stringVar, intVar);
+		times(intVar, doubleVarDecl);
 	}
 	
 	// OTHER METHODS	-----------
@@ -123,6 +135,11 @@ public class ValueOperationTest
 	private static void plus(Value first, Value second)
 	{
 		operate(first, BasicValueOperation.PLUS, second);
+	}
+	
+	private static void times(Value first, Value second)
+	{
+		operate(first, BasicValueOperation.MULTIPLY, second);
 	}
 	
 	private static void operate(Value first, ValueOperation operation, Value second)
