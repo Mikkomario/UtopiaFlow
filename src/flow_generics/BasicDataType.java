@@ -2,6 +2,7 @@ package flow_generics;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * These are the basic data types already existing in java and Flow
@@ -44,6 +45,10 @@ public enum BasicDataType implements DataType
 	 */
 	DATE,
 	/**
+	 * @see LocalTime
+	 */
+	TIME,
+	/**
 	 * @see ExtraBoolean
 	 */
 	EXTRA_BOOLEAN,
@@ -63,6 +68,8 @@ public enum BasicDataType implements DataType
 	 * @see ModelDeclaration
 	 */
 	MODEL_DECLARATION;
+	
+	// TODO: Implement time and list types
 	
 	
 	// IMPLEMENTED METHODS	-------------

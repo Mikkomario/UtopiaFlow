@@ -1,5 +1,7 @@
 package flow_generics;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,7 +35,13 @@ public class BasicPlusOperator implements ValueOperator
 		addTypes(BasicDataType.DOUBLE, BasicDataType.DOUBLE);
 		addTypes(BasicDataType.DOUBLE, BasicDataType.NUMBER);
 		addTypes(BasicDataType.DATE, BasicDataType.LONG);
+		addTypes(BasicDataType.DATE, BasicDataType.TIME);
 		addTypes(BasicDataType.DATETIME, BasicDataType.LONG);
+		addTypes(BasicDataType.DATETIME, BasicDataType.TIME);
+		addTypes(BasicDataType.TIME, BasicDataType.LONG);
+		addTypes(BasicDataType.TIME, BasicDataType.TIME);
+		addTypes(BasicDataType.TIME, BasicDataType.DATE);
+		addTypes(BasicDataType.TIME, BasicDataType.DATETIME);
 		//addTypes(BasicDataType.VARIABLE, BasicDataType.VARIABLE);
 		//addTypes(BasicDataType.VARIABLE, BasicDataType.MODEL);
 		addTypes(BasicDataType.MODEL, BasicDataType.MODEL);
@@ -114,12 +122,42 @@ public class BasicPlusOperator implements ValueOperator
 		{
 			if (secondType.equals(BasicDataType.LONG))
 				return Value.Date(first.toLocalDate().plusDays(second.toLong()));
+			// It is also possible to add a time to date to form a datetime
+			else if (secondType.equals(BasicDataType.TIME))
+				return Value.DateTime(first.toLocalDate().atTime(second.toLocalTime()));
 		}
 		// Date times can add long values as seconds
 		else if (firstType.equals(BasicDataType.DATETIME))
 		{
 			if (secondType.equals(BasicDataType.LONG))
 				return Value.DateTime(first.toLocalDateTime().plusSeconds(second.toLong()));
+			// One can also add times
+			else if (secondType.equals(BasicDataType.TIME))
+				return Value.DateTime(dateTimePlusTime(first.toLocalDateTime(), second.toLocalTime()));
+		}
+		// A date portion can be added to a time. One can also add long as seconds. A dateTime 
+		// can also be added
+		else if (firstType.equals(BasicDataType.TIME))
+		{
+			if (secondType.equals(BasicDataType.DATE))
+				return Value.DateTime(second.toLocalDate().atTime(first.toLocalTime()));
+			else if (secondType.equals(BasicDataType.DATETIME))
+				return Value.DateTime(dateTimePlusTime(second.toLocalDateTime(), 
+						first.toLocalTime()));
+			else if (secondType.equals(BasicDataType.LONG))
+				return Value.Time(first.toLocalTime().plusSeconds(second.toLong()));
+			else if (secondType.equals(BasicDataType.TIME))
+			{
+				LocalTime time = first.toLocalTime();
+				LocalTime other = second.toLocalTime();
+				
+				time = time.plusHours(other.getHour());
+				time = time.plusMinutes(other.getMinute());
+				time = time.plusSeconds(other.getSecond());
+				time = time.plusNanos(other.getNano());
+				
+				return Value.Time(time);
+			}
 		}
 		// Variables can be combined with variables and models to create models
 		// Also, variables can try to combine their values with the provided value
@@ -177,5 +215,15 @@ public class BasicPlusOperator implements ValueOperator
 	private void addTypes(DataType firstType, DataType secondType)
 	{
 		this.possibleParameters.add(new Pair<>(firstType, secondType));
+	}
+	
+	private static LocalDateTime dateTimePlusTime(LocalDateTime dateTime, LocalTime time)
+	{	
+		dateTime = dateTime.plusHours(time.getHour());
+		dateTime = dateTime.plusMinutes(time.getMinute());
+		dateTime = dateTime.plusSeconds(time.getSecond());
+		dateTime = dateTime.plusNanos(time.getNano());
+		
+		return dateTime;
 	}
 }

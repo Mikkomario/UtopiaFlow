@@ -2,6 +2,7 @@ package flow_generics;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import flow_generics.ValueOperation.ValueOperationException;
 import flow_generics.ValueParser.ValueParseException;
@@ -135,6 +136,16 @@ public class Value
 	public static Value DateTime(LocalDateTime time)
 	{
 		return new Value(time, BasicDataType.DATETIME);
+	}
+	
+	/**
+	 * Wraps a localTime value
+	 * @param time a time value
+	 * @return wrapped value
+	 */
+	public static Value Time(LocalTime time)
+	{
+		return new Value(time, BasicDataType.TIME);
 	}
 	
 	/**
@@ -450,6 +461,14 @@ public class Value
 	public LocalDateTime toLocalDateTime()
 	{
 		return (LocalDateTime) parseTo(BasicDataType.DATETIME);
+	}
+	
+	/**
+	 * @return The value casted to local time
+	 */
+	public LocalTime toLocalTime()
+	{
+		return (LocalTime) parseTo(BasicDataType.TIME);
 	}
 	
 	/**

@@ -2,6 +2,7 @@ package flow_generics;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +48,8 @@ public class BasicValueParser implements ValueParser
 		addConversion(BasicDataType.BOOLEAN, BasicDataType.INTEGER, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
 		addConversion(BasicDataType.STRING, BasicDataType.INTEGER, ConversionReliability.DANGEROUS);
+		// Integers can be parsed from time
+		addConversion(BasicDataType.TIME, BasicDataType.INTEGER, ConversionReliability.MEANING_LOSS);
 		
 		addConversion(BasicDataType.BOOLEAN, BasicDataType.LONG, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
@@ -75,12 +78,17 @@ public class BasicValueParser implements ValueParser
 		addConversion(BasicDataType.DATE, BasicDataType.DATETIME, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.STRING, BasicDataType.DATETIME, ConversionReliability.DANGEROUS);
 		
+		// Times can be cast from string, datetime and integer
+		addConversion(BasicDataType.INTEGER, BasicDataType.TIME, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.DATETIME, BasicDataType.TIME, ConversionReliability.DATA_LOSS);
+		addConversion(BasicDataType.STRING, BasicDataType.TIME, ConversionReliability.DANGEROUS);
+		
 		// Variables can be cast to any other data type, but it is unreliable 
 		// whether the cast will succeed since the variable's data type is not known
 		for (DataType type : BasicDataType.values())
 		{
 			// Variables can easily be wrapped to models and variable declarations
-			// But it is a bit dangerou
+			// But it is a bit dangerous
 			if (type == BasicDataType.MODEL)
 				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.PERFECT);
 			if (type == BasicDataType.VARIABLE_DECLARATION)
@@ -269,6 +277,9 @@ public class BasicValueParser implements ValueParser
 		if (type.equals(BasicDataType.EXTRA_BOOLEAN))
 			return parseExtraBoolean(value, type).toInteger();
 		
+		if (type.equals(BasicDataType.TIME))
+			return parseTime(value, type).toSecondOfDay();
+		
 		throw new ValueParseException(value, type, BasicDataType.INTEGER);
 	}
 	
@@ -320,7 +331,7 @@ public class BasicValueParser implements ValueParser
 	 * @return A long parsed from the provided value
 	 * @throws ValueParseException If the parsing failed.
 	 */
-	public static Long parseLong(Object value, DataType type)
+	public static Long parseLong(Object value, DataType type) throws ValueParseException
 	{
 		if (value == null)
 			return 0l;
@@ -360,7 +371,7 @@ public class BasicValueParser implements ValueParser
 	 * @return A boolean parsed from the provided value
 	 * @throws ValueParseException If the parsing failed.
 	 */
-	public static Boolean parseBoolean(Object value, DataType type)
+	public static Boolean parseBoolean(Object value, DataType type) throws ValueParseException
 	{
 		if (value == null)
 			return false;
@@ -387,7 +398,7 @@ public class BasicValueParser implements ValueParser
 	 * @return An extra boolean parsed from the provided value
 	 * @throws ValueParseException If the parsing failed.
 	 */
-	public static ExtraBoolean parseExtraBoolean(Object value, DataType type)
+	public static ExtraBoolean parseExtraBoolean(Object value, DataType type) throws ValueParseException
 	{
 		if (value == null)
 			return null;
@@ -420,7 +431,7 @@ public class BasicValueParser implements ValueParser
 	 * @return A local date parsed from the provided value
 	 * @throws ValueParseException If the parsing failed.
 	 */
-	public static LocalDate parseDate(Object value, DataType type)
+	public static LocalDate parseDate(Object value, DataType type) throws ValueParseException
 	{
 		if (value == null)
 			return null;
@@ -453,7 +464,7 @@ public class BasicValueParser implements ValueParser
 	 * @return A local date time parsed from the provided value
 	 * @throws ValueParseException If the parsing failed.
 	 */
-	public static LocalDateTime parseDateTime(Object value, DataType type)
+	public static LocalDateTime parseDateTime(Object value, DataType type) throws ValueParseException
 	{
 		if (value == null)
 			return null;
@@ -477,5 +488,47 @@ public class BasicValueParser implements ValueParser
 		}
 		
 		throw new ValueParseException(value, type, BasicDataType.DATETIME);
+	}
+	
+	/**
+	 * Parses a localtime value from a typed object
+	 * @param value The value that is cast / parsed
+	 * @param type The data type of the provided value. Datetime, int (or any number) and 
+	 * string are supported
+	 * @return The object parsed into localtime
+	 * @throws ValueParseException If the parsing failed.
+	 */
+	public static LocalTime parseTime(Object value, DataType type) throws ValueParseException
+	{
+		if (value == null)
+			return null;
+		
+		if (type.equals(BasicDataType.TIME))
+			return (LocalTime) value;
+		else if (type.equals(BasicDataType.DATETIME))
+			return parseDateTime(value, type).toLocalTime();
+		else if (type.equals(BasicDataType.STRING))
+		{
+			try
+			{
+				return LocalTime.parse(parseString(value));
+			}
+			catch (DateTimeParseException e)
+			{
+				throw new ValueParseException(value, type, BasicDataType.TIME, e);
+			}
+		}
+		else if (DataTypes.dataTypeIsOfType(type, BasicDataType.NUMBER))
+		{
+			int i = parseInteger(value, type);
+			int hours = i / 3600;
+			i = i % 3600;
+			int minutes = i / 60;
+			int seconds = i % 60;
+			
+			return LocalTime.of(hours, minutes, seconds);
+		}
+		
+		throw new ValueParseException(value, type);
 	}
 }

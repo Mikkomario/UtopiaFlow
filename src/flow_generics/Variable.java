@@ -2,6 +2,7 @@ package flow_generics;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * Variable's have an inmutable data type and name, but their values can change.
@@ -447,6 +448,14 @@ public class Variable
 	public LocalDateTime getDateTimeValue()
 	{
 		return getValue().toLocalDateTime();
+	}
+	
+	/**
+	 * @return The variable's value as a localTime
+	 */
+	public LocalTime getTimeValue()
+	{
+		return getValue().toLocalTime();
 	}
 	
 	/**

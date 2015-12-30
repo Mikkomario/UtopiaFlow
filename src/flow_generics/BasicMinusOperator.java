@@ -1,5 +1,7 @@
 package flow_generics;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,6 +37,9 @@ public class BasicMinusOperator implements ValueOperator
 		addTypes(BasicDataType.LONG, BasicDataType.NUMBER);
 		addTypes(BasicDataType.DATE, BasicDataType.LONG);
 		addTypes(BasicDataType.DATETIME, BasicDataType.LONG);
+		addTypes(BasicDataType.DATETIME, BasicDataType.TIME);
+		addTypes(BasicDataType.TIME, BasicDataType.TIME);
+		addTypes(BasicDataType.TIME, BasicDataType.LONG);
 		addTypes(BasicDataType.MODEL, BasicDataType.VARIABLE);
 		addTypes(BasicDataType.MODEL, BasicDataType.VARIABLE_DECLARATION);
 		addTypes(BasicDataType.MODEL, BasicDataType.MODEL_DECLARATION);
@@ -121,7 +126,7 @@ public class BasicMinusOperator implements ValueOperator
 			else if (secondType.equals(BasicDataType.NUMBER))
 				return Value.Long(first.toLong() - second.toNumber().longValue());
 		}
-		// One can subtract a long value from date and dateTime
+		// One can subtract a long value from date, time and dateTime
 		else if (firstType.equals(BasicDataType.DATE))
 		{
 			if (secondType.equals(BasicDataType.LONG))
@@ -131,6 +136,36 @@ public class BasicMinusOperator implements ValueOperator
 		{
 			if (secondType.equals(BasicDataType.LONG))
 				return Value.DateTime(first.toLocalDateTime().minusSeconds(second.toLong()));
+			// Also time from dateTime
+			else if (secondType.equals(BasicDataType.TIME))
+			{
+				LocalDateTime dateTime = first.toLocalDateTime();
+				LocalTime time = second.toLocalTime();
+				
+				dateTime = dateTime.minusHours(time.getHour());
+				dateTime = dateTime.minusMinutes(time.getMinute());
+				dateTime = dateTime.minusSeconds(time.getSecond());
+				dateTime = dateTime.minusNanos(time.getNano());
+				
+				return Value.DateTime(dateTime);
+			}
+		}
+		else if (firstType.equals(BasicDataType.TIME))
+		{
+			if (secondType.equals(BasicDataType.LONG))
+				return Value.Time(first.toLocalTime().minusSeconds(second.toLong()));
+			else if (secondType.equals(BasicDataType.TIME))
+			{
+				LocalTime time = first.toLocalTime();
+				LocalTime other = second.toLocalTime();
+				
+				time = time.minusHours(other.getHour());
+				time = time.minusMinutes(other.getMinute());
+				time = time.minusSeconds(other.getSecond());
+				time = time.minusNanos(other.getNano());
+				
+				return Value.Time(time);
+			}
 		}
 		// Variable values may be operatable
 		else if (firstType.equals(BasicDataType.VARIABLE))
