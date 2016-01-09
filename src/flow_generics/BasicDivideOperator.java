@@ -38,10 +38,7 @@ public class BasicDivideOperator implements ValueOperator
 		addTypes(BasicDataType.DOUBLE, BasicDataType.DOUBLE);
 		addTypes(BasicDataType.DOUBLE, BasicDataType.NUMBER);
 		
-		for (BasicDataType type : BasicDataType.values())
-		{
-			addTypes(BasicDataType.VARIABLE, type);
-		}
+		addTypes(BasicDataType.VARIABLE, BasicDataType.OBJECT);
 	}
 	
 	/**

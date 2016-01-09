@@ -29,16 +29,15 @@ public class BasicValueParser implements ValueParser
 		
 		// Can reliably cast from any basic data type to a string. All of the data may not 
 		// be present in the final form
-		for (DataType type : BasicDataType.values())
-		{
-			addConversion(type, BasicDataType.STRING, ConversionReliability.DATA_LOSS);
-		}
+		addConversion(BasicDataType.OBJECT, BasicDataType.STRING, ConversionReliability.DATA_LOSS);
 		
 		// Can perfectly cast from int, double and long to number, but the backwards conversion 
 		// is not perfect
+		/* Removed super type casts since they are done automatically
 		addConversion(BasicDataType.INTEGER, BasicDataType.NUMBER, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.DOUBLE, BasicDataType.NUMBER, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.LONG, BasicDataType.NUMBER, ConversionReliability.PERFECT);
+		*/
 		
 		addConversion(BasicDataType.NUMBER, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
 		addConversion(BasicDataType.NUMBER, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
@@ -85,17 +84,10 @@ public class BasicValueParser implements ValueParser
 		
 		// Variables can be cast to any other data type, but it is unreliable 
 		// whether the cast will succeed since the variable's data type is not known
-		for (DataType type : BasicDataType.values())
-		{
-			// Variables can easily be wrapped to models and variable declarations
-			// But it is a bit dangerous
-			if (type == BasicDataType.MODEL)
-				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.PERFECT);
-			if (type == BasicDataType.VARIABLE_DECLARATION)
-				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.DATA_LOSS);
-			else if (type != BasicDataType.VARIABLE)
-				addConversion(BasicDataType.VARIABLE, type, ConversionReliability.DANGEROUS);
-		}
+		addConversion(BasicDataType.VARIABLE, BasicDataType.MODEL, ConversionReliability.PERFECT);
+		addConversion(BasicDataType.VARIABLE, BasicDataType.VARIABLE_DECLARATION, 
+				ConversionReliability.DATA_LOSS);
+		addConversion(BasicDataType.VARIABLE, BasicDataType.OBJECT, ConversionReliability.DANGEROUS);
 		
 		// Variable declarations can be cast to variables and model 
 		// declarations perfectly
@@ -110,6 +102,9 @@ public class BasicValueParser implements ValueParser
 				ConversionReliability.PERFECT);
 		addConversion(BasicDataType.MODEL, BasicDataType.MODEL_DECLARATION, 
 				ConversionReliability.DATA_LOSS);
+		
+		// Lists can be parsed from any type
+		addConversion(BasicDataType.OBJECT, BasicDataType.LIST, ConversionReliability.PERFECT);
 	}
 	
 	/**
@@ -127,7 +122,29 @@ public class BasicValueParser implements ValueParser
 	// IMPLEMENTED METHODS	-----------
 
 	@Override
-	public Object parse(Object value, DataType from, DataType to) throws ValueParseException
+	public Value cast(Value value, DataType to) throws ValueParseException
+	{
+		return new Value(parse(value.getObjectValue(), value.getType(), to), to);
+	}
+	
+	@Override
+	public Collection<? extends Conversion> getConversions()
+	{
+		return this.conversions;
+	}
+	
+	
+	// OTHER METHODS	---------------
+	
+	/**
+	 * Parses an object value from a data type to another
+	 * @param value The object value that is being parsed
+	 * @param from The data type of the object value. The object's class should reflect this
+	 * @param to The target data type of the object
+	 * @return An object value of the targeted data type
+	 * @throws ValueParseException If the parsing failed for some reason
+	 */
+	public static Object parse(Object value, DataType from, DataType to) throws ValueParseException
 	{
 		if (from == null || to == null)
 			throw new ValueParseException(value, from, to);
@@ -135,7 +152,15 @@ public class BasicValueParser implements ValueParser
 		if (value == null)
 			return null;
 		
-		if (from.equals(BasicDataType.VARIABLE))
+		// Any value can be wrapped into a list
+		if (to.equals(BasicDataType.LIST))
+		{
+			if (from.equals(to))
+				return value;
+			else
+				return new Value(value, from).wrapToList();
+		}
+		else if (from.equals(BasicDataType.VARIABLE))
 		{
 			Variable var = (Variable) value;
 			// May wrap the variable into a model (exception for model type variables)
@@ -186,15 +211,6 @@ public class BasicValueParser implements ValueParser
 
 		throw new ValueParseException(value, from, to);
 	}
-	
-	@Override
-	public Collection<? extends Conversion> getConversions()
-	{
-		return this.conversions;
-	}
-	
-	
-	// OTHER METHODS	---------------
 	
 	private void addConversion(DataType from, DataType to, ConversionReliability reliability)
 	{
@@ -416,7 +432,8 @@ public class BasicValueParser implements ValueParser
 		{
 			ExtraBoolean parsed = ExtraBoolean.parseFromString(parseString(value));
 			if (parsed == null)
-				throw new ValueParseException(value, type, BasicDataType.EXTRA_BOOLEAN);
+				// If the default conversion fails, tries through double
+				return ExtraBoolean.parseFromDouble(parseDouble(value, type));
 			else
 				return parsed;
 		}

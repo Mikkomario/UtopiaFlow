@@ -8,8 +8,7 @@ import flow_generics.DataType;
 import flow_generics.DataTypeException;
 import flow_generics.DataTypes;
 import flow_generics.ExtraBoolean;
-import flow_generics.Variable;
-import flow_generics.VariableDeclaration;
+import flow_generics.Value;
 
 /**
  * This class tests the generic value conversion
@@ -34,39 +33,40 @@ public class ConversionTest
 	 */
 	public static void main(String[] args)
 	{
-		String string = "0.7357";
-		boolean bool = true;
-		int i = 7357;
-		double d = 0.7357;
-		ExtraBoolean extraBoolean = ExtraBoolean.WEAK_FALSE;
-		LocalDate date = LocalDate.now();
-		LocalDateTime dateTime = LocalDateTime.now();
-		long l = Long.MAX_VALUE;
+		Value string = Value.String("0.7357");
+		Value bool = Value.Boolean(true);
+		Value i = Value.Integer(7357);
+		Value d = Value.Double(0.7357);
+		Value extraBoolean = Value.ExtraBoolean(ExtraBoolean.WEAK_FALSE);
+		Value date = Value.Date(LocalDate.now());
+		Value dateTime = Value.DateTime(LocalDateTime.now());
+		Value l = Value.Long(Long.MAX_VALUE);
 		
 		System.out.println("Starting conversions");
 		
-		convert(string, BasicDataType.STRING, BasicDataType.DOUBLE);
-		convert(string, BasicDataType.STRING, BasicDataType.INTEGER);
-		convert(string, BasicDataType.STRING, BasicDataType.EXTRA_BOOLEAN);
+		convert(string, BasicDataType.DOUBLE);
+		convert(string, BasicDataType.INTEGER);
+		convert(string, BasicDataType.EXTRA_BOOLEAN);
 		
-		convert(bool, BasicDataType.BOOLEAN, BasicDataType.EXTRA_BOOLEAN);
-		convert(bool, BasicDataType.BOOLEAN, BasicDataType.INTEGER);
+		convert(bool, BasicDataType.EXTRA_BOOLEAN);
+		convert(bool, BasicDataType.INTEGER);
 		
-		convert(i, BasicDataType.INTEGER, BasicDataType.DOUBLE);
-		convert(i, BasicDataType.INTEGER, BasicDataType.BOOLEAN);
+		convert(i, BasicDataType.DOUBLE);
+		convert(i, BasicDataType.BOOLEAN);
 		
-		convert(d, BasicDataType.DOUBLE, BasicDataType.INTEGER);
-		convert(d, BasicDataType.DOUBLE, BasicDataType.EXTRA_BOOLEAN);
+		convert(d, BasicDataType.INTEGER);
+		convert(d, BasicDataType.EXTRA_BOOLEAN);
 		
-		convert(extraBoolean, BasicDataType.EXTRA_BOOLEAN, BasicDataType.BOOLEAN);
-		convert(extraBoolean, BasicDataType.EXTRA_BOOLEAN, BasicDataType.DOUBLE);
-		convert(extraBoolean, BasicDataType.EXTRA_BOOLEAN, BasicDataType.INTEGER);
+		convert(extraBoolean, BasicDataType.BOOLEAN);
+		convert(extraBoolean, BasicDataType.DOUBLE);
+		convert(extraBoolean, BasicDataType.INTEGER);
 		
-		convert(date, BasicDataType.DATE, BasicDataType.DATETIME);
-		convert(dateTime, BasicDataType.DATETIME, BasicDataType.DATE);
+		convert(date, BasicDataType.DATETIME);
+		convert(dateTime, BasicDataType.DATE);
 		
-		convert(l, BasicDataType.LONG, BasicDataType.INTEGER);
+		convert(l, BasicDataType.INTEGER);
 		
+		/*
 		System.out.println("\nVariable Conversions");
 		Variable stringVar = new Variable("StringVar", BasicDataType.STRING, string);
 		Variable doubleVar = new Variable("DoubleVar", BasicDataType.DOUBLE, d);
@@ -85,19 +85,21 @@ public class ConversionTest
 		convert(dec, BasicDataType.VARIABLE_DECLARATION, BasicDataType.VARIABLE);
 		convert(dec, BasicDataType.VARIABLE_DECLARATION, BasicDataType.STRING);
 		convert(dec, BasicDataType.VARIABLE_DECLARATION, BasicDataType.BOOLEAN);
+		*/
 	}
 	
 	
 	// OTHER METHODS	-----------
 	
-	private static void convert(Object value, DataType from, DataType to)
+	private static void convert(Value value, DataType to)
 	{
 		System.out.println();
 		try
 		{
-			System.out.println("Converting " + value + " from " + from + " to " + to);
-			System.out.println("Output: " + DataTypes.getInstance().parse(value, from, to));
-			System.out.println("Reliability: " + DataTypes.getInstance().getConversionReliability(from, to));
+			System.out.println("Converting " + value.getDescription() + " to " + to);
+			System.out.println("Result: " + value.castTo(to).getDescription());
+			System.out.println("Reliability: " + 
+					DataTypes.getInstance().getConversionReliability(value.getType(), to));
 		}
 		catch (DataTypeException e)
 		{

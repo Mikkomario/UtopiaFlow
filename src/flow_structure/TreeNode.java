@@ -100,7 +100,7 @@ public class TreeNode<T>
 	}
 	
 	/**
-	 * @return The child nodes of this node. The list is a copy and the changes made to it 
+	 * @return The direct child nodes of this node. The list is a copy and the changes made to it 
 	 * won't affect the node.
 	 */
 	public List<TreeNode<T>> getChildren()
@@ -108,6 +108,39 @@ public class TreeNode<T>
 		List<TreeNode<T>> children = new ArrayList<>();
 		children.addAll(this.children);
 		return children;
+	}
+	
+	/**
+	 * @return All nodes under this node. This means the nodes direct children, their 
+	 * children and so on.
+	 */
+	public List<TreeNode<T>> getLowerNodes()
+	{
+		List<TreeNode<T>> nodes = new ArrayList<>();
+		
+		for (TreeNode<T> child : getChildren())
+		{
+			nodes.addAll(child.getLowerNodes());
+		}
+		
+		return nodes;
+	}
+	
+	/**
+	 * @return The parent node of this node, along with the parent of that node and so on 
+	 * until the very root of the tree
+	 */
+	public List<TreeNode<T>> getHigherNodes()
+	{
+		List<TreeNode<T>> nodes = new ArrayList<>();
+		
+		if (getParent() != null)
+		{
+			nodes.add(getParent());
+			nodes.addAll(getParent().getHigherNodes());
+		}
+		
+		return nodes;
 	}
 	
 	

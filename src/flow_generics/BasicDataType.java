@@ -12,6 +12,10 @@ import java.time.LocalTime;
 public enum BasicDataType implements DataType
 {
 	/**
+	 * Object is the super type for (at least) all the basic data types
+	 */
+	OBJECT,
+	/**
 	 * @see String
 	 */
 	STRING,
@@ -67,18 +71,14 @@ public enum BasicDataType implements DataType
 	/**
 	 * @see ModelDeclaration
 	 */
-	MODEL_DECLARATION;
-	
-	// TODO: Implement time and list types
+	MODEL_DECLARATION,
+	/**
+	 * @see ValueList
+	 */
+	LIST;
 	
 	
 	// IMPLEMENTED METHODS	-------------
-
-	@Override
-	public boolean equals(DataType other)
-	{
-		return this == other;
-	}
 
 	@Override
 	public String getName()

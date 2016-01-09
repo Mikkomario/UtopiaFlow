@@ -40,10 +40,7 @@ public class BasicMultiplyOperator implements ValueOperator
 		addTypes(BasicDataType.LONG, BasicDataType.INTEGER);
 		addTypes(BasicDataType.LONG, BasicDataType.NUMBER);
 		
-		for (BasicDataType type : BasicDataType.values())
-		{
-			addTypes(BasicDataType.VARIABLE, type);
-		}
+		addTypes(BasicDataType.VARIABLE, BasicDataType.OBJECT);
 	}
 	
 	/**

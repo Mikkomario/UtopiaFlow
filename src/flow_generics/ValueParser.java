@@ -12,12 +12,11 @@ public interface ValueParser
 	/**
 	 * Parses a value of the given type into a certain object type
 	 * @param value The value that should be parsed
-	 * @param from The type of the provided value 
 	 * @param to The type of the return value
 	 * @return An object parsed from the provided value to the desired type
 	 * @throws ValueParseException If the parsing failed
 	 */
-	public Object parse(Object value, DataType from, DataType to) throws ValueParseException;
+	public Value cast(Value value, DataType to) throws ValueParseException;
 	
 	/**
 	 * @return The conversions the parser is able to make
@@ -80,6 +79,27 @@ public interface ValueParser
 		public ValueParseException(Object value, DataType from, DataType to, Throwable cause)
 		{
 			super(parseMessage(value, from, to), cause);
+		}
+		
+		/**
+		 * Creates a new value parse exception
+		 * @param value The value that couldn't be parsed
+		 * @param to The target data type that couldn't be parsed
+		 */
+		public ValueParseException(Value value, DataType to)
+		{
+			super(parseMessage(value == null ? null : value.getObjectValue(), 
+					value == null ? null : value.getType(), to));
+		}
+		
+		/**
+		 * Creates a new value parse exception
+		 * @param value The value that couldn't be parsed
+		 */
+		public ValueParseException(Value value)
+		{
+			super(parseMessage(value == null ? null : value.getObjectValue(), 
+					value == null ? null : value.getType(), null));
 		}
 		
 		

@@ -50,11 +50,8 @@ public class BasicPlusOperator implements ValueOperator
 		addTypes(BasicDataType.VARIABLE_DECLARATION, BasicDataType.MODEL_DECLARATION);
 		addTypes(BasicDataType.MODEL_DECLARATION, BasicDataType.MODEL_DECLARATION);
 		addTypes(BasicDataType.MODEL_DECLARATION, BasicDataType.VARIABLE_DECLARATION);
-		
-		for (BasicDataType type : BasicDataType.values())
-		{
-			addTypes(BasicDataType.VARIABLE, type);
-		}
+		addTypes(BasicDataType.VARIABLE, BasicDataType.OBJECT);
+		addTypes(BasicDataType.LIST, BasicDataType.OBJECT);
 	}
 	
 	/**
@@ -151,12 +148,7 @@ public class BasicPlusOperator implements ValueOperator
 				LocalTime time = first.toLocalTime();
 				LocalTime other = second.toLocalTime();
 				
-				time = time.plusHours(other.getHour());
-				time = time.plusMinutes(other.getMinute());
-				time = time.plusSeconds(other.getSecond());
-				time = time.plusNanos(other.getNano());
-				
-				return Value.Time(time);
+				return Value.Time(time.plusNanos(other.toNanoOfDay()));
 			}
 		}
 		// Variables can be combined with variables and models to create models
@@ -198,6 +190,14 @@ public class BasicPlusOperator implements ValueOperator
 				return Value.ModelDeclaration(first.toModelDeclaration().plus(
 						second.toVariableDeclaration()));
 		}
+		// One can add values to lists or combine lists with each other
+		else if (firstType.equals(BasicDataType.LIST))
+		{
+			if (secondType.equals(BasicDataType.LIST))
+				return Value.List(first.toList().plus(second.toList()));
+			else
+				return Value.List(first.toList().plus(second));
+		}
 			
 		// Other operations are impossible
 		throw new ValueOperation.ValueOperationException(getOperation(), first, second);
@@ -219,11 +219,6 @@ public class BasicPlusOperator implements ValueOperator
 	
 	private static LocalDateTime dateTimePlusTime(LocalDateTime dateTime, LocalTime time)
 	{	
-		dateTime = dateTime.plusHours(time.getHour());
-		dateTime = dateTime.plusMinutes(time.getMinute());
-		dateTime = dateTime.plusSeconds(time.getSecond());
-		dateTime = dateTime.plusNanos(time.getNano());
-		
-		return dateTime;
+		return dateTime.plusNanos(time.toNanoOfDay());
 	}
 }

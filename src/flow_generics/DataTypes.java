@@ -2,12 +2,11 @@ package flow_generics;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import flow_generics.ValueOperation.ValueOperationException;
 import flow_structure.Pair;
+import flow_structure.TreeNode;
 
 /**
  * This static interface keeps track of the different data type hierarchies, etc.
@@ -33,16 +32,24 @@ public class DataTypes implements ValueParser
 		this.graph = new ConversionGraph();
 		this.operators = new ArrayList<>();
 		
-		// Initialises the basic data types
+		// Adds the object type
+		DataTypeTreeNode objectNode = new DataTypeTreeNode(BasicDataType.OBJECT);
+		add(objectNode);
+		
+		// Initialises the rest of the basic data types, and adds them under the object type
 		for (DataType type : BasicDataType.values())
 		{
-			add(new DataTypeTreeNode(type));
+			if (!type.equals(BasicDataType.OBJECT))
+				add(new DataTypeTreeNode(type, objectNode));
 		}
 		// Connects number types
 		DataTypeTreeNode number = get(BasicDataType.NUMBER);
 		get(BasicDataType.INTEGER).setParent(number);
 		get(BasicDataType.DOUBLE).setParent(number);
 		get(BasicDataType.LONG).setParent(number);
+		
+		// Adds parsing between the super types
+		addParser(new SuperTypeParser());
 		
 		// Adds parsing support for basic data types
 		addParser(BasicValueParser.getInstance());
@@ -69,48 +76,11 @@ public class DataTypes implements ValueParser
 	// IMPLEMENTED METHODS	----------
 	
 	@Override
-	public Object parse(Object value, DataType from, DataType to) throws ValueParseException
+	public Value cast(Value value, DataType to) throws ValueParseException
 	{	
-		return this.graph.parse(value, from, to);
-	}
-	
-	/**
-	 * Parses the object value of a value to a new data type
-	 * @param value A value
-	 * @param to The desired data type
-	 * @return The object's value in the desired data type
-	 * @throws ValueParseException If the parsing failed
-	 */
-	public Object parse(Value value, DataType to) throws ValueParseException
-	{
 		if (value == null)
 			return null;
-		return this.graph.parse(value.getObjectValue(), value.getType(), to);
-	}
-	
-	/**
-	 * Parses an object value to one of the provided data types
-	 * @param value The source value
-	 * @param from The source data type
-	 * @param to The target data type(s)
-	 * @return The object value parsed to one of the provided data types
-	 * @throws ValueParseException If the parsing failed
-	 */
-	public Value parse(Object value, DataType from, Iterable<? extends DataType> to) throws ValueParseException
-	{
-		return this.graph.parse(value, from, to);
-	}
-	
-	/**
-	 * Parses a value to one of the provided data types
-	 * @param value The source value
-	 * @param to The target data type(s)
-	 * @return The object value parsed to one of the provided data types
-	 * @throws ValueParseException If the parsing failed
-	 */
-	public Value parse(Value value, Iterable<? extends DataType> to) throws ValueParseException
-	{
-		return this.graph.parse(value.getObjectValue(), value.getType(), to);
+		return this.graph.cast(value, to);
 	}
 	
 	@Override
@@ -118,9 +88,21 @@ public class DataTypes implements ValueParser
 	{
 		return this.graph.getPossibleConversions();
 	}
-
+	
 	
 	// OTHER METHODS	--------------
+	
+	/**
+	 * Parses an value to one of the provided data types
+	 * @param value The source value
+	 * @param to The target data type(s)
+	 * @return The object value parsed to one of the provided data types
+	 * @throws ValueParseException If the parsing failed
+	 */
+	public Value cast(Value value, SubTypeSet to) throws ValueParseException
+	{
+		return this.graph.cast(value, to);
+	}
 	
 	/**
 	 * Performs a value operation on two values
@@ -150,21 +132,18 @@ public class DataTypes implements ValueParser
 					"No operator provided for operation " + operation);
 		
 		// Finds the compatible target data types (and their operators)
-		List<DataType> targetTypes = new ArrayList<>();
-		Map<DataType, ValueOperator> targetOperators = new HashMap<>();
+		SubTypeSet targetTypes = new SubTypeSet();
 		for (ValueOperator operator : operators)
 		{
 			for (Pair<DataType, DataType> parameterTypes : operator.getPossibleParameterTypes())
 			{
-				if (parameterTypes.getFirst().equals(first.getType()) && 
-						!targetTypes.contains(parameterTypes.getSecond()))
+				if (parameterTypes.getFirst().equals(first.getType()))
 				{
 					// If a straight match is found, uses that
 					if (parameterTypes.getSecond().equals(second.getType()))
 						return operator.operate(first, second);
 					
 					targetTypes.add(parameterTypes.getSecond());
-					targetOperators.put(parameterTypes.getSecond(), operator);
 				}
 			}
 		}
@@ -173,15 +152,21 @@ public class DataTypes implements ValueParser
 		Value casted = null;
 		try
 		{
-			casted = parse(second, targetTypes);
+			casted = cast(second, targetTypes);
 		}
 		catch (DataTypeException e)
 		{
 			throw new ValueOperation.ValueOperationException(operation, first, second, e);
 		}
 		
-		// Performs the actual operation
-		return targetOperators.get(casted.getType()).operate(first, casted);
+		// Finds an operator that is willing to accept the parameters
+		for (ValueOperator operator : operators)
+		{
+			if (operatorSupportsDataTypes(operator, first.getType(), casted.getType()))
+					return operator.operate(first, casted);
+		}
+		
+		throw new ValueOperation.ValueOperationException(operation, first, second);
 	}
 	
 	/**
@@ -219,6 +204,51 @@ public class DataTypes implements ValueParser
 	}
 	
 	/**
+	 * Finds all the data types that are can be treated as the provided data type. For example, 
+	 * would return Number, Integer, Double and Long for Number when only basic data types 
+	 * are introduced.
+	 * @param type a data type
+	 * @param includeType Should the provided data type be included in the response
+	 * @return All data types that count as the provided data type
+	 */
+	public List<DataType> getSubTypesFor(DataType type, boolean includeType)
+	{
+		DataTypeTreeNode node = get(type);
+		List<DataType> types = new ArrayList<>();
+		if (includeType)
+			types.add(type);
+		
+		for (TreeNode<DataType> lower : node.getLowerNodes())
+		{
+			types.add(lower.getContent());
+		}
+		
+		return types;
+	}
+	
+	/**
+	 * Finds all the data types that are considered super types for the data type. For example 
+	 * calling this method for a double would result in a list including the data type number.
+	 * @param type A data type
+	 * @param includeType Should the provided data type be included in the response
+	 * @return All super types of this data type
+	 */
+	public List<DataType> getSuperTypesFor(DataType type, boolean includeType)
+	{
+		DataTypeTreeNode node = get(type);
+		List<DataType> types = new ArrayList<>();
+		if (includeType)
+			types.add(type);
+		
+		for (TreeNode<DataType> superType : node.getHigherNodes())
+		{
+			types.add(superType.getContent());
+		}
+		
+		return types;
+	}
+	
+	/**
 	 * Checks if the provided data type has been introduced
 	 * @param type The data type
 	 * @return Has the data type been introduced yet
@@ -233,6 +263,7 @@ public class DataTypes implements ValueParser
 	 * @param dataTypeNode The treeNode for the data type. The node should be connected 
 	 * to other associated (hierarchically) data type nodes.
 	 * @see #get(DataType)
+	 * @see #updateParsingToSuperTypes()
 	 */
 	public void add(DataTypeTreeNode dataTypeNode)
 	{
@@ -257,6 +288,16 @@ public class DataTypes implements ValueParser
 			return;
 		
 		this.graph.addParser(parser);
+	}
+	
+	/**
+	 * This method rechecks the relations between the data types and adds automatic casting 
+	 * from a subtype to its super type. This method should be called after the data types 
+	 * have been introduced.
+	 */
+	public void updateParsingToSuperTypes()
+	{
+		addParser(new SuperTypeParser());
 	}
 	
 	/**
@@ -309,6 +350,22 @@ public class DataTypes implements ValueParser
 		return null;
 	}
 	
+	private boolean operatorSupportsDataTypes(ValueOperator operator, DataType firstType, 
+			DataType secondType)
+	{
+		// An operator supports a data type also if it happens to support any of its supertypes
+		Pair<List<DataType>, List<DataType>> types = new Pair<>(
+				getSuperTypesFor(firstType, true), getSuperTypesFor(secondType, true));
+		for (Pair<DataType, DataType> parameterTypes : operator.getPossibleParameterTypes())
+		{
+			if (types.getFirst().contains(parameterTypes.getFirst()) & 
+					types.getSecond().contains(parameterTypes.getSecond()))
+				return true;
+		}
+		
+		return false;
+	}
+	
 	
 	// SUBCLASSES	------------------
 	
@@ -338,6 +395,33 @@ public class DataTypes implements ValueParser
 		public DataTypeNotIntroducedException(String message)
 		{
 			super(message);
+		}
+	}
+	
+	private class SuperTypeParser implements ValueParser
+	{
+		@Override
+		public Value cast(Value value, DataType to) throws ValueParseException
+		{
+			// Since this operator is used for casting values to their super types, the 
+			// values need not be changed at all
+			return value;
+		}
+
+		@Override
+		public Collection<? extends Conversion> getConversions()
+		{
+			// Finds all the superType relations and parses them to conversions
+			List<Conversion> conversions = new ArrayList<>();
+			for (DataTypeTreeNode node : DataTypes.this.dataTypes)
+			{
+				TreeNode<DataType> parentNode = node.getParent();
+				if (parentNode != null)
+					conversions.add(new Conversion(node.getContent(), parentNode.getContent(), 
+							ConversionReliability.NO_CONVERSION));
+			}
+			
+			return conversions;
 		}
 	}
 }

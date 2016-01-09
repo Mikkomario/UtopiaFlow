@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import flow_generics.ValueOperation.ValueOperationException;
-import flow_generics.ValueParser.ValueParseException;
 
 /**
  * This is an immutable value class that has extra support for the basic data types
@@ -40,23 +39,26 @@ public class Value
 	 * @param to The data type of this value instance
 	 * @throws ValueParseException If the provided value couldn't be parsed to desired type
 	 */
+	/*
 	public Value(Object value, DataType from, DataType to) throws ValueParseException
 	{
-		this.value = DataTypes.getInstance().parse(value, from, to);
+		this.value = DataTypes.getInstance().cast(value, from, to);
 		this.type = to;
 	}
-	
+	*/
 	/**
 	 * Creates a new value by parsing another
 	 * @param other The other value
 	 * @param to The data type of this value instance
 	 * @throws ValueParseException If the value parsing failed
 	 */
+	/*
 	public Value(Value other, DataType to) throws ValueParseException
 	{
 		this.value = DataTypes.getInstance().parse(other, to);
 		this.type = to;
 	}
+	*/
 	
 	/**
 	 * Wraps a boolean value
@@ -199,6 +201,16 @@ public class Value
 	}
 	
 	/**
+	 * Wraps a value list
+	 * @param list a value list
+	 * @return a value list value
+	 */
+	public static Value List(ValueList list)
+	{
+		return new Value(list, BasicDataType.LIST);
+	}
+	
+	/**
 	 * Creates a new null value
 	 * @param type The data type of the null value
 	 * @return A null value
@@ -316,10 +328,10 @@ public class Value
 	 */
 	public Object parseTo(DataType type) throws DataTypeException
 	{
-		if (getType().equals(type))
+		if (getType().equals(type) || DataTypes.dataTypeIsOfType(getType(), type))
 			return getObjectValue();
 		
-		return DataTypes.getInstance().parse(this, type);
+		return DataTypes.getInstance().cast(this, type).getObjectValue();
 	}
 	
 	/**
@@ -330,10 +342,7 @@ public class Value
 	 */
 	public Value castTo(DataType type) throws DataTypeException
 	{
-		if (getType().equals(type))
-			return this;
-		
-		return new Value(parseTo(type), type);
+		return DataTypes.getInstance().cast(this, type);
 	}
 	
 	/**
@@ -342,9 +351,9 @@ public class Value
 	 * @return The value cast to one of the desired data types
 	 * @throws DataTypeException If the casting failed
 	 */
-	public Value castTo(Iterable<? extends DataType> types) throws DataTypeException
+	public Value castTo(SubTypeSet types) throws DataTypeException
 	{
-		return DataTypes.getInstance().parse(this, types);
+		return DataTypes.getInstance().cast(this, types);
 	}
 	
 	/**
@@ -501,5 +510,29 @@ public class Value
 	public ModelDeclaration toModelDeclaration()
 	{
 		return (ModelDeclaration) parseTo(BasicDataType.MODEL_DECLARATION);
+	}
+	
+	/**
+	 * @return The value casted to list. If the casting failed, wraps the value into a list 
+	 * instead
+	 */
+	public ValueList toList()
+	{
+		try
+		{
+			return (ValueList) parseTo(BasicDataType.LIST);
+		}
+		catch (DataTypeException e)
+		{
+			return wrapToList();
+		}
+	}
+	
+	/**
+	 * @return A value list that contains this value
+	 */
+	public ValueList wrapToList()
+	{
+		return new ValueList(this);
 	}
 }

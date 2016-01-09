@@ -489,4 +489,12 @@ public class Variable
 	{
 		return getValue().toModelDeclaration();
 	}
+	
+	/**
+	 * @return The variable's valuea as a value list
+	 */
+	public ValueList getListValue()
+	{
+		return getValue().toList();
+	}
 }

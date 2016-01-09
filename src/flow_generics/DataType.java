@@ -2,19 +2,13 @@ package flow_generics;
 
 /**
  * All data type classes / enumerations should implement this interface so that they can be 
- * used with generalised values.
+ * used with generalised values. The classes implementing this interface should also 
+ * override their equals method.
  * @author Mikko Hilpinen
  * @since 25.10.2015
  */
 public interface DataType
-{
-	/**
-	 * Is this data type the same as the other
-	 * @param other The other data type
-	 * @return Are these data types the same
-	 */
-	public boolean equals(DataType other);
-	
+{	
 	/**
 	 * @return The name of the data type
 	 */

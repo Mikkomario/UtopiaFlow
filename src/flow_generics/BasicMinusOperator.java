@@ -45,11 +45,7 @@ public class BasicMinusOperator implements ValueOperator
 		addTypes(BasicDataType.MODEL, BasicDataType.MODEL_DECLARATION);
 		addTypes(BasicDataType.MODEL_DECLARATION, BasicDataType.MODEL_DECLARATION);
 		addTypes(BasicDataType.MODEL_DECLARATION, BasicDataType.VARIABLE_DECLARATION);
-		
-		for (DataType type : BasicDataType.values())
-		{
-			addTypes(BasicDataType.VARIABLE, type);
-		}
+		addTypes(BasicDataType.VARIABLE, BasicDataType.OBJECT);
 	}
 	
 	/**
@@ -141,13 +137,7 @@ public class BasicMinusOperator implements ValueOperator
 			{
 				LocalDateTime dateTime = first.toLocalDateTime();
 				LocalTime time = second.toLocalTime();
-				
-				dateTime = dateTime.minusHours(time.getHour());
-				dateTime = dateTime.minusMinutes(time.getMinute());
-				dateTime = dateTime.minusSeconds(time.getSecond());
-				dateTime = dateTime.minusNanos(time.getNano());
-				
-				return Value.DateTime(dateTime);
+				return Value.DateTime(dateTime.minusNanos(time.toNanoOfDay()));
 			}
 		}
 		else if (firstType.equals(BasicDataType.TIME))
@@ -158,13 +148,7 @@ public class BasicMinusOperator implements ValueOperator
 			{
 				LocalTime time = first.toLocalTime();
 				LocalTime other = second.toLocalTime();
-				
-				time = time.minusHours(other.getHour());
-				time = time.minusMinutes(other.getMinute());
-				time = time.minusSeconds(other.getSecond());
-				time = time.minusNanos(other.getNano());
-				
-				return Value.Time(time);
+				return Value.Time(time.minusNanos(other.toNanoOfDay()));
 			}
 		}
 		// Variable values may be operatable
@@ -193,6 +177,14 @@ public class BasicMinusOperator implements ValueOperator
 				return Value.ModelDeclaration(first.toModelDeclaration().minus(second.toModelDeclaration()));
 			else if (secondType.equals(BasicDataType.VARIABLE_DECLARATION))
 				return Value.ModelDeclaration(first.toModelDeclaration().minus(second.toVariableDeclaration()));
+		}
+		// Values can be taken away from lists
+		else if (firstType.equals(BasicDataType.LIST))
+		{
+			if (secondType.equals(BasicDataType.LIST))
+				return Value.List(first.toList().minus(second.toList()));
+			else
+				return Value.List(first.toList().minus(second));
 		}
 		
 		throw new ValueOperationException(getOperation(), first, second);
