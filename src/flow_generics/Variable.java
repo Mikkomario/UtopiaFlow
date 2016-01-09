@@ -212,9 +212,9 @@ public class Variable
 	 * Wraps the variable to a model
 	 * @return A model that contains only this one variable
 	 */
-	public Model wrapToModel()
+	public SimpleModel wrapToModel()
 	{
-		Model model = new Model();
+		SimpleModel model = new SimpleModel();
 		model.addAttribute(this, true);
 		return model;
 	}
@@ -232,9 +232,9 @@ public class Variable
 	 * @param other another variable
 	 * @return A model containing the two variables
 	 */
-	public Model plus(Variable other)
+	public SimpleModel plus(Variable other)
 	{
-		Model model = new Model();
+		SimpleModel model = new SimpleModel();
 		model.addAttribute(this, true);
 		
 		if (other != null)
@@ -469,7 +469,7 @@ public class Variable
 	/**
 	 * @return The variable's value as a model
 	 */
-	public Model getModelValue()
+	public SimpleModel getModelValue()
 	{
 		return getValue().toModel();
 	}
@@ -485,7 +485,7 @@ public class Variable
 	/**
 	 * @return The variable's value as a model declaration
 	 */
-	public ModelDeclaration getModelDeclarationValue()
+	public ModelDeclaration<VariableDeclaration> getModelDeclarationValue()
 	{
 		return getValue().toModelDeclaration();
 	}

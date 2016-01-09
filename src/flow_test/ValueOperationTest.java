@@ -9,7 +9,7 @@ import flow_generics.BasicDataType;
 import flow_generics.BasicValueOperation;
 import flow_generics.DataTypeException;
 import flow_generics.ExtraBoolean;
-import flow_generics.Model;
+import flow_generics.SimpleModel;
 import flow_generics.Value;
 import flow_generics.ValueOperation;
 import flow_generics.Variable;
@@ -107,7 +107,7 @@ public class ValueOperationTest
 		List<Variable> modelVars = new ArrayList<>();
 		modelVars.add(intVar.toVariable());
 		modelVars.add(stringVar.toVariable());
-		Value modelVar = Value.Model(new Model(modelVars));
+		Value modelVar = Value.Model(new SimpleModel(modelVars));
 		Value modelDeclVar = Value.ModelDeclaration(doubleVarDecl.toModelDeclaration());
 		
 		plus(stringVar, intVar);

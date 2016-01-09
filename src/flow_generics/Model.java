@@ -9,13 +9,15 @@ import java.util.Set;
 /**
  * Model is a collection of variables that works much like a case-insensitive map would
  * @author Mikko Hilpinen
+ * @param <VariableType> The type of variable contained within this model
+ * @param <DeclarationType> The type of variable declaration used with this model
  * @since 11.11.2015
  */
-public class Model
+public abstract class Model<VariableType extends Variable, DeclarationType extends VariableDeclaration>
 {
 	// ATTRIBUTES	--------------------
 	
-	private Set<Variable> attributes;
+	private Set<VariableType> attributes;
 	
 	
 	// CONSTRUCTOR	--------------------
@@ -32,7 +34,7 @@ public class Model
 	 * Creates a new model with predefined variables
 	 * @param variables The variables the model will have
 	 */
-	public Model(Collection<? extends Variable> variables)
+	public Model(Collection<? extends VariableType> variables)
 	{
 		this.attributes = new HashSet<>(variables);
 	}
@@ -41,18 +43,36 @@ public class Model
 	 * Creates a new model by copying another
 	 * @param other A model that will be copied
 	 */
-	public Model(Model other)
+	public Model(Model<? extends VariableType, ? extends DeclarationType> other)
 	{
 		this.attributes = new HashSet<>();
 		
 		if (other != null)
 		{
-			for (Variable attribute : other.getAttributes())
+			for (VariableType attribute : other.getAttributes())
 			{
-				addAttribute(new Variable(attribute), true);
+				addAttribute(generateAttribute(attribute), true);
 			}
 		}
 	}
+	
+	
+	// ABSTRACT METHODS	-----------------
+	
+	/**
+	 * This method generates a new attribute of the desired type by copying another
+	 * @param attribute Another attribute
+	 * @return A copy of the provided attribute
+	 */
+	protected abstract VariableType generateAttribute(VariableType attribute);
+	
+	/**
+	 * This method generates a new attribute
+	 * @param attributeName The desired name of the attribute
+	 * @param value The value given to the attribute
+	 * @return A new attribute
+	 */
+	protected abstract VariableType generateAttribute(String attributeName, Value value);
 	
 	
 	// IMPLEMENTED METHODS	-------------
@@ -79,7 +99,7 @@ public class Model
 	 * @return The attributes stored into this model. The returned set is a copy of the 
 	 * model's original set and changes made to it won't affect the model.
 	 */
-	public Set<Variable> getAttributes()
+	public Set<VariableType> getAttributes()
 	{
 		return new HashSet<>(this.attributes);
 	}
@@ -93,9 +113,9 @@ public class Model
 	 * @return A model's attribute
 	 * @throws NoSuchAttributeException If the model doesn't contain such an attribute
 	 */
-	public Variable getAttribute(String attributeName) throws NoSuchAttributeException
+	public VariableType getAttribute(String attributeName) throws NoSuchAttributeException
 	{
-		Variable attribute = findAttribute(attributeName);
+		VariableType attribute = findAttribute(attributeName);
 		if (attribute == null)
 			throw new NoSuchAttributeException(attributeName, this);
 		else
@@ -110,12 +130,12 @@ public class Model
 	 * any in the model already
 	 * @return A model's attribute
 	 */
-	public Variable getAttribute(String attributeName, Value defaultValue)
+	public VariableType getAttribute(String attributeName, Value defaultValue)
 	{
-		Variable attribute = findAttribute(attributeName);
+		VariableType attribute = findAttribute(attributeName);
 		if (attribute == null)
 		{
-			Variable generated = new Variable(attributeName, defaultValue);
+			VariableType generated = generateAttribute(attributeName, defaultValue);
 			addAttribute(generated, false);
 			return generated;
 		}
@@ -128,12 +148,12 @@ public class Model
 	 * @param attributeName The name of the attribute
 	 * @return A model's attribute with the provided name or null if no such attribute exists.
 	 */
-	public Variable findAttribute(String attributeName)
+	public VariableType findAttribute(String attributeName)
 	{
 		if (attributeName == null)
 			return null;
 		
-		for (Variable attribute : this.attributes)
+		for (VariableType attribute : this.attributes)
 		{
 			if (attribute.getName().equalsIgnoreCase(attributeName))
 				return attribute;
@@ -160,17 +180,17 @@ public class Model
 	 * @return A model containing the provided attributes. Changes made to the attributes 
 	 * will affect this model as well.
 	 */
-	public Model findAttributes(String... attributeNames)
+	public List<VariableType> findAttributes(String... attributeNames)
 	{
-		Model model = new Model();
+		List<VariableType> attributes = new ArrayList<>();
 		for (String attributeName : attributeNames)
 		{
-			Variable attribute = findAttribute(attributeName);
+			VariableType attribute = findAttribute(attributeName);
 			if (attribute != null)
-				model.addAttribute(attribute, true);
+				attributes.add(attribute);
 		}
 		
-		return model;
+		return attributes;
 	}
 	
 	/**
@@ -179,7 +199,7 @@ public class Model
 	 * @param replaceIfExists If there already exists an attribute with the same name, will 
 	 * it be overwritten.
 	 */
-	public void addAttribute(Variable attribute, boolean replaceIfExists)
+	public void addAttribute(VariableType attribute, boolean replaceIfExists)
 	{
 		// Checks if there is a previous attribute in place
 		Variable previous = findCorrespondingAttribute(attribute);
@@ -209,7 +229,7 @@ public class Model
 		if (attribute == null)
 		{
 			if (generateIfNotExists)
-				addAttribute(new Variable(attributeName, newValue), false);
+				addAttribute(generateAttribute(attributeName, newValue), false);
 			else
 				throw new NoSuchAttributeException(attributeName, this);
 		}
@@ -275,7 +295,7 @@ public class Model
 	/**
 	 * @return A declaration for each of the attributes in this model
 	 */
-	public ModelDeclaration getDeclaration()
+	public ModelDeclaration<VariableDeclaration> getDeclaration()
 	{
 		List<VariableDeclaration> declarations = new ArrayList<>();
 		for (Variable attribute : getAttributes())
@@ -283,7 +303,7 @@ public class Model
 			declarations.add(attribute.getDeclaration());
 		}
 		
-		return new ModelDeclaration(declarations);
+		return new ModelDeclaration<>(declarations);
 	}
 	
 	/**
@@ -293,17 +313,17 @@ public class Model
 	 * @param other Another model.
 	 * @return A new model that is combined from the two models
 	 */
-	public Model plus(Model other)
+	public SimpleModel plus(Model<? extends VariableType, ? extends DeclarationType> other)
 	{	
-		Model model = new Model();
+		SimpleModel model = new SimpleModel();
 		
-		for (Variable attribute : getAttributes())
+		for (VariableType attribute : getAttributes())
 		{
 			model.addAttribute(attribute, true);
 		}
 		if (other != null)
 		{
-			for (Variable attribute : other.getAttributes())
+			for (VariableType attribute : other.getAttributes())
 			{
 				model.addAttribute(attribute, true);
 			}
@@ -318,9 +338,9 @@ public class Model
 	 * @param variable A variable
 	 * @return A model containing each of this model's attributes plus the provided variable
 	 */
-	public Model plus(Variable variable)
+	public SimpleModel plus(VariableType variable)
 	{
-		Model model = new Model(getAttributes());
+		SimpleModel model = new SimpleModel(getAttributes());
 		model.addAttribute(variable, true);
 		
 		return model;
@@ -331,9 +351,9 @@ public class Model
 	 * @param variable an attribute
 	 * @return A copy of this model that doesn't contain the specified attribute
 	 */
-	public Model minus(Variable variable)
+	public SimpleModel minus(Variable variable)
 	{
-		Model model = new Model(getAttributes());
+		SimpleModel model = new SimpleModel(getAttributes());
 		model.removeAttribute(variable);
 		return model;
 	}
@@ -344,9 +364,9 @@ public class Model
 	 * @return A copy of this model that doesn't contain an attribute that would have 
 	 * the provided declaration
 	 */
-	public Model minus(VariableDeclaration declaration)
+	public SimpleModel minus(VariableDeclaration declaration)
 	{	
-		Model model = new Model(getAttributes());
+		SimpleModel model = new SimpleModel(getAttributes());
 
 		if (declaration == null)
 			return model;
@@ -364,9 +384,9 @@ public class Model
 	 * @param declaration a model declaration
 	 * @return a copy of this model without any of the declared attributes
 	 */
-	public Model minus(ModelDeclaration declaration)
+	public SimpleModel minus(ModelDeclaration<VariableDeclaration> declaration)
 	{
-		Model model = new Model(getAttributes());
+		SimpleModel model = new SimpleModel(getAttributes());
 		
 		if (declaration == null)
 			return model;
@@ -452,7 +472,8 @@ public class Model
 		 * @param attributeName The name of the missing attribute
 		 * @param model The model the attribute was missing from
 		 */
-		public NoSuchAttributeException(String attributeName, Model model)
+		public NoSuchAttributeException(String attributeName, Model<? extends Variable, 
+				? extends VariableDeclaration> model)
 		{
 			super(parseMessage(attributeName, model));
 			
@@ -481,7 +502,8 @@ public class Model
 				return "No attribute named '" + attributeName + "'";
 		}
 		
-		private static String parseMessage(String attributeName, Model model)
+		private static String parseMessage(String attributeName, Model<? extends Variable, 
+				? extends VariableDeclaration> model)
 		{
 			StringBuilder s = new StringBuilder(parseMessage(attributeName));
 			s.append("\nModel contains attributes:");

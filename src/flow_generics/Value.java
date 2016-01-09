@@ -175,7 +175,7 @@ public class Value
 	 * @param model a model object value
 	 * @return a model value
 	 */
-	public static Value Model(Model model)
+	public static Value Model(SimpleModel model)
 	{
 		return new Value(model, BasicDataType.MODEL);
 	}
@@ -195,7 +195,7 @@ public class Value
 	 * @param declaration a model declaration
 	 * @return a model declaration value
 	 */
-	public static Value ModelDeclaration(ModelDeclaration declaration)
+	public static Value ModelDeclaration(ModelDeclaration<VariableDeclaration> declaration)
 	{
 		return new Value(declaration, BasicDataType.MODEL_DECLARATION);
 	}
@@ -491,9 +491,9 @@ public class Value
 	/**
 	 * @return The value casted to model
 	 */
-	public Model toModel()
+	public SimpleModel toModel()
 	{
-		return (Model) parseTo(BasicDataType.MODEL);
+		return (SimpleModel) parseTo(BasicDataType.MODEL);
 	}
 	
 	/**
@@ -507,9 +507,10 @@ public class Value
 	/**
 	 * @return The value casted to model declaration
 	 */
-	public ModelDeclaration toModelDeclaration()
+	@SuppressWarnings("unchecked")
+	public ModelDeclaration<VariableDeclaration> toModelDeclaration()
 	{
-		return (ModelDeclaration) parseTo(BasicDataType.MODEL_DECLARATION);
+		return (ModelDeclaration<VariableDeclaration>) parseTo(BasicDataType.MODEL_DECLARATION);
 	}
 	
 	/**

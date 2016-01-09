@@ -149,11 +149,11 @@ public class VariableDeclaration
 	 * Wraps this variable declaration into a model declaration.
 	 * @return A model declaration with just this one declaration.
 	 */
-	public ModelDeclaration wrapToModelDeclaration()
+	public ModelDeclaration<VariableDeclaration> wrapToModelDeclaration()
 	{
 		List<VariableDeclaration> declarations = new ArrayList<>();
 		declarations.add(this);
-		return new ModelDeclaration(declarations);
+		return new ModelDeclaration<>(declarations);
 	}
 	
 	/**
@@ -161,13 +161,13 @@ public class VariableDeclaration
 	 * @param other Another variable declaration
 	 * @return A model declaration that contains the two variable declarations
 	 */
-	public ModelDeclaration plus(VariableDeclaration other)
+	public ModelDeclaration<VariableDeclaration> plus(VariableDeclaration other)
 	{
 		List<VariableDeclaration> declarations = new ArrayList<>();
 		declarations.add(this);
 		if (other != null)
 			declarations.add(other);
 		
-		return new ModelDeclaration(declarations);
+		return new ModelDeclaration<>(declarations);
 	}
 }

@@ -61,7 +61,7 @@ public enum BasicDataType implements DataType
 	 */
 	VARIABLE,
 	/**
-	 * @See Model
+	 * @See SimpleModel
 	 */
 	MODEL,
 	/**
@@ -69,6 +69,8 @@ public enum BasicDataType implements DataType
 	 */
 	VARIABLE_DECLARATION,
 	/**
+	 * The model declarations are considered to be simple instances of 
+	 * ModelDeclaration<VariableDeclaration>
 	 * @see ModelDeclaration
 	 */
 	MODEL_DECLARATION,

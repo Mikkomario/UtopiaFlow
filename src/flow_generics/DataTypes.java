@@ -204,6 +204,20 @@ public class DataTypes implements ValueParser
 	}
 	
 	/**
+	 * @return Each data type that has been introduced at this point
+	 */
+	public List<DataType> getIntroducedDataTypes()
+	{
+		List<DataType> types = new ArrayList<>();
+		for (DataTypeTreeNode node : this.dataTypes)
+		{
+			types.add(node.getContent());
+		}
+		
+		return types;
+	}
+	
+	/**
 	 * Finds all the data types that are can be treated as the provided data type. For example, 
 	 * would return Number, Integer, Double and Long for Number when only basic data types 
 	 * are introduced.

@@ -144,6 +144,7 @@ public class BasicValueParser implements ValueParser
 	 * @return An object value of the targeted data type
 	 * @throws ValueParseException If the parsing failed for some reason
 	 */
+	@SuppressWarnings("unchecked")
 	public static Object parse(Object value, DataType from, DataType to) throws ValueParseException
 	{
 		if (from == null || to == null)
@@ -185,9 +186,11 @@ public class BasicValueParser implements ValueParser
 				return declaration.assignNullValue();
 		}
 		else if (from.equals(BasicDataType.MODEL) && to.equals(BasicDataType.MODEL_DECLARATION))
-			return ((Model) value).getDeclaration();
+			return ((SimpleModel) value).getDeclaration();
 		else if (from.equals(BasicDataType.MODEL_DECLARATION) && to.equals(BasicDataType.MODEL))
-			return ((ModelDeclaration) value).instantiate();
+		{
+			return ((ModelDeclaration<VariableDeclaration>) value).instantiate();
+		}
 			
 		
 		if (to.equals(BasicDataType.BOOLEAN))
