@@ -139,6 +139,16 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	}
 	
 	/**
+	 * Finds the value of a single attribute in the model
+	 * @param attributeName The name of the attribute
+	 * @return The value assigned to the attribute
+	 */
+	public Value getAttributeValue(String attributeName)
+	{
+		return getAttribute(attributeName).getValue();
+	}
+	
+	/**
 	 * Finds an attribute with the provided name from this model (case-insensitive)
 	 * @param attributeName The name of the attribute
 	 * @return A model's attribute with the provided name or null if no such attribute exists.
