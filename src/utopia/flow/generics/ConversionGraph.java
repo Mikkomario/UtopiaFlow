@@ -181,7 +181,10 @@ public class ConversionGraph
 		{
 			int cost = getConversionCost(from, type);
 			if (cost >= 0 && (optimalTarget == null || cost < smallestCost))
+			{
 				optimalTarget = type;
+				smallestCost = cost;
+			}
 		}
 		
 		return optimalTarget;
