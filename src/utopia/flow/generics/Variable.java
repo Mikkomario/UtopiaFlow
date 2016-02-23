@@ -87,7 +87,7 @@ public class Variable
 	{
 		this.dataType = type;
 		this.name = name;
-		this.value = new Value(new Value(value, valueType), type);
+		this.value = new Value(value, valueType).castTo(type);
 	}
 	
 	/**
