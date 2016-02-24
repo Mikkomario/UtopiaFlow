@@ -413,7 +413,10 @@ public class Value
 	 */
 	public Boolean toBoolean()
 	{
-		return (Boolean) parseTo(BasicDataType.BOOLEAN);
+		if (isNull())
+			return false;
+		else
+			return (Boolean) parseTo(BasicDataType.BOOLEAN);
 	}
 	
 	/**
@@ -429,7 +432,10 @@ public class Value
 	 */
 	public Number toNumber()
 	{
-		return (Number) parseTo(BasicDataType.NUMBER);
+		if (isNull())
+			return 0;
+		else
+			return (Number) parseTo(BasicDataType.NUMBER);
 	}
 	
 	/**
@@ -437,7 +443,10 @@ public class Value
 	 */
 	public Integer toInteger()
 	{
-		return (Integer) parseTo(BasicDataType.INTEGER);
+		if (isNull())
+			return 0;
+		else
+			return (Integer) parseTo(BasicDataType.INTEGER);
 	}
 	
 	/**
@@ -445,7 +454,10 @@ public class Value
 	 */
 	public Double toDouble()
 	{
-		return (Double) parseTo(BasicDataType.DOUBLE);
+		if (isNull())
+			return 0.0;
+		else
+			return (Double) parseTo(BasicDataType.DOUBLE);
 	}
 	
 	/**
@@ -453,7 +465,10 @@ public class Value
 	 */
 	public Long toLong()
 	{
-		return (Long) parseTo(BasicDataType.LONG);
+		if (isNull())
+			return 0l;
+		else
+			return (Long) parseTo(BasicDataType.LONG);
 	}
 	
 	/**
