@@ -1,4 +1,4 @@
-package utopia.flow.io;
+package utopia.flow.structure;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -100,9 +100,9 @@ public class Element
 	/**
 	 * Finds the value of an attribute in the element
 	 * @param attributeName The name of the attribute
-	 * @return The value of the attribute
+	 * @return The value of the attribute. Null if there is no such attribute
 	 */
-	public String getAttribute(String attributeName)
+	public String getAttributeValue(String attributeName)
 	{
 		return this.attributes.get(attributeName.toLowerCase());
 	}
@@ -115,5 +115,16 @@ public class Element
 	public void addAttribute(String attributeName, String value)
 	{
 		this.attributes.put(attributeName.toLowerCase(), value);
+	}
+	
+	
+	// OTHER METHODS	--------------
+	
+	/**
+	 * @return Does this element have any content in it
+	 */
+	public boolean hasContent()
+	{
+		return !getContent().isNull();
 	}
 }

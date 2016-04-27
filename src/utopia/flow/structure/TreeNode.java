@@ -11,7 +11,6 @@ import utopia.flow.recording.ObjectParser;
  * These nodes are connected to each other in parent-child manner. A node with 
  * no parent is considered a root or a tree. A node can never be a direct 
  * or indirect child of itself.
- * 
  * @author Mikko Hilpinen
  * @since 23.7.2014
  * @param <T> The data type the node contains
@@ -93,7 +92,7 @@ public class TreeNode<T>
 	 */
 	public TreeNode<T> getChild(int index)
 	{
-		if (index >= getChildAmount())
+		if (index >= getChildAmount() || index < 0)
 			return null;
 		
 		return this.children.get(index);
@@ -384,16 +383,9 @@ public class TreeNode<T>
 	 */
 	public TreeNode<T> getRightSibling()
 	{
-		// If the node has no parent, it has no siblings
 		if (getParent() == null)
 			return null;
-		
-		int index = getIndex();
-		// If the node is the rightmost child, it has no right sibling
-		if (index + 1 >= getParent().getChildAmount())
-			return null;
-		
-		return getParent().getChild(index + 1);
+		return getParent().getChild(getIndex() + 1);
 	}
 	
 	/**
@@ -401,15 +393,9 @@ public class TreeNode<T>
 	 */
 	public TreeNode<T> getLeftSibling()
 	{
-		// Might want to remove WETWET
 		if (getParent() == null)
 			return null;
-		
-		int index = getIndex();
-		if (index == 0)
-			return null;
-		
-		return getParent().getChild(index);
+		return getParent().getChild(getIndex() - 1);
 	}
 	
 	/**
@@ -429,6 +415,13 @@ public class TreeNode<T>
 		
 		return index;
 	}
+	
+	/* TODO: Create filter methods (recursive filter)
+	public List<TreeNode<T>> findChildren(Filter<T> condition)
+	{
+		return Filter.filterTreeNodesByContent(getChildren(), condition);
+	}
+	*/
 	
 	/**
 	 * Checks if the given path of sequential content is valid for this tree. 
