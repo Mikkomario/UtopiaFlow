@@ -7,7 +7,7 @@ package utopia.flow.structure;
  * @param <NodeContent> The type of object stored in the node connected to the edge
  * @param <EdgeContent> The type of object stored in the edge
  */
-public class GraphEdge<NodeContent, EdgeContent>
+public class GraphEdge<NodeContent, EdgeContent> implements Node<EdgeContent>
 {
 	// ATTRIBUTES	------------------
 	
@@ -39,15 +39,16 @@ public class GraphEdge<NodeContent, EdgeContent>
 	}
 	
 	
-	// ACCESSORS	------------------
+	// IMPLEMENTED METHODS	----------
 	
-	/**
-	 * @return The contents of this edge
-	 */
+	@Override
 	public EdgeContent getContent()
 	{
 		return this.content;
 	}
+	
+
+	// ACCESSORS	------------------
 	
 	/**
 	 * Updates the contents of this edge

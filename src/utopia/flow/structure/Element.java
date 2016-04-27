@@ -11,7 +11,7 @@ import utopia.flow.generics.Value;
  * @author Mikko Hilpinen
  * @since 27.4.2016
  */
-public class Element
+public class Element implements Node<Value>
 {
 	// ATTRIBUTES	----------------
 	
@@ -44,6 +44,15 @@ public class Element
 	}
 	
 	
+	// IMPLEMENTED METHODS	--------
+	
+	@Override
+	public Value getContent()
+	{
+		return this.value;
+	}
+	
+	
 	// ACCESSORS	----------------
 	
 	/**
@@ -61,14 +70,6 @@ public class Element
 	public void setName(String name)
 	{
 		this.name = name;
-	}
-	
-	/**
-	 * @return The content inside the element
-	 */
-	public Value getContent()
-	{
-		return this.value;
 	}
 	
 	/**

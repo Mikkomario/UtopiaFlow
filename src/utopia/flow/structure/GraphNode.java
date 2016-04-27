@@ -14,7 +14,7 @@ import java.util.Set;
  * @param <NodeContent> The type of content stored in this node
  * @param <EdgeContent> The type of content stored in the edges leaving from this node
  */
-public class GraphNode<NodeContent, EdgeContent>
+public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 {
 	// ATTRIBUTES	-------------------
 	
@@ -48,17 +48,18 @@ public class GraphNode<NodeContent, EdgeContent>
 			this.edges.add(new GraphEdge<>(edge));
 		}
 	}
+	
+	
+	// IMPLEMENTED METHODS	----------
 
-	
-	// ACCESSORS	------------------
-	
-	/**
-	 * @return The node's current content
-	 */
+	@Override
 	public NodeContent getContent()
 	{
 		return this.content;
 	}
+	
+	
+	// ACCESSORS	------------------
 	
 	/**
 	 * Updates the node's contents

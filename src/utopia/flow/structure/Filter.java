@@ -68,20 +68,51 @@ public interface Filter<T>
 	}
 	
 	/**
-	 * Filters a tree node collection based on the node contents
+	 * Filters a node collection based on the node contents
+	 * @param nodes The nodes that are filtered
+	 * @param to The collection the filtered nodes are added to
+	 * @param filter The filter applied to the nodes' content
+	 */
+	public static <ContentType, NodeType extends Node<ContentType>> void filterNodes(
+			Collection<? extends NodeType> nodes, Collection<NodeType> to, 
+			Filter<ContentType> filter)
+	{
+		for (NodeType node : nodes)
+		{
+			if (filter.includes(node.getContent()))
+				to.add(node);
+		}
+	}
+	
+	/**
+	 * Filters a node collection based on the node contents
 	 * @param nodes The nodes that are filtered
 	 * @param filter The filter applied to the nodes' content
 	 * @return A list containing all nodes whose contents were included by the filter
 	 */
-	public static <T> ArrayList<TreeNode<T>> filterTreeNodesByContent(
-			Collection<? extends TreeNode<T>> nodes, Filter<T> filter)
+	public static <ContentType, NodeType extends Node<ContentType>> ArrayList<NodeType> 
+			filterNodes(Collection<? extends NodeType> nodes, Filter<ContentType> filter)
 	{
-		ArrayList<TreeNode<T>> filtered = new ArrayList<>();
-		for (TreeNode<T> node : nodes)
+		ArrayList<NodeType> filtered = new ArrayList<>();
+		filterNodes(nodes, filtered, filter);
+		return filtered;
+	}
+	
+	/**
+	 * Finds the first node that fulfils the provided condition
+	 * @param nodes The nodes that are searched through
+	 * @param filter The filter applied
+	 * @return The first node which has content accepted by the filter
+	 */
+	public static <ContentType, NodeType extends Node<ContentType>> NodeType findFirstNode(
+			Collection<? extends NodeType> nodes, Filter<ContentType> filter)
+	{
+		for (NodeType node : nodes)
 		{
 			if (filter.includes(node.getContent()))
-				filtered.add(node);
+				return node;
 		}
-		return filtered;
+		
+		return null;
 	}
 }

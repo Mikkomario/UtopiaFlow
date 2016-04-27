@@ -15,7 +15,7 @@ import utopia.flow.recording.ObjectParser;
  * @since 23.7.2014
  * @param <T> The data type the node contains
  */
-public class TreeNode<T>
+public class TreeNode<T> implements Node<T>
 {
 	// ATTRIBUTES	------------------------------------------------------
 	
@@ -57,6 +57,15 @@ public class TreeNode<T>
 	}
 	
 	
+	// IMPLEMETED METHODS	-----------------
+	
+	@Override
+	public T getContent()
+	{
+		return this.content;
+	}
+	
+	
 	// GETTERS & SETTERS	----------------------------------------------
 	
 	/**
@@ -65,14 +74,6 @@ public class TreeNode<T>
 	public TreeNode<T> getParent()
 	{
 		return this.parent;
-	}
-	
-	/**
-	 * @return the content held in this node.
-	 */
-	public T getContent()
-	{
-		return this.content;
 	}
 	
 	/**
@@ -416,12 +417,44 @@ public class TreeNode<T>
 		return index;
 	}
 	
-	/* TODO: Create filter methods (recursive filter)
+	/**
+	 * Finds the children of this node that fulfil the provided condition
+	 * @param condition A condition
+	 * @return The child nodes of this node that fulfil the condition
+	 */
 	public List<TreeNode<T>> findChildren(Filter<T> condition)
 	{
-		return Filter.filterTreeNodesByContent(getChildren(), condition);
+		return Filter.filterNodes(getChildren(), condition);
 	}
-	*/
+	
+	/**
+	 * Finds the nodes below this node that fulfil the provided condition
+	 * @param condition A condition
+	 * @return The nodes below this node that fulfil the condition
+	 */
+	public List<TreeNode<T>> findBelow(Filter<T> condition)
+	{
+		return Filter.filterNodes(getLowerNodes(), condition);
+	}
+	
+	/**
+	 * Creates a filtered tree from this node
+	 * @param filter The filter applied
+	 * @return This node. Any of the children of this node that are accepted by the filter, 
+	 * any nodes 
+	 */
+	public TreeNode<T> filteredTree(Filter<T> filter)
+	{
+		TreeNode<T> node = new TreeNode<>(getContent());
+		// Adds children and their children, provided they are accepted by the filter
+		for (TreeNode<T> child : getChildren())
+		{
+			if (filter.includes(child.getContent()))
+				node.addChild(child.filteredTree(filter));
+		}
+		
+		return node;
+	}
 	
 	/**
 	 * Checks if the given path of sequential content is valid for this tree. 
