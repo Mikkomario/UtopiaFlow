@@ -35,10 +35,9 @@ public class DataTypeException extends RuntimeException
 
 	/**
 	 * Creates a new exception
-	 * @param type The data type that was misused
 	 * @param cause The exception that caused this exception
 	 */
-	public DataTypeException(DataType type, Throwable cause)
+	public DataTypeException(Throwable cause)
 	{
 		super(cause);
 	}

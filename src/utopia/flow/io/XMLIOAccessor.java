@@ -19,7 +19,6 @@ import utopia.flow.structure.TreeNode;
 /**
  * XMLIOAccessor is a class that provides static interfaces for creating and using 
  * xml writers and readers.
- * 
  * @author Mikko Hilpinen
  * @since 30.7.2014
  */

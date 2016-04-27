@@ -8,7 +8,6 @@ import java.util.List;
 /**
  * ListFileReader reads the contents of the file into a list. This reader shouldn't be used 
  * with overly large files.
- * 
  * @author Mikko Hilpinen
  * @since 21.11.2014
  */
@@ -16,19 +15,7 @@ public class ListFileReader extends AbstractFileReader
 {
 	// ATTRIBUTES	------------------------------------
 	
-	private List<String> lines;
-	
-	
-	// CONSTRUCTOR	------------------------------------
-	
-	/**
-	 * Creates a new file reader
-	 */
-	public ListFileReader()
-	{
-		// Initializes attributes
-		this.lines = new ArrayList<String>();
-	}
+	private List<String> lines = new ArrayList<>();
 	
 	
 	// IMPLEMENTED METHODS	----------------------------

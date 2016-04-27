@@ -7,7 +7,6 @@ import java.util.Scanner;
 /**
  * Filereader is an abstract class that allows the subclasses to read files 
  * and react to their content.
- *
  * @author Mikko Hilpinen.
  * @since 19.7.2013.
  */
@@ -49,7 +48,7 @@ public abstract class AbstractFileReader
 		scanner = new Scanner(file);
 		try
 		{
-			String line = "";
+			String line = null;
 			
 			// Reads the file
 			// Loops until the file ends

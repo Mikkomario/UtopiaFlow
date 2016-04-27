@@ -7,7 +7,6 @@ import java.util.List;
 
 /**
  * This fileReader uses modes, special lines that affect how the rest of the lines are read
- * 
  * @author Mikko Hilpinen
  * @since 21.11.2014
  */

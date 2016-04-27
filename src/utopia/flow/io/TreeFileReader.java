@@ -8,7 +8,6 @@ import utopia.flow.structure.TreeNode;
 /**
  * TreeFileReader collects the contents of a file into a tree format. It shouldn't be used 
  * with overly large files.
- * 
  * @author Mikko Hilpinen
  * @param <T> The type of object held in the read tree
  * @since 21.11.2014
