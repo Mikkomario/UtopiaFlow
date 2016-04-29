@@ -1,7 +1,9 @@
-package utopia.flow.structure;
+package utopia.flow.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import utopia.flow.structure.Node;
 
 /**
  * Filters are used for filtering different structures

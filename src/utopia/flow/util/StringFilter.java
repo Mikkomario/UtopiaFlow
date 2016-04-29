@@ -1,4 +1,4 @@
-package utopia.flow.structure;
+package utopia.flow.util;
 
 /**
  * This filter is able to filter strings from each other

@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,7 +77,7 @@ public class ConstructionTest
 			
 			System.out.println("Construction ready");
 		}
-		catch (UnsupportedEncodingException | XMLStreamException e)
+		catch (XMLStreamException e)
 		{
 			e.printStackTrace();
 		}

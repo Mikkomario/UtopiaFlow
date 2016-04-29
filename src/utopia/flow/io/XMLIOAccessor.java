@@ -218,20 +218,19 @@ public class XMLIOAccessor
 	 * Creates a new XMLStreamReader positioned to the start of the xml stream. The ownership 
 	 * of the reader moves to the calling object and it has to make sure the reader is closed 
 	 * after use.
-	 * 
 	 * @param stream the xml data as a stream
 	 * @return An xmlReader prepared to read the given xml data.
-	 * @throws UnsupportedEncodingException If the data doesn't support UTF-8 encoding
 	 * @throws XMLStreamException if something goes wrong during the creation of the reader
 	 */
 	public static XMLStreamReader createReader(InputStream stream) 
-			throws UnsupportedEncodingException, XMLStreamException
+			throws XMLStreamException
 	{
 		XMLInputFactory factory = XMLInputFactory.newInstance();
-		InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+		InputStreamReader reader = null;
 		
 		try
 		{
+			reader = new InputStreamReader(stream, "UTF-8");
 			return factory.createXMLStreamReader(reader);
 		}
 		catch (XMLStreamException e)
@@ -245,6 +244,10 @@ public class XMLIOAccessor
 				// Ignored
 			}
 			throw e;
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			throw new Utf8EncodingNotSupportedException(e);
 		}
 	}
 	
@@ -275,11 +278,10 @@ public class XMLIOAccessor
 	 * @param parser A parser that is able to parse objects from strings
 	 * @param stream The xml that contains the tree data
 	 * @return A tree constructed from the xml data (same as the given parent node)
-	 * @throws UnsupportedEncodingException If the stream doesn't support UTF-8
 	 * @throws XMLStreamException If the reading failed
 	 */
 	public static <T> TreeNode<T> readTree(TreeNode<T> parent, ObjectParser<T> parser, 
-			InputStream stream) throws UnsupportedEncodingException, XMLStreamException
+			InputStream stream) throws XMLStreamException
 	{
 		XMLStreamReader reader = createReader(stream);
 		TreeNode<T> tree = parent;

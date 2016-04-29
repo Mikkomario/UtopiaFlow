@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 import javax.xml.stream.XMLStreamException;
@@ -116,7 +115,7 @@ public class TreeIOTest
 			// Prints the fourth tree
 			System.out.println("Tree from xml: " + TreeNode.treeToString(tree2));
 		}
-		catch (UnsupportedEncodingException | XMLStreamException e)
+		catch (XMLStreamException e)
 		{
 			e.printStackTrace();
 		}

@@ -1,7 +1,6 @@
 package utopia.flow.recording;
 
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -39,10 +38,9 @@ public class XMLConstructorInstructor
 	 * only uses elements and character data
 	 * 
 	 * @param stream The xml stream the constructables are read from
-	 * @throws UnsupportedEncodingException If the stream doesn't support UFT-8
 	 * @throws XMLStreamException If the xml stream couldn't be read correctly
 	 */
-	public void constructFrom(InputStream stream) throws UnsupportedEncodingException, XMLStreamException
+	public void constructFrom(InputStream stream) throws XMLStreamException
 	{
 		String attributeElementName = null;
 		int depth = 0;

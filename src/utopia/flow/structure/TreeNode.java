@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Stack;
 
 import utopia.flow.recording.ObjectParser;
+import utopia.flow.util.Filter;
 
 /**
  * TreeNode is a simple tree-like data structure that can contain treeNodes of any type. 
@@ -63,6 +64,36 @@ public class TreeNode<T> implements Node<T>
 	public T getContent()
 	{
 		return this.content;
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder s = new StringBuilder();
+		
+		s.append("<");
+		s.append(String.valueOf(getContent()));
+		
+		if (hasChildren())
+		{
+			s.append(">");
+			
+			for (TreeNode<T> child : getChildren())
+			{
+				s.append(child.toString());
+			}
+			
+			s.append("</");
+			s.append(String.valueOf(getContent()));
+			s.append(">");
+			
+			return s.toString();
+		}
+		else
+		{
+			s.append("/>");
+			return s.toString();
+		}
 	}
 	
 	
