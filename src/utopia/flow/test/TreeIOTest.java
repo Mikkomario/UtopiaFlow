@@ -97,7 +97,7 @@ public class TreeIOTest
 			XMLIOAccessor.writeTree(tree1, new ObjectParser.StringParser(), xmlWriter);
 			XMLIOAccessor.writeDocumentEnd(xmlWriter);
 		}
-		catch (UnsupportedEncodingException | XMLStreamException e)
+		catch (XMLStreamException e)
 		{
 			e.printStackTrace();
 		}

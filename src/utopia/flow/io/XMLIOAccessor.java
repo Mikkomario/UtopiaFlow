@@ -40,14 +40,21 @@ public class XMLIOAccessor
 	 * 
 	 * @param targetStream The output stream the writer will write the data into
 	 * @return a new instance of an XMLStreamWriter.
-	 * @throws UnsupportedEncodingException If the stream doesn't support UTF-8 encoding
+	 * @throws Utf8EncodingNotSupportedException If the stream doesn't support UTF-8 encoding
 	 * @throws XMLStreamException If something goes wrong during the creation of the writer
 	 */
 	public static XMLStreamWriter createWriter(OutputStream targetStream) 
-			throws UnsupportedEncodingException, XMLStreamException
+			throws Utf8EncodingNotSupportedException, XMLStreamException
 	{
-		XMLOutputFactory factory = XMLOutputFactory.newInstance();
-		return factory.createXMLStreamWriter(new OutputStreamWriter(targetStream, "UTF-8"));
+		try
+		{
+			XMLOutputFactory factory = XMLOutputFactory.newInstance();
+			return factory.createXMLStreamWriter(new OutputStreamWriter(targetStream, "UTF-8"));
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			throw new Utf8EncodingNotSupportedException(e);
+		}
 	}
 	
 	/**

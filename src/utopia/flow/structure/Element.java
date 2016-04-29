@@ -2,6 +2,7 @@ package utopia.flow.structure;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import utopia.flow.generics.BasicDataType;
 import utopia.flow.generics.Value;
@@ -116,6 +117,14 @@ public class Element implements Node<Value>
 	public void addAttribute(String attributeName, String value)
 	{
 		this.attributes.put(attributeName.toLowerCase(), value);
+	}
+	
+	/**
+	 * @return The names of the attributes inside this element
+	 */
+	public Set<String> getAttributeNames()
+	{
+		return this.attributes.keySet();
 	}
 	
 	

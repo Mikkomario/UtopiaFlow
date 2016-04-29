@@ -141,7 +141,7 @@ public class ConstructionTest
 			
 			xmlWriter.closeDocument(streamWriter);
 		}
-		catch (XMLStreamException | UnsupportedEncodingException e)
+		catch (XMLStreamException e)
 		{
 			e.printStackTrace();
 		}

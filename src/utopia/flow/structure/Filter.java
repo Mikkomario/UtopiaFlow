@@ -11,6 +11,8 @@ import java.util.Collection;
  */
 public interface Filter<T>
 {
+	// TODO: Inverted filter, multi filter and hold best algorithm
+	
 	/**
 	 * This method will be called for each element in a structure and the return value 
 	 * determines whether the element will be included in the filtered structure
