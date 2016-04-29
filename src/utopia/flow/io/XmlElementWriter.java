@@ -1,5 +1,8 @@
 package utopia.flow.io;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -159,5 +162,48 @@ public class XmlElementWriter
 			writeElement(child);
 		}
 		closeElement();
+	}
+	
+	/**
+	 * Writes an xml element tree into a stream
+	 * @param element The element that is written
+	 * @param stream The stream the element is written into
+	 * @param encodeElementContent Should the element contents be encoded in UTF-8
+	 * @throws XMLStreamException If the xml writing failed
+	 */
+	public static void writeElementIntoStream(TreeNode<Element> element, OutputStream stream, 
+			boolean encodeElementContent) throws XMLStreamException
+	{
+		XmlElementWriter writer = new XmlElementWriter(stream, encodeElementContent);
+		try
+		{
+			writer.writeElement(element);
+		}
+		finally
+		{
+			writer.close();
+		}
+	}
+	
+	/**
+	 * Writes an element into a file
+	 * @param element The element that is written
+	 * @param file The file to which the element is written into
+	 * @param encodeElementContent Should the element contents be encoded in UTF-8
+	 * @throws IOException If the file couldn't be opened / created / closed
+	 * @throws XMLStreamException If the xml writing failed
+	 */
+	public static void writeElementIntoFile(TreeNode<Element> element, File file, 
+			boolean encodeElementContent) throws IOException, XMLStreamException
+	{
+		OutputStream stream = new FileOutputStream(file);
+		try
+		{
+			writeElementIntoStream(element, stream, encodeElementContent);
+		}
+		finally
+		{
+			stream.close();
+		}
 	}
 }
