@@ -103,20 +103,27 @@ class XmlReadWriteTest
 			reader = new XmlElementReader(stream, false);
 			
 			// Reads the root element and moves in
+			printReaderStatus("Reader at root", reader);
 			elements.add(reader.toNextElement());
 			// Reads the first user element, skipping to its sibling
+			printReaderStatus("Read root, moved to next", reader);
 			elements.add(reader.toNextSibling());
 			// Next moves to the first grade of that element
+			printReaderStatus("Read element, moved to next sibling", reader);
 			elements.add(reader.toNextElement());
 			// Reads the current element and then moves to 'updated' element
+			printReaderStatus("Read element, moved to next element", reader);
 			elements.add(reader.toNextElementWithName(true, new StringFilter("updated")));
+			printReaderStatus("Read element, moved to next 'updated'", reader);
 			
 			// Reads all remaining elements
 			while (reader.hasNext())
 			{
 				elements.add(reader.toNextElement());
+				printReaderStatus("Read element, moving to next element", reader);
 			}
 			
+			System.out.println("End of stream reached");
 			return elements;
 		}
 		catch (EndOfStreamReachedException e)
@@ -131,6 +138,11 @@ class XmlReadWriteTest
 				reader.closeQuietly();
 			stream.close();
 		}
+	}
+	
+	private static void printReaderStatus(String status, XmlElementReader reader)
+	{
+		System.out.println(status + "; " + reader.getCurrentDepth() + " (" + reader.getLastDepthChange() + ")");
 	}
 	
 	private static Element createGradeElement(String subject, int grade)
