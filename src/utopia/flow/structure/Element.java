@@ -53,6 +53,35 @@ public class Element implements Node<Value>
 		return this.value;
 	}
 	
+	@Override
+	public String toString()
+	{
+		StringBuilder s = new StringBuilder();
+		s.append("<");
+		s.append(getName());
+		
+		for (String attName : getAttributeNames())
+		{
+			s.append(" ");
+			s.append(attName);
+			s.append("=");
+			s.append(getAttributeValue(attName));
+		}
+		
+		if (hasContent())
+		{
+			s.append(">");
+			s.append(getContent().getDescription());
+			s.append("</");
+			s.append(getName());
+			s.append(">");
+		}
+		else
+			s.append("/>");
+			
+		return s.toString();
+	}
+	
 	
 	// ACCESSORS	----------------
 	

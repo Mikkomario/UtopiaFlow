@@ -84,6 +84,17 @@ public class XmlElementWriter
 	}
 	
 	/**
+	 * Writes a new element with no content or attributes and leaves the element open
+	 * @param elementName The name of the element
+	 * @throws XMLStreamException If writing failed
+	 */
+	public void startElement(String elementName) throws XMLStreamException
+	{
+		this.writer.writeStartElement(elementName);
+		this.elementsOpen ++;
+	}
+	
+	/**
 	 * Writes element data but leaves the element open. The following elements will be written 
 	 * inside this element until {@link #closeElement()} is called
 	 * @param element The element that is written
@@ -93,7 +104,8 @@ public class XmlElementWriter
 	{
 		try
 		{
-			this.writer.writeStartElement(element.getName());
+			// Writes the element name / start
+			startElement(element.getName());
 			
 			// Writes the element attributes
 			for (String attName : element.getAttributeNames())
@@ -101,6 +113,8 @@ public class XmlElementWriter
 				String attributeValue = element.getAttributeValue(attName);
 				if (this.encodeValues)
 					attributeValue = URLEncoder.encode(attributeValue, "UTF-8");
+				
+				this.writer.writeAttribute(attName, attributeValue);
 			}
 			
 			// Writes the element content as well
@@ -112,8 +126,6 @@ public class XmlElementWriter
 					textContent = URLEncoder.encode(textContent, "UTF-8");
 				this.writer.writeCharacters(textContent);
 			}
-			
-			this.elementsOpen ++;
 		}
 		catch (UnsupportedEncodingException e)
 		{
