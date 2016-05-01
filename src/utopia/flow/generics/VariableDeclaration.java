@@ -15,12 +15,13 @@ public class VariableDeclaration
 	
 	private String name;
 	private DataType type;
+	private Value defaultValue;
 	
 	
 	// CONSTRUCTOR	-------------------
 	
 	/**
-	 * Creates a new variable declaration
+	 * Creates a new variable declaration. Null values are assigned by default.
 	 * @param name The name of the variable
 	 * @param dataType The data type of the variable
 	 */
@@ -28,8 +29,22 @@ public class VariableDeclaration
 	{
 		this.name = name;
 		this.type = dataType;
+		this.defaultValue = Value.NullValue(getType());
 	}
-
+	
+	/**
+	 * Creates a new variable declaration
+	 * @param name The name of the variable
+	 * @param defaultValue The default value used by this declaration. This also determines 
+	 * the declaration's data type
+	 */
+	public VariableDeclaration(String name, Value defaultValue)
+	{
+		this.name = name;
+		this.type = defaultValue.getType();
+		this.defaultValue = defaultValue;
+	}
+	
 	
 	// IMPLEMENTED METHODS	-----------------
 	
@@ -42,7 +57,6 @@ public class VariableDeclaration
 		result = prime * result + ((getType() == null) ? 0 : getType().hashCode());
 		return result;
 	}
-
 
 	@Override
 	public boolean equals(Object obj)
@@ -100,60 +114,69 @@ public class VariableDeclaration
 		return this.type;
 	}
 	
+	/**
+	 * @return The default value assigned with this declaration
+	 */
+	public Value getDefaultValue()
+	{
+		return this.defaultValue;
+	}
+	
 	
 	// OTHER METHODS	---------------
 	
 	/**
 	 * Creates a new variable from the declaration
+	 * @param parser The parser that is used for actually generating the variable
 	 * @param value The value assigned to the variable
 	 * @return A variable with the provided value. The value will be cast to the correct 
 	 * data type.
+	 */
+	public <VariableType extends Variable> VariableType assignValue(
+			VariableParser<VariableType> parser, Value value)
+	{
+		return parser.generate(getName(), value.castTo(getType()));
+	}
+	
+	/**
+	 * Creates a new variable from the declaration
+	 * @param parser The parser that is used for actually generating the variable
+	 * @return A variable with the provided value. The variable will have a null value
+	 */
+	public <VariableType extends Variable> VariableType assignDefaultValue(
+			VariableParser<VariableType> parser)
+	{
+		return assignValue(parser, getDefaultValue());
+	}
+	
+	/**
+	 * Assigns a value to the declaration, creating a basic variable
+	 * @param value The value assigned to the declaration
+	 * @return The variable that was generated
 	 */
 	public Variable assignValue(Value value)
 	{
-		return new Variable(getName(), getType(), value);
+		return assignValue(new BasicVariableParser(), value);
 	}
 	
 	/**
-	 * Creates a new variable from the declaration
-	 * @param value The value assigned to the variable. Should reflect the declaration's type
-	 * @return A variable with the provided value.
+	 * Assigns the declaration's default value to a generated variable
+	 * @return The variable that was generated
 	 */
-	public Variable assignValue(Object value)
+	public Variable assignDefaultValue()
 	{
-		return new Variable(getName(), getType(), value);
-	}
-	
-	/**
-	 * Creates a new variable from the declaration
-	 * @param value The value assigned to the variable
-	 * @param valueType The data type of the provided object value
-	 * @return A variable with the provided value. The value will be cast to the correct 
-	 * data type.
-	 */
-	public Variable assignValue(Object value, DataType valueType)
-	{
-		return new Variable(getName(), getType(), value, valueType);
-	}
-	
-	/**
-	 * Creates a new variable from the declaration
-	 * @return A variable with the provided value. The variable will have a null value
-	 */
-	public Variable assignNullValue()
-	{
-		return new Variable(getName(), getType());
+		return assignValue(getDefaultValue());
 	}
 	
 	/**
 	 * Wraps this variable declaration into a model declaration.
 	 * @return A model declaration with just this one declaration.
 	 */
-	public ModelDeclaration<VariableDeclaration> wrapToModelDeclaration()
+	public ModelDeclaration wrapToModelDeclaration()
 	{
 		List<VariableDeclaration> declarations = new ArrayList<>();
 		declarations.add(this);
-		return new ModelDeclaration<>(declarations);
+		return new ModelDeclaration(declarations);
 	}
 	
 	/**
@@ -161,13 +184,13 @@ public class VariableDeclaration
 	 * @param other Another variable declaration
 	 * @return A model declaration that contains the two variable declarations
 	 */
-	public ModelDeclaration<VariableDeclaration> plus(VariableDeclaration other)
+	public ModelDeclaration plus(VariableDeclaration other)
 	{
 		List<VariableDeclaration> declarations = new ArrayList<>();
 		declarations.add(this);
 		if (other != null)
 			declarations.add(other);
 		
-		return new ModelDeclaration<>(declarations);
+		return new ModelDeclaration(declarations);
 	}
 }

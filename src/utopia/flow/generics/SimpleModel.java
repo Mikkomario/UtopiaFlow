@@ -7,8 +7,9 @@ import java.util.Collection;
  * as basic variables.
  * @author Mikko Hilpinen
  * @since 9.1.2016
+ * @deprecated Replaced by {@link Model} and {@link BasicVariableParser}
  */
-public class SimpleModel extends Model<Variable, VariableDeclaration>
+public class SimpleModel extends Model<Variable>
 {
 	// CONSTRUCTOR	----------------
 	
@@ -33,7 +34,7 @@ public class SimpleModel extends Model<Variable, VariableDeclaration>
 	 * Creates a new model by copying another
 	 * @param other A model that will be copied
 	 */
-	public SimpleModel(Model<? extends Variable, ? extends VariableDeclaration> other)
+	public SimpleModel(Model<? extends Variable> other)
 	{
 		super(other);
 	}

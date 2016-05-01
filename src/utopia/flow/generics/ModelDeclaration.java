@@ -10,14 +10,13 @@ import java.util.Set;
  * A modelDeclaration works like a class, so that it declares which variables the model will 
  * have. Model declarations, like variable declarations are immutable once created.
  * @author Mikko Hilpinen
- * @param <DeclarationType> The type of declaration stored in this declaration
  * @since 4.12.2015
  */
-public class ModelDeclaration<DeclarationType extends VariableDeclaration>
+public class ModelDeclaration
 {
 	// ATTRIBUTES	-------------------
 	
-	private Set<DeclarationType> attributeDeclarations;
+	private Set<VariableDeclaration> attributeDeclarations;
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -26,7 +25,7 @@ public class ModelDeclaration<DeclarationType extends VariableDeclaration>
 	 * Creates a new model declaration
 	 * @param attributeDeclarations The attributes the declaration contains
 	 */
-	public ModelDeclaration(Collection<? extends DeclarationType> attributeDeclarations)
+	public ModelDeclaration(Collection<? extends VariableDeclaration> attributeDeclarations)
 	{
 		this.attributeDeclarations = new HashSet<>(attributeDeclarations);
 	}
@@ -56,7 +55,7 @@ public class ModelDeclaration<DeclarationType extends VariableDeclaration>
 	 * @return The attributes declared in this class / modelDeclaration. The returned set 
 	 * is a copy and changes made to it won't affect this instance.
 	 */
-	public Set<DeclarationType> getAttributeDeclarations()
+	public Set<VariableDeclaration> getAttributeDeclarations()
 	{
 		return new HashSet<>(this.attributeDeclarations);
 	}
@@ -113,9 +112,9 @@ public class ModelDeclaration<DeclarationType extends VariableDeclaration>
 	 * @return The attribute with the provided name declared in this declaration. Null if no 
 	 * such attribute could be found.
 	 */
-	public DeclarationType findAttributeDeclaration(String attributeName)
+	public VariableDeclaration findAttributeDeclaration(String attributeName)
 	{
-		for (DeclarationType declaration : this.attributeDeclarations)
+		for (VariableDeclaration declaration : this.attributeDeclarations)
 		{
 			if (declaration.getName() == null)
 			{
@@ -137,33 +136,46 @@ public class ModelDeclaration<DeclarationType extends VariableDeclaration>
 	 * @return A new model declaration that contains only the specified attributes. If all 
 	 * of the attributes couldn't be found, they are not included
 	 */
-	public ModelDeclaration<DeclarationType> findAttributeDeclarations(String... attributeNames)
+	public ModelDeclaration findAttributeDeclarations(String... attributeNames)
 	{
-		List<DeclarationType> declarations = new ArrayList<>();
+		List<VariableDeclaration> declarations = new ArrayList<>();
 		for (String attributeName : attributeNames)
 		{
-			DeclarationType declaration = findAttributeDeclaration(attributeName);
+			VariableDeclaration declaration = findAttributeDeclaration(attributeName);
 			if (declaration != null)
 				declarations.add(declaration);
 		}
 		
-		return new ModelDeclaration<DeclarationType>(declarations);
+		return new ModelDeclaration(declarations);
 	}
 	
 	/**
-	 * Instantialises the model declaration into a model with all null values
+	 * Instantialises the model declaration into a model with all default values
+	 * @param parser The parser that is used for actually generating the variables / which 
+	 * the model may use later
 	 * @return A model based on this declaration. All of the model's attributes will be 
-	 * initialised to null
+	 * initialised to default declaration values
 	 */
-	public SimpleModel instantiate()
+	public <VariableType extends Variable> Model<VariableType> instantiate(
+			VariableParser<VariableType> parser)
 	{
-		SimpleModel model = new SimpleModel();
+		Model<VariableType> model = new Model<>(parser);
 		for (VariableDeclaration declaration : this.attributeDeclarations)
 		{
-			model.addAttribute(declaration.assignNullValue(), true);
+			model.addAttribute(declaration.assignDefaultValue(parser), true);
 		}
 		
 		return model;
+	}
+	
+	/**
+	 * Instantiates the declaration into a model with all default values. Basic variables are 
+	 * used and the model will receive a basic variable parser.
+	 * @return A model based on this declaration
+	 */
+	public Model<Variable> instantiate()
+	{
+		return instantiate(new BasicVariableParser());
 	}
 	
 	/**
@@ -171,16 +183,16 @@ public class ModelDeclaration<DeclarationType extends VariableDeclaration>
 	 * @param other Another model declaration
 	 * @return A model declaration that contains the attributes from both declarations
 	 */
-	public ModelDeclaration<DeclarationType> plus(ModelDeclaration<? extends DeclarationType> other)
+	public ModelDeclaration plus(ModelDeclaration other)
 	{
 		if (other == null)
 			return this;
 		
-		Set<DeclarationType> combinedDeclarations = new HashSet<>();
+		Set<VariableDeclaration> combinedDeclarations = new HashSet<>();
 		combinedDeclarations.addAll(this.attributeDeclarations);
 		combinedDeclarations.addAll(other.attributeDeclarations);
 		
-		return new ModelDeclaration<DeclarationType>(combinedDeclarations);
+		return new ModelDeclaration(combinedDeclarations);
 	}
 	
 	/**
@@ -189,15 +201,15 @@ public class ModelDeclaration<DeclarationType extends VariableDeclaration>
 	 * @param attributeDeclaration An attribute declaration
 	 * @return A model declaration that contains the provided declaration
 	 */
-	public ModelDeclaration<DeclarationType> plus(DeclarationType attributeDeclaration)
+	public ModelDeclaration plus(VariableDeclaration attributeDeclaration)
 	{
 		if (attributeDeclaration == null)
 			return this;
 		
-		Set<DeclarationType> declarations = getAttributeDeclarations();
+		Set<VariableDeclaration> declarations = getAttributeDeclarations();
 		declarations.add(attributeDeclaration);
 		
-		return new ModelDeclaration<DeclarationType>(declarations);
+		return new ModelDeclaration(declarations);
 	}
 	
 	/**
@@ -207,14 +219,14 @@ public class ModelDeclaration<DeclarationType extends VariableDeclaration>
 	 * @return a model declaration that has the attribute declarations of this model 
 	 * declaration that are not shared between the two declarations.
 	 */
-	public ModelDeclaration<DeclarationType> minus(ModelDeclaration<? extends VariableDeclaration> other)
+	public ModelDeclaration minus(ModelDeclaration other)
 	{
 		if (other == null)
 			return this;
 		
-		Set<DeclarationType> declarations = getAttributeDeclarations();
+		Set<VariableDeclaration> declarations = getAttributeDeclarations();
 		if (declarations.removeAll(other.attributeDeclarations))
-			return new ModelDeclaration<DeclarationType>(declarations);
+			return new ModelDeclaration(declarations);
 		else
 			return this;
 	}
@@ -224,15 +236,15 @@ public class ModelDeclaration<DeclarationType extends VariableDeclaration>
 	 * @param attributeDeclaration An attribute declaration
 	 * @return A model declaration that doesn't contain the provided declaration
 	 */
-	public ModelDeclaration<DeclarationType> minus(VariableDeclaration attributeDeclaration)
+	public ModelDeclaration minus(VariableDeclaration attributeDeclaration)
 	{
 		if (attributeDeclaration == null)
 			return this;
 		else if (containsAttribute(attributeDeclaration))
 		{
-			Set<DeclarationType> declarations = getAttributeDeclarations();
+			Set<VariableDeclaration> declarations = getAttributeDeclarations();
 			declarations.remove(attributeDeclaration);
-			return new ModelDeclaration<DeclarationType>(declarations);
+			return new ModelDeclaration(declarations);
 		}
 		else
 			return this;

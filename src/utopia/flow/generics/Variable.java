@@ -4,12 +4,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import utopia.flow.structure.Node;
+
 /**
  * Variable's have an inmutable data type and name, but their values can change.
  * @author Mikko Hilpinen
  * @since 10.11.2015
  */
-public class Variable
+public class Variable implements Node<Value>
 {
 	// ATTRIBUTES	-------------------
 	
@@ -110,6 +112,12 @@ public class Variable
 	public Value getValue()
 	{
 		return this.value;
+	}
+	
+	@Override
+	public Value getContent()
+	{
+		return getValue();
 	}
 
 	/**
@@ -212,9 +220,9 @@ public class Variable
 	 * Wraps the variable to a model
 	 * @return A model that contains only this one variable
 	 */
-	public SimpleModel wrapToModel()
+	public Model<Variable> wrapToModel()
 	{
-		SimpleModel model = new SimpleModel();
+		Model<Variable> model = Model.createBasicModel();
 		model.addAttribute(this, true);
 		return model;
 	}
@@ -232,9 +240,9 @@ public class Variable
 	 * @param other another variable
 	 * @return A model containing the two variables
 	 */
-	public SimpleModel plus(Variable other)
+	public Model<Variable> plus(Variable other)
 	{
-		SimpleModel model = new SimpleModel();
+		Model<Variable> model = Model.createBasicModel();
 		model.addAttribute(this, true);
 		
 		if (other != null)
@@ -469,7 +477,7 @@ public class Variable
 	/**
 	 * @return The variable's value as a model
 	 */
-	public SimpleModel getModelValue()
+	public Model<Variable> getModelValue()
 	{
 		return getValue().toModel();
 	}
@@ -485,7 +493,7 @@ public class Variable
 	/**
 	 * @return The variable's value as a model declaration
 	 */
-	public ModelDeclaration<VariableDeclaration> getModelDeclarationValue()
+	public ModelDeclaration getModelDeclarationValue()
 	{
 		return getValue().toModelDeclaration();
 	}

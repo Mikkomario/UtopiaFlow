@@ -57,11 +57,15 @@ public enum BasicDataType implements DataType
 	 */
 	EXTRA_BOOLEAN,
 	/**
+	 * The variables represented by this data type are so called basic variables represented 
+	 * by the base Variable class.
 	 * @see Variable
 	 */
 	VARIABLE,
 	/**
-	 * @See SimpleModel
+	 * The models represented by this data type are so called basic models. They use the 
+	 * Variable class.
+	 * @See {@link Model}
 	 */
 	MODEL,
 	/**

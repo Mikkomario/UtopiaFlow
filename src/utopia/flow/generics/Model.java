@@ -6,36 +6,44 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import utopia.flow.generics.VariableParser.VariableGenerationFailedException;
+import utopia.flow.util.Filter;
+
 /**
  * Model is a collection of variables that works much like a case-insensitive map would
  * @author Mikko Hilpinen
  * @param <VariableType> The type of variable contained within this model
- * @param <DeclarationType> The type of variable declaration used with this model
  * @since 11.11.2015
  */
-public abstract class Model<VariableType extends Variable, DeclarationType extends VariableDeclaration>
+public class Model<VariableType extends Variable>
 {
 	// ATTRIBUTES	--------------------
 	
 	private Set<VariableType> attributes;
+	private VariableParser<VariableType> generator;
 	
 	
 	// CONSTRUCTOR	--------------------
 	
 	/**
 	 * Creates a new empty model
+	 * @param variableGenerator The generator that is used for generating new attributes to the model
 	 */
-	public Model()
+	public Model(VariableParser<VariableType> variableGenerator)
 	{
+		this.generator = variableGenerator;
 		this.attributes = new HashSet<>();
 	}
 
 	/**
 	 * Creates a new model with predefined variables
+	 * @param variableGenerator The generator that is used for generating new attributes to the model
 	 * @param variables The variables the model will have
 	 */
-	public Model(Collection<? extends VariableType> variables)
+	public Model(VariableParser<VariableType> variableGenerator, 
+			Collection<? extends VariableType> variables)
 	{
+		this.generator = variableGenerator;
 		this.attributes = new HashSet<>(variables);
 	}
 	
@@ -43,31 +51,23 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * Creates a new model by copying another
 	 * @param other A model that will be copied
 	 */
-	public Model(Model<? extends VariableType, ? extends DeclarationType> other)
+	public Model(Model<VariableType> other)
 	{
+		this.generator = other.generator;
 		this.attributes = new HashSet<>();
 		
 		if (other != null)
 			addAttributes(other.getAttributes(), true);
 	}
 	
-	
-	// ABSTRACT METHODS	-----------------
-	
 	/**
-	 * This method generates a new attribute of the desired type by copying another
-	 * @param attribute Another attribute
-	 * @return A copy of the provided attribute
+	 * Creates a new model that will use the basic variable parser
+	 * @return The generated model
 	 */
-	protected abstract VariableType generateAttribute(VariableType attribute);
-	
-	/**
-	 * This method generates a new attribute
-	 * @param attributeName The desired name of the attribute
-	 * @param value The value given to the attribute
-	 * @return A new attribute
-	 */
-	protected abstract VariableType generateAttribute(String attributeName, Value value);
+	public static Model<Variable> createBasicModel()
+	{
+		return new Model<>(new BasicVariableParser());
+	}
 	
 	
 	// IMPLEMENTED METHODS	-------------
@@ -106,13 +106,23 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * Finds an attribute with the provided name from this model (case-insensitive)
 	 * @param attributeName The name of the attribute
 	 * @return A model's attribute
-	 * @throws NoSuchAttributeException If the model doesn't contain such an attribute
+	 * @throws NoSuchAttributeException If the model doesn't contain such an attribute and 
+	 * one couldn't be generated either
 	 */
 	public VariableType getAttribute(String attributeName) throws NoSuchAttributeException
 	{
 		VariableType attribute = findAttribute(attributeName);
 		if (attribute == null)
-			throw new NoSuchAttributeException(attributeName, this);
+		{
+			try
+			{
+				return generateAttribute(attributeName);
+			}
+			catch (VariableGenerationFailedException e)
+			{
+				throw new NoSuchAttributeException(attributeName, e);
+			}
+		}
 		else
 			return attribute;
 	}
@@ -124,16 +134,14 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * @param defaultValue The value given to a generated attribute if there didn't exist 
 	 * any in the model already
 	 * @return A model's attribute
+	 * @throws VariableGenerationFailedException If the attribute couldn't be found nor generated
 	 */
-	public VariableType getAttribute(String attributeName, Value defaultValue)
+	public VariableType getAttribute(String attributeName, Value defaultValue) throws 
+			VariableGenerationFailedException
 	{
 		VariableType attribute = findAttribute(attributeName);
 		if (attribute == null)
-		{
-			VariableType generated = generateAttribute(attributeName, defaultValue);
-			addAttribute(generated, false);
-			return generated;
-		}
+			return generateAttribute(attributeName, defaultValue);
 		else
 			return attribute;
 	}
@@ -142,8 +150,10 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * Finds the value of a single attribute in the model
 	 * @param attributeName The name of the attribute
 	 * @return The value assigned to the attribute
+	 * @throws NoSuchAttributeException If the model didn't have an attribute with the 
+	 * provided name and one couldn't be generated either
 	 */
-	public Value getAttributeValue(String attributeName)
+	public Value getAttributeValue(String attributeName) throws NoSuchAttributeException
 	{
 		return getAttribute(attributeName).getValue();
 	}
@@ -199,6 +209,42 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	}
 	
 	/**
+	 * Finds attributes based on the the attribute name
+	 * @param nameFilter The filter used in the search
+	 * @return The attributes included by the filter
+	 */
+	public List<VariableType> findAttributesByName(Filter<String> nameFilter)
+	{
+		List<VariableType> attributes = new ArrayList<>();
+		for (VariableType attribute : getAttributes())
+		{
+			if (nameFilter.includes(attribute.getName()))
+				attributes.add(attribute);
+		}
+		return attributes;
+	}
+	
+	/**
+	 * Finds attributes based on the the attribute value
+	 * @param valueFilter The filter used in the search
+	 * @return The attributes included by the filter
+	 */
+	public List<VariableType> findAttributesByValue(Filter<Value> valueFilter)
+	{
+		return Filter.filterNodes(getAttributes(), valueFilter);
+	}
+	
+	/**
+	 * Finds attributes
+	 * @param attributeFilter The filter used in the search
+	 * @return The attributes included by the filter
+	 */
+	public List<VariableType> findAttributes(Filter<VariableType> attributeFilter)
+	{
+		return Filter.filter(getAttributes(), attributeFilter);
+	}
+	
+	/**
 	 * Adds a new attribute to the model
 	 * @param attribute The attribute that will be added to the model
 	 * @param replaceIfExists If there already exists an attribute with the same name, will 
@@ -237,21 +283,22 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * Changes an attribute's value
 	 * @param attributeName The name of the attribute
 	 * @param newValue The new value given to the attribute
-	 * @param generateIfNotExists If there doesn't exist an attribute with the provided name, 
-	 * should one be generated
 	 * @throws NoSuchAttributeException If there doesn't exist an attribute with the provided 
 	 * name and one wasn't generated either
 	 */
-	public void setAttributeValue(String attributeName, Value newValue, 
-			boolean generateIfNotExists) throws NoSuchAttributeException
+	public void setAttributeValue(String attributeName, Value newValue) throws NoSuchAttributeException
 	{
 		Variable attribute = findAttribute(attributeName);
 		if (attribute == null)
 		{
-			if (generateIfNotExists)
-				addAttribute(generateAttribute(attributeName, newValue), false);
-			else
+			try
+			{
+				generateAttribute(attributeName, newValue);
+			}
+			catch (VariableGenerationFailedException e)
+			{
 				throw new NoSuchAttributeException(attributeName, this);
+			}
 		}
 		else
 			attribute.setValue(newValue);
@@ -289,6 +336,24 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	}
 	
 	/**
+	 * Checks whether the model contains an attribute declared by the declaration
+	 * @param declaration A variable declaration
+	 * @return EXTRA TRUE if the model contains an attribute with the same name and data type. 
+	 * WEAK TRUE if the model contains an attribute with the same name but different data type. 
+	 * EXTRA FALSE otherwise.
+	 */
+	public ExtraBoolean containsAttribute(VariableDeclaration declaration)
+	{
+		VariableType corresponding = findAttribute(declaration.getName());
+		if (corresponding == null)
+			return ExtraBoolean.EXTRA_FALSE;
+		else if (corresponding.getType().equals(declaration.getType()))
+			return ExtraBoolean.EXTRA_TRUE;
+		else
+			return ExtraBoolean.WEAK_TRUE;
+	}
+	
+	/**
 	 * Checks if the model contains the provided attribute
 	 * @param attribute An attribute
 	 * @return EXTRA TRUE if the model contains an attribute that equals this attribute 
@@ -315,7 +380,7 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	/**
 	 * @return A declaration for each of the attributes in this model
 	 */
-	public ModelDeclaration<VariableDeclaration> getDeclaration()
+	public ModelDeclaration getDeclaration()
 	{
 		List<VariableDeclaration> declarations = new ArrayList<>();
 		for (Variable attribute : getAttributes())
@@ -323,7 +388,7 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 			declarations.add(attribute.getDeclaration());
 		}
 		
-		return new ModelDeclaration<>(declarations);
+		return new ModelDeclaration(declarations);
 	}
 	
 	/**
@@ -333,14 +398,10 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * @param other Another model.
 	 * @return A new model that is combined from the two models
 	 */
-	public SimpleModel plus(Model<? extends VariableType, ? extends DeclarationType> other)
+	public Model<VariableType> plus(Model<? extends VariableType> other)
 	{	
-		SimpleModel model = new SimpleModel();
+		Model<VariableType> model = new Model<>(this);
 		
-		for (VariableType attribute : getAttributes())
-		{
-			model.addAttribute(attribute, true);
-		}
 		if (other != null)
 		{
 			for (VariableType attribute : other.getAttributes())
@@ -358,9 +419,9 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * @param variable A variable
 	 * @return A model containing each of this model's attributes plus the provided variable
 	 */
-	public SimpleModel plus(VariableType variable)
+	public Model<VariableType> plus(VariableType variable)
 	{
-		SimpleModel model = new SimpleModel(getAttributes());
+		Model<VariableType> model = new Model<VariableType>(this);
 		model.addAttribute(variable, true);
 		
 		return model;
@@ -371,9 +432,9 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * @param variable an attribute
 	 * @return A copy of this model that doesn't contain the specified attribute
 	 */
-	public SimpleModel minus(Variable variable)
+	public Model<VariableType> minus(Variable variable)
 	{
-		SimpleModel model = new SimpleModel(getAttributes());
+		Model<VariableType> model = new Model<>(this);
 		model.removeAttribute(variable);
 		return model;
 	}
@@ -384,9 +445,9 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * @return A copy of this model that doesn't contain an attribute that would have 
 	 * the provided declaration
 	 */
-	public SimpleModel minus(VariableDeclaration declaration)
+	public Model<VariableType> minus(VariableDeclaration declaration)
 	{	
-		SimpleModel model = new SimpleModel(getAttributes());
+		Model<VariableType> model = new Model<VariableType>(this);
 
 		if (declaration == null)
 			return model;
@@ -404,9 +465,9 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 	 * @param declaration a model declaration
 	 * @return a copy of this model without any of the declared attributes
 	 */
-	public SimpleModel minus(ModelDeclaration<VariableDeclaration> declaration)
+	public Model<VariableType> minus(ModelDeclaration declaration)
 	{
-		SimpleModel model = new SimpleModel(getAttributes());
+		Model<VariableType> model = new Model<VariableType>(this);
 		
 		if (declaration == null)
 			return model;
@@ -419,6 +480,32 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 		}
 		
 		return model;
+	}
+	
+	private VariableType generateAttribute(String attributeName) throws 
+			VariableGenerationFailedException
+	{
+		if (this.generator == null)
+			throw new VariableGenerationFailedException("Can't generate attributes without a variable parser");
+		
+		VariableType var = this.generator.generate(attributeName);
+		addAttribute(var, true);
+		return var;
+	}
+	
+	private VariableType generateAttribute(String attributeName, Value value) throws 
+			VariableGenerationFailedException
+	{
+		if (this.generator == null)
+			throw new VariableGenerationFailedException("Can't generate attributes without a variable parser");
+		else if (value == null)
+			return generateAttribute(attributeName);
+		else
+		{
+			VariableType var = this.generator.generate(attributeName, value);
+			addAttribute(var, true);
+			return var;
+		}
 	}
 	
 	
@@ -492,8 +579,7 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 		 * @param attributeName The name of the missing attribute
 		 * @param model The model the attribute was missing from
 		 */
-		public NoSuchAttributeException(String attributeName, Model<? extends Variable, 
-				? extends VariableDeclaration> model)
+		public NoSuchAttributeException(String attributeName, Model<? extends Variable> model)
 		{
 			super(parseMessage(attributeName, model));
 			
@@ -522,8 +608,7 @@ public abstract class Model<VariableType extends Variable, DeclarationType exten
 				return "No attribute named '" + attributeName + "'";
 		}
 		
-		private static String parseMessage(String attributeName, Model<? extends Variable, 
-				? extends VariableDeclaration> model)
+		private static String parseMessage(String attributeName, Model<? extends Variable> model)
 		{
 			StringBuilder s = new StringBuilder(parseMessage(attributeName));
 			s.append("\nModel contains attributes:");
