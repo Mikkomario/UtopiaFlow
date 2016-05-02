@@ -393,7 +393,7 @@ public class XmlElementReader
 						element.addAttribute(attName, attributeValue);
 					}
 				}
-				// String is the default data type used
+				// String is the default data type read (although object is the default written)
 				if (type == null)
 					type = BasicDataType.STRING;
 			}

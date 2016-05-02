@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import utopia.flow.structure.Node;
+import utopia.flow.util.ExtraBoolean;
 
 /**
  * Variable's have an inmutable data type and name, but their values can change.

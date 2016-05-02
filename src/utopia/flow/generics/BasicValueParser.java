@@ -7,6 +7,8 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import utopia.flow.util.ExtraBoolean;
+
 /**
  * This value parser is able to parse between all basic data types
  * @author Mikko Hilpinen
@@ -144,7 +146,6 @@ public class BasicValueParser implements ValueParser
 	 * @return An object value of the targeted data type
 	 * @throws ValueParseException If the parsing failed for some reason
 	 */
-	@SuppressWarnings("unchecked")
 	public static Object parse(Object value, DataType from, DataType to) throws ValueParseException
 	{
 		if (from == null || to == null)
@@ -183,13 +184,13 @@ public class BasicValueParser implements ValueParser
 				return declaration.wrapToModelDeclaration();
 			// Can also be instantiated to variables
 			if (to.equals(BasicDataType.VARIABLE))
-				return declaration.assignNullValue();
+				return declaration.assignDefaultValue();
 		}
 		else if (from.equals(BasicDataType.MODEL) && to.equals(BasicDataType.MODEL_DECLARATION))
-			return ((SimpleModel) value).getDeclaration();
+			return ((Model<?>) value).getDeclaration();
 		else if (from.equals(BasicDataType.MODEL_DECLARATION) && to.equals(BasicDataType.MODEL))
 		{
-			return ((ModelDeclaration<VariableDeclaration>) value).instantiate();
+			return ((ModelDeclaration) value).instantiate();
 		}
 			
 		
@@ -426,17 +427,17 @@ public class BasicValueParser implements ValueParser
 			return (ExtraBoolean) value;
 		
 		if (type.equals(BasicDataType.BOOLEAN))
-			return ExtraBoolean.parseFromBoolean(parseBoolean(value, type));
+			return ExtraBoolean.valueOf(parseBoolean(value, type));
 		
 		if (DataTypes.dataTypeIsOfType(type, BasicDataType.NUMBER))
-			return ExtraBoolean.parseFromDouble(parseDouble(value, type));
+			return ExtraBoolean.valueOf(parseDouble(value, type));
 		
 		if (type.equals(BasicDataType.STRING))
 		{
-			ExtraBoolean parsed = ExtraBoolean.parseFromString(parseString(value));
+			ExtraBoolean parsed = ExtraBoolean.parseExtraBoolean(parseString(value));
 			if (parsed == null)
 				// If the default conversion fails, tries through double
-				return ExtraBoolean.parseFromDouble(parseDouble(value, type));
+				return ExtraBoolean.valueOf(parseDouble(value, type));
 			else
 				return parsed;
 		}

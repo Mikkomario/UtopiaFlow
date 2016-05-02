@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import utopia.flow.util.ExtraBoolean;
+
 /**
  * These are the basic data types already existing in java and Flow
  * @author Mikko Hilpinen

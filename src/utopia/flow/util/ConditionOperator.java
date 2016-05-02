@@ -43,6 +43,30 @@ public enum ConditionOperator
 	}
 	
 	/**
+	 * Checks the final logical value of two values operated by this operator
+	 * @param first The first logical value
+	 * @param second The second logical value
+	 * @return The logical result of the operation
+	 */
+	public ExtraBoolean operate(ExtraBoolean first, ExtraBoolean second)
+	{
+		switch (this)
+		{
+			case AND: return first.and(second);
+			case OR: return first.or(second);
+			case XOR:
+				if (first.toBoolean() != second.toBoolean())
+					return ExtraBoolean.EXTRA_TRUE;
+				else if (!first.equals(second).toBoolean())
+					return ExtraBoolean.WEAK_TRUE;
+				else
+					return ExtraBoolean.EXTRA_FALSE;
+		}
+		
+		return ExtraBoolean.EXTRA_FALSE;
+	}
+	
+	/**
 	 * Checks the final logical value of multiple values operated by this operator
 	 * @param values The values that are operated
 	 * @return The locical result of the operation

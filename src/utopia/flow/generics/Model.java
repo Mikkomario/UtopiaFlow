@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import utopia.flow.generics.VariableParser.VariableGenerationFailedException;
+import utopia.flow.util.ExtraBoolean;
 import utopia.flow.util.Filter;
 
 /**

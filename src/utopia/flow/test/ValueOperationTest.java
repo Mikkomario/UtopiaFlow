@@ -7,13 +7,14 @@ import java.util.List;
 
 import utopia.flow.generics.BasicDataType;
 import utopia.flow.generics.BasicValueOperation;
+import utopia.flow.generics.BasicVariableParser;
 import utopia.flow.generics.DataTypeException;
-import utopia.flow.generics.ExtraBoolean;
-import utopia.flow.generics.SimpleModel;
+import utopia.flow.generics.Model;
 import utopia.flow.generics.Value;
 import utopia.flow.generics.ValueOperation;
 import utopia.flow.generics.Variable;
 import utopia.flow.generics.VariableDeclaration;
+import utopia.flow.util.ExtraBoolean;
 
 /**
  * This class tests the basic value operations introduced in this project
@@ -107,7 +108,7 @@ public class ValueOperationTest
 		List<Variable> modelVars = new ArrayList<>();
 		modelVars.add(intVar.toVariable());
 		modelVars.add(stringVar.toVariable());
-		Value modelVar = Value.Model(new SimpleModel(modelVars));
+		Value modelVar = Value.Model(new Model<>(new BasicVariableParser(), modelVars));
 		Value modelDeclVar = Value.ModelDeclaration(doubleVarDecl.toModelDeclaration());
 		
 		plus(stringVar, intVar);

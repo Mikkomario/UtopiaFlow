@@ -7,8 +7,8 @@ import utopia.flow.generics.BasicDataType;
 import utopia.flow.generics.DataType;
 import utopia.flow.generics.DataTypeException;
 import utopia.flow.generics.DataTypes;
-import utopia.flow.generics.ExtraBoolean;
 import utopia.flow.generics.Value;
+import utopia.flow.util.ExtraBoolean;
 
 /**
  * This class tests the generic value conversion

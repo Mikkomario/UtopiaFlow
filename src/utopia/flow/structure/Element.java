@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import utopia.flow.generics.BasicDataType;
+import utopia.flow.generics.DataType;
 import utopia.flow.generics.Value;
 
 /**
@@ -30,7 +31,7 @@ public class Element implements Node<Value>
 	public Element(String name)
 	{
 		this.name = name;
-		this.value = Value.NullValue(BasicDataType.STRING);
+		this.value = Value.NullValue(BasicDataType.OBJECT);
 	}
 
 	/**
@@ -158,6 +159,14 @@ public class Element implements Node<Value>
 	
 	
 	// OTHER METHODS	--------------
+	
+	/**
+	 * @return The data type of the element's content
+	 */
+	public DataType getContentType()
+	{
+		return getContent().getType();
+	}
 	
 	/**
 	 * @return Does this element have any content in it

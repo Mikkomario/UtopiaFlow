@@ -10,6 +10,7 @@ import java.net.URLEncoder;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import utopia.flow.generics.BasicDataType;
 import utopia.flow.structure.Element;
 import utopia.flow.structure.TreeNode;
 
@@ -117,10 +118,13 @@ public class XmlElementWriter
 				this.writer.writeAttribute(attName, attributeValue);
 			}
 			
+			// And the data type
+			if (!element.getContentType().equals(BasicDataType.OBJECT))
+				this.writer.writeAttribute(DATATYPE_ATTNAME, element.getContent().getType().toString());
+			
 			// Writes the element content as well
 			if (element.hasContent())
 			{
-				this.writer.writeAttribute(DATATYPE_ATTNAME, element.getContent().getType().toString());
 				String textContent = element.getContent().toString();
 				if (this.encodeValues)
 					textContent = URLEncoder.encode(textContent, "UTF-8");

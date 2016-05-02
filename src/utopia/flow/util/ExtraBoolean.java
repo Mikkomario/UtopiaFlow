@@ -1,4 +1,4 @@
-package utopia.flow.generics;
+package utopia.flow.util;
 
 /**
  * This simple piece of data resembles Boolean, but has more states
@@ -52,11 +52,43 @@ public enum ExtraBoolean
 	// OTHER METHODS	-----------------
 	
 	/**
-	 * @return The boolean value of this extra boolean [0, 1]
+	 * @return The reversed value of this extra boolean. True becomes false, false becomes 
+	 * true.
+	 */
+	public ExtraBoolean reverse()
+	{
+		switch (this)
+		{
+			case EXTRA_FALSE: return EXTRA_TRUE;
+			case WEAK_FALSE: return WEAK_TRUE;
+			case WEAK_TRUE: return WEAK_FALSE;
+			case EXTRA_TRUE: return EXTRA_FALSE;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * @return The boolean value of this extra boolean. WEAK TRUE and EXTRA TRUE are considered 
+	 * to be true, others are false
 	 */
 	public boolean toBoolean()
 	{
 		return this.value >= 0.5;
+	}
+	
+	/**
+	 * Converts the extra boolean to a boolean
+	 * @param strict Should only EXTRA TRUE be considered to be true. If false, WEAK TRUE 
+	 * will be considered true as well.
+	 * @return The boolean value of this extra boolean
+	 */
+	public boolean toBoolean(boolean strict)
+	{
+		if (strict)
+			return isAtLeastAsTrueAs(EXTRA_TRUE);
+		else
+			return toBoolean();
 	}
 	
 	/**
@@ -139,7 +171,7 @@ public enum ExtraBoolean
 	 * @param s A string representing an (extra) boolean
 	 * @return The extra boolean represented by the string
 	 */
-	public static ExtraBoolean parseFromString(String s)
+	public static ExtraBoolean parseExtraBoolean(String s)
 	{
 		if (s == null)
 			return null;
@@ -164,7 +196,7 @@ public enum ExtraBoolean
 	 * @param d A double number
 	 * @return An extra boolean based on the double number
 	 */
-	public static ExtraBoolean parseFromDouble(double d)
+	public static ExtraBoolean valueOf(double d)
 	{
 		if (d >= EXTRA_TRUE.value)
 			return EXTRA_TRUE;
@@ -181,7 +213,7 @@ public enum ExtraBoolean
 	 * @param b The boolean value
 	 * @return An extra boolean value
 	 */
-	public static ExtraBoolean parseFromBoolean(boolean b)
+	public static ExtraBoolean valueOf(boolean b)
 	{
 		if (b)
 			return EXTRA_TRUE;

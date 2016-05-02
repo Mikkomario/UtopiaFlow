@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import utopia.flow.generics.ValueOperation.ValueOperationException;
+import utopia.flow.util.ExtraBoolean;
 
 /**
  * This is an immutable value class that has extra support for the basic data types
