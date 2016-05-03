@@ -61,6 +61,8 @@ public class Model<VariableType extends Variable>
 			addAttributes(other.getAttributes(), true);
 	}
 	
+	// TODO: Create from TreeNode<Element> constructor
+	
 	/**
 	 * Creates a new model that will use the basic variable parser
 	 * @return The generated model

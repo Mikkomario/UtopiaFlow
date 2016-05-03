@@ -396,6 +396,10 @@ public class XmlElementReader
 				// String is the default data type read (although object is the default written)
 				if (type == null)
 					type = BasicDataType.STRING;
+				// If there is no character data under the element, at least a null value with 
+				// correct data type is remembered
+				else
+					element.setContent(Value.NullValue(type));
 			}
 			
 			while (hasNext())

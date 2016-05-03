@@ -24,6 +24,7 @@ public class XmlElementWriter
 	// ATTRIBUTES	------------------
 	
 	static final String DATATYPE_ATTNAME = "dataType";
+	static final String ELEMENT_INDEX_ATTNAME = "element";
 	
 	private XMLStreamWriter writer;
 	private boolean encodeValues;
