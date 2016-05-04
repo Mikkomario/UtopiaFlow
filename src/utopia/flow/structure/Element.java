@@ -150,6 +150,18 @@ public class Element implements Node<Value>
 	}
 	
 	/**
+	 * Adds multiple attributes to the element
+	 * @param attributes The attributes added to the element
+	 */
+	public void addAttributes(Map<String, String> attributes)
+	{
+		for (String attName : attributes.keySet())
+		{
+			addAttribute(attName, attributes.get(attName));
+		}
+	}
+	
+	/**
 	 * @return The names of the attributes inside this element
 	 */
 	public Set<String> getAttributeNames()

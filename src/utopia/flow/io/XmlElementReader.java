@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -32,6 +34,10 @@ public class XmlElementReader
 	private XMLStreamReader reader;
 	private boolean decodeValues;
 	private int depth = 0, lastDepth = 0;
+	
+	private String currentElementName = null;
+	private Map<String, String> currentElementAttributes = null;
+	private DataType currentElementType = null;
 	
 	
 	// CONSTRUCTOR	-----------------
@@ -88,7 +94,39 @@ public class XmlElementReader
 	 */
 	public String getCurrentElementName()
 	{
-		return this.reader.getLocalName();
+		if (this.currentElementName == null)
+			this.currentElementName = this.reader.getLocalName();
+		
+		return this.currentElementName;
+	}
+	
+	/**
+	 * @return The attribute map read from the current element
+	 * @throws XMLStreamException If read failed
+	 * @throws EndOfStreamReachedException If the end of the stream was reached and no element 
+	 * data could be read
+	 */
+	public Map<String, String> getCurrentElementAttributes() throws 
+			EndOfStreamReachedException, XMLStreamException
+	{
+		if (this.currentElementAttributes == null)
+			readElementAttributes();
+		
+		return this.currentElementAttributes;
+	}
+	
+	/**
+	 * @return The data type of the currently open element's content
+	 * @throws XMLStreamException If read failed
+	 * @throws EndOfStreamReachedException If the end of the stream was reached and no element 
+	 * data could be read
+	 */
+	public DataType getCurrentElementContentType() throws EndOfStreamReachedException, XMLStreamException
+	{
+		if (this.currentElementType == null)
+			readElementAttributes();
+		
+		return this.currentElementType;
 	}
 	
 	/**
@@ -128,7 +166,7 @@ public class XmlElementReader
 	{
 		try
 		{
-			toNextElementStart(false);
+			toNextElementStart(false, false);
 		}
 		catch (EndOfStreamReachedException e)
 		{
@@ -147,7 +185,7 @@ public class XmlElementReader
 	 */
 	public Element toNextElement() throws XMLStreamException, EndOfStreamReachedException
 	{
-		return toNextElementStart(true);
+		return toNextElementStart(true, false);
 	}
 	
 	/**
@@ -350,6 +388,18 @@ public class XmlElementReader
 	}
 	
 	/**
+	 * Introduces a new special case to element value parsing. The parser is introduced to 
+	 * {@link XmlElementWriter} as well. The special cases of {@link BasicDataType} 
+	 * ({@link BasicElementValueParser}) will be included by default and need not be introduced 
+	 * outside this class.
+	 * @param parser The parser that handles some element parsing special cases
+	 */
+	public static void introduceSpecialParser(ElementValueParser parser)
+	{
+		XmlElementWriter.introduceSpecialParser(parser);
+	}
+	
+	/**
 	 * Moves to the start of the next element
 	 * @param readElement Should the current element be read
 	 * @return The element that was read. Null if reading was skipped
@@ -357,8 +407,8 @@ public class XmlElementReader
 	 * @throws EndOfStreamReachedException If end of stream was reached and no element data 
 	 * could be read (on read only)
 	 */
-	private Element toNextElementStart(boolean readElement) throws XMLStreamException, 
-			EndOfStreamReachedException
+	private Element toNextElementStart(boolean readElement, boolean skippingLowerElements) 
+			throws XMLStreamException, EndOfStreamReachedException
 	{
 		try
 		{
@@ -366,41 +416,34 @@ public class XmlElementReader
 			this.lastDepth = getCurrentDepth();
 			this.depth ++;
 			
-			Element element = null;
 			DataType type = null;
 			
-			// Initialises the element based on the current start element tag
-			// Possible content is read during the process
-			if (readElement)
+			// May check the element data type
+			if (readElement || !skippingLowerElements)
 			{
 				// Can't read element data if at the end of stream
 				if (!hasNext())
 					throw new EndOfStreamReachedException();
 				
-				element = new Element(getCurrentElementName());
-				int attributeAmount = this.reader.getAttributeCount();
-				for (int i = 0; i < attributeAmount; i++)
-				{
-					String attName = this.reader.getAttributeLocalName(i);
-					if (attName.equalsIgnoreCase(XmlElementWriter.DATATYPE_ATTNAME))
-						type = DataTypes.parseType(this.reader.getAttributeValue(i));
-					else
-					{
-						String attributeValue = this.reader.getAttributeValue(i);
-						if (this.decodeValues)
-							attributeValue = URLDecoder.decode(attributeValue, "UTF-8");
-						
-						element.addAttribute(attName, attributeValue);
-					}
-				}
-				// String is the default data type read (although object is the default written)
-				if (type == null)
-					type = BasicDataType.STRING;
-				// If there is no character data under the element, at least a null value with 
-				// correct data type is remembered
-				else
-					element.setContent(Value.NullValue(type));
+				// Reads the current element data type and uses that to determine whether 
+				// the next child element needs to be parsed into this element as value or 
+				// skipped altogether
+				type = getCurrentElementContentType();
 			}
+			
+			Element element = null;
+			// Initialises the element data if need be
+			if (readElement)
+			{
+				element = new Element(getCurrentElementName(), Value.NullValue(type));
+				element.addAttributes(getCurrentElementAttributes());
+			}
+			
+			// The next element will be reached, current element data is no longer valid
+			this.currentElementName = null;
+			this.currentElementType = null;
+			this.currentElementAttributes.clear();
+			this.currentElementAttributes = null;
 			
 			while (hasNext())
 			{
@@ -410,7 +453,7 @@ public class XmlElementReader
 				// Each time exiting an element, the depth decreases
 				else if (this.reader.isEndElement())
 					this.depth --;
-				// If character content is found, adds it to the element
+				// If character content is found, adds it to the element as content
 				else if (this.reader.isCharacters() && readElement)
 				{
 					String textContent = this.reader.getText();
@@ -428,6 +471,17 @@ public class XmlElementReader
 						}
 					}
 				}
+			}
+			
+			// If a special data type was found, and the element has a child
+			// parses that into element content or skips it
+			if (type != null && getLastDepthChange() > 0 && XmlElementWriter.isSpecialCase(type))
+			{
+				if (readElement)
+					element.setContent(XmlElementWriter.getSpecialParserFor(type).readValue(
+							parseCurrentElement(), type));
+				else
+					skipToNextSibling();
 			}
 			
 			return element;
@@ -451,17 +505,53 @@ public class XmlElementReader
 	{
 		// Keeps track of the starting depth, parses the current element if necessary
 		int startDepth = getCurrentDepth();
-		Element element = toNextElementStart(readElement);
+		Element element = toNextElementStart(readElement, true);
 		
 		// Keeps skipping until finding suitable element or end of stream
 		while (hasNext() && getCurrentDepth() > startDepth - depthDecreaseRequirement)
 		{
-			toNextElementStart(false);
+			toNextElementStart(false, true);
 		}
 		
 		// Updates last depth data (since it's not the result of toNextElementStart())
 		this.lastDepth = startDepth;
 		return element;
+	}
+	
+	private void readElementAttributes() throws EndOfStreamReachedException, XMLStreamException
+	{
+		// Can't read attributes if at the end of stream
+		if (!hasNext())
+			throw new EndOfStreamReachedException(
+					"Can't read element attributes after reaching end of stream");
+		
+		try
+		{
+			this.currentElementAttributes = new HashMap<>();
+			
+			int attributeAmount = this.reader.getAttributeCount();
+			for (int i = 0; i < attributeAmount; i++)
+			{
+				String attName = this.reader.getAttributeLocalName(i);
+				if (attName.equalsIgnoreCase(XmlElementWriter.DATATYPE_ATTNAME))
+					this.currentElementType = DataTypes.parseType(this.reader.getAttributeValue(i));
+				else
+				{
+					String attributeValue = this.reader.getAttributeValue(i);
+					if (this.decodeValues)
+						attributeValue = URLDecoder.decode(attributeValue, "UTF-8");
+					
+					this.currentElementAttributes.put(attName, attributeValue);
+				}
+			}
+			// String is the default data type read (although object is the default written)
+			if (this.currentElementAttributes == null)
+				this.currentElementType = BasicDataType.STRING;
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			throw new Utf8EncodingNotSupportedException(e);
+		}
 	}
 	
 	

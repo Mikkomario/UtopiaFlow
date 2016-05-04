@@ -13,6 +13,7 @@ import utopia.flow.structure.TreeNode;
  * be automatically used.
  * @author Mikko Hilpinen
  * @since 3.5.2016
+ * @see XmlElementWriter#introduceSpecialParser(ElementValueParser)
  */
 public interface ElementValueParser
 {
@@ -51,7 +52,7 @@ public interface ElementValueParser
 	 * @author Mikko Hilpinen
 	 * @since 3.5.2016
 	 */
-	public static class ElementValueParsingFailedException extends Exception
+	public static class ElementValueParsingFailedException extends RuntimeException
 	{
 		private static final long serialVersionUID = 5001810465073844051L;
 

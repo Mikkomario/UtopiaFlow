@@ -14,7 +14,8 @@ import utopia.flow.structure.Element;
 import utopia.flow.structure.TreeNode;
 
 /**
- * This parser handles the special parsing cases of the basic data types.
+ * This parser handles the special parsing cases of the basic data types (variable, variable 
+ * declaration, model, model declaration).
  * @author Mikko Hilpinen
  * @since 3.5.2016
  * @see BasicDataType
