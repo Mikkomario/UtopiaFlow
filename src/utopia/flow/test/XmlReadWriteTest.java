@@ -12,8 +12,11 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import utopia.flow.generics.Model;
 import utopia.flow.generics.Value;
+import utopia.flow.generics.Variable;
 import utopia.flow.io.XmlElementReader;
+import utopia.flow.io.XmlElementReader.ElementParseException;
 import utopia.flow.io.XmlElementReader.EndOfStreamReachedException;
 import utopia.flow.io.XmlElementWriter;
 import utopia.flow.structure.Element;
@@ -93,7 +96,8 @@ class XmlReadWriteTest
 		}
 	}
 	
-	private static List<Element> readSimple(File file) throws IOException, XMLStreamException
+	private static List<Element> readSimple(File file) throws IOException, XMLStreamException, 
+			ElementParseException
 	{
 		InputStream stream = new FileInputStream(file);
 		XmlElementReader reader = null;
@@ -154,8 +158,11 @@ class XmlReadWriteTest
 	
 	private static Element createUserElement(String name)
 	{
-		Element element = new Element("user");
-		element.addAttribute("name", name);
+		Model<Variable> model = Model.createBasicModel();
+		model.setAttributeValue("name", Value.String(name));
+		model.setAttributeValue("created", Value.Long(System.currentTimeMillis()));
+		
+		Element element = new Element("user", Value.Model(model));
 		return element;
 	}
 }

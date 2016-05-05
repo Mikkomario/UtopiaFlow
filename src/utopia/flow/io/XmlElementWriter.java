@@ -126,6 +126,7 @@ public class XmlElementWriter
 			
 			// And the data type
 			DataType type = element.getContentType();
+			
 			if (!type.equals(BasicDataType.OBJECT))
 				this.writer.writeAttribute(DATATYPE_ATTNAME, type.toString());
 			

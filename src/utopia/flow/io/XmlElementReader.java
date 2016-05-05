@@ -17,6 +17,7 @@ import utopia.flow.generics.DataType;
 import utopia.flow.generics.DataTypeException;
 import utopia.flow.generics.DataTypes;
 import utopia.flow.generics.Value;
+import utopia.flow.io.ElementValueParser.ElementValueParsingFailedException;
 import utopia.flow.structure.Element;
 import utopia.flow.structure.TreeNode;
 import utopia.flow.util.Filter;
@@ -168,7 +169,7 @@ public class XmlElementReader
 		{
 			toNextElementStart(false, false);
 		}
-		catch (EndOfStreamReachedException e)
+		catch (EndOfStreamReachedException | ElementParseException e)
 		{
 			// The exception doesn't occur when skipping
 		}
@@ -182,8 +183,9 @@ public class XmlElementReader
 	 * @throws XMLStreamException If the reading failed
 	 * @throws EndOfStreamReachedException If the end of the stream was reached and no element 
 	 * could be parsed
+	 * @throws ElementParseException If element value parsing failed
 	 */
-	public Element toNextElement() throws XMLStreamException, EndOfStreamReachedException
+	public Element toNextElement() throws XMLStreamException, EndOfStreamReachedException, ElementParseException
 	{
 		return toNextElementStart(true, false);
 	}
@@ -202,7 +204,7 @@ public class XmlElementReader
 		{
 			toNextSiblingOrHigher(false, 0);
 		}
-		catch (EndOfStreamReachedException e)
+		catch (EndOfStreamReachedException | ElementParseException e)
 		{
 			// Only thrown on read
 		}
@@ -217,8 +219,9 @@ public class XmlElementReader
 	 * @throws XMLStreamException If read failed
 	 * @throws EndOfStreamReachedException If the cursor was at the end of the stream and no element 
 	 * data could be read
+	 * @throws ElementParseException If element value parsing failed
 	 */
-	public Element toNextSibling() throws XMLStreamException, EndOfStreamReachedException
+	public Element toNextSibling() throws XMLStreamException, EndOfStreamReachedException, ElementParseException
 	{
 		return toNextSiblingOrHigher(true, 0);
 	}
@@ -234,7 +237,7 @@ public class XmlElementReader
 		{
 			toNextSiblingOrHigher(false, 1);
 		}
-		catch (EndOfStreamReachedException e)
+		catch (EndOfStreamReachedException | ElementParseException e)
 		{
 			// Ignored on skip
 		}
@@ -247,8 +250,9 @@ public class XmlElementReader
 	 * @throws XMLStreamException If read failed
 	 * @throws EndOfStreamReachedException If end of the stream was reached and element data 
 	 * couldn't be found
+	 * @throws ElementParseException If element value couldn't be parsed
 	 */
-	public Element toCloseParent() throws XMLStreamException, EndOfStreamReachedException
+	public Element toCloseParent() throws XMLStreamException, EndOfStreamReachedException, ElementParseException
 	{
 		return toNextSiblingOrHigher(true, 1);
 	}
@@ -300,9 +304,10 @@ public class XmlElementReader
 	 * @return The current element, unless the end of the stream was reached
 	 * @throws XMLStreamException If reading failed
 	 * @throws EndOfStreamReachedException If the cursor was at the end of the stream
+	 * @throws ElementParseException If element value parsing failed
 	 */
 	public Element toNextElementWithName(boolean skipChildren, Filter<String> nameFilter) throws 
-			XMLStreamException, EndOfStreamReachedException
+			XMLStreamException, EndOfStreamReachedException, ElementParseException
 	{
 		Element element;
 		if (skipChildren)
@@ -325,8 +330,10 @@ public class XmlElementReader
 	 * @throws XMLStreamException If read failed
 	 * @throws EndOfStreamReachedException If the end of the stream was reached and no element 
 	 * data could be found
+	 * @throws ElementParseException If element value parsing failed
 	 */
-	public TreeNode<Element> parseCurrentElement() throws XMLStreamException, EndOfStreamReachedException
+	public TreeNode<Element> parseCurrentElement() throws XMLStreamException, 
+			EndOfStreamReachedException, ElementParseException
 	{
 		int startDepth = getCurrentDepth();
 		
@@ -346,9 +353,10 @@ public class XmlElementReader
 	 * @param decodeElementContents Should the element contents be decoded from UTF-8
 	 * @return The element structure of the stream
 	 * @throws XMLStreamException If read failed
+	 * @throws ElementParseException If element value parsing failed
 	 */
 	public static TreeNode<Element> parseStream(InputStream stream, 
-			boolean decodeElementContents) throws XMLStreamException
+			boolean decodeElementContents) throws XMLStreamException, ElementParseException
 	{
 		XmlElementReader reader = new XmlElementReader(stream, decodeElementContents);
 		try
@@ -372,9 +380,10 @@ public class XmlElementReader
 	 * @return The element parsed from the file
 	 * @throws IOException If the file couldn't be opened / created / closed
 	 * @throws XMLStreamException If read failed
+	 * @throws ElementParseException If element value parsing failed
 	 */
 	public static TreeNode<Element> parseFile(File file, boolean decodeElementContents) throws 
-			IOException, XMLStreamException
+			IOException, XMLStreamException, ElementParseException
 	{
 		InputStream stream = new FileInputStream(file);
 		try
@@ -406,9 +415,10 @@ public class XmlElementReader
 	 * @throws XMLStreamException If read failed
 	 * @throws EndOfStreamReachedException If end of stream was reached and no element data 
 	 * could be read (on read only)
+	 * @throws ElementParseException If element value parsing failed (on read only)
 	 */
 	private Element toNextElementStart(boolean readElement, boolean skippingLowerElements) 
-			throws XMLStreamException, EndOfStreamReachedException
+			throws XMLStreamException, EndOfStreamReachedException, ElementParseException
 	{
 		try
 		{
@@ -442,8 +452,11 @@ public class XmlElementReader
 			// The next element will be reached, current element data is no longer valid
 			this.currentElementName = null;
 			this.currentElementType = null;
-			this.currentElementAttributes.clear();
-			this.currentElementAttributes = null;
+			if (this.currentElementAttributes != null)
+			{
+				this.currentElementAttributes.clear();
+				this.currentElementAttributes = null;
+			}
 			
 			while (hasNext())
 			{
@@ -463,11 +476,14 @@ public class XmlElementReader
 							textContent = URLDecoder.decode(textContent, "UTF-8");
 						try
 						{
+							// If text content is found, object type is cast into string instead
+							if (type.equals(BasicDataType.OBJECT))
+								type = BasicDataType.STRING;
 							element.setContent(Value.String(textContent).castTo(type));
 						}
 						catch (DataTypeException e)
 						{
-							// Non-parseable content is ignored
+							throw new ElementParseException(element.getName(), type, e);
 						}
 					}
 				}
@@ -478,8 +494,17 @@ public class XmlElementReader
 			if (type != null && getLastDepthChange() > 0 && XmlElementWriter.isSpecialCase(type))
 			{
 				if (readElement)
+				{
+					try
+					{
 					element.setContent(XmlElementWriter.getSpecialParserFor(type).readValue(
 							parseCurrentElement(), type));
+					}
+					catch (ElementValueParsingFailedException e)
+					{
+						throw new ElementParseException(element.getName(), type, e);
+					}
+				}
 				else
 					skipToNextSibling();
 			}
@@ -499,9 +524,10 @@ public class XmlElementReader
 	 * @throws XMLStreamException If read failed
 	 * @throws EndOfStreamReachedException If the end of stream was reached and the element 
 	 * couldn't be parsed (only on read)
+	 * @throws ElementParseException If element value parsing failed (only on read)
 	 */
 	private Element toNextSiblingOrHigher(boolean readElement, int depthDecreaseRequirement) 
-			throws XMLStreamException, EndOfStreamReachedException
+			throws XMLStreamException, EndOfStreamReachedException, ElementParseException
 	{
 		// Keeps track of the starting depth, parses the current element if necessary
 		int startDepth = getCurrentDepth();
@@ -544,9 +570,9 @@ public class XmlElementReader
 					this.currentElementAttributes.put(attName, attributeValue);
 				}
 			}
-			// String is the default data type read (although object is the default written)
-			if (this.currentElementAttributes == null)
-				this.currentElementType = BasicDataType.STRING;
+			// Object is the default placeholder type, although string is used if there is content
+			if (this.currentElementType == null)
+				this.currentElementType = BasicDataType.OBJECT;
 		}
 		catch (UnsupportedEncodingException e)
 		{
@@ -582,6 +608,46 @@ public class XmlElementReader
 		public EndOfStreamReachedException()
 		{
 			// Empty constructor
+		}
+	}
+	
+	/**
+	 * These exceptions are thrown when element content cannot be parsed into correct format
+	 * @author Mikko Hilpinen
+	 * @since 5.5.2016
+	 */
+	public static class ElementParseException extends Exception
+	{
+		private static final long serialVersionUID = -9034168889079052418L;
+		
+		/**
+		 * Creates a new exception
+		 * @param elementName The name of the parsed element
+		 * @param elementType The desired data type of the element
+		 * @param cause The cause of failure
+		 */
+		public ElementParseException(String elementName, DataType elementType, Throwable cause)
+		{
+			super("Failed to parse element " + elementName + " of type " + elementType, cause);
+		}
+		
+		/**
+		 * Creates a new exception
+		 * @param message The message sent along with the exception
+		 */
+		public ElementParseException(String message)
+		{
+			super(message);
+		}
+		
+		/**
+		 * Creates a new exception
+		 * @param message The message sent along with the exception
+		 * @param cause The cause of the exception
+		 */
+		public ElementParseException(String message, Throwable cause)
+		{
+			super(message, cause);
 		}
 	}
 }
