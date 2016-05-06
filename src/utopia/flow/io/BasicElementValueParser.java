@@ -8,6 +8,7 @@ import utopia.flow.generics.DataType;
 import utopia.flow.generics.Model;
 import utopia.flow.generics.ModelDeclaration;
 import utopia.flow.generics.Value;
+import utopia.flow.generics.ValueList;
 import utopia.flow.generics.Variable;
 import utopia.flow.generics.VariableDeclaration;
 import utopia.flow.structure.Element;
@@ -28,7 +29,8 @@ public class BasicElementValueParser implements ElementValueParser
 	public DataType[] getParsedTypes()
 	{
 		return new DataType[] {BasicDataType.MODEL, BasicDataType.VARIABLE, 
-				BasicDataType.MODEL_DECLARATION, BasicDataType.VARIABLE_DECLARATION};
+				BasicDataType.MODEL_DECLARATION, BasicDataType.VARIABLE_DECLARATION, 
+				BasicDataType.LIST};
 	}
 
 	@Override
@@ -66,6 +68,19 @@ public class BasicElementValueParser implements ElementValueParser
 			}
 			return root;
 		}
+		// Lists add their content as children
+		else if (value.getType().equals(BasicDataType.LIST))
+		{
+			ValueList list = value.toList();
+			TreeNode<Element> root = new TreeNode<>(new Element("list"));
+			root.getContent().addAttribute("contentType", list.getType().toString());
+			
+			for (Value val : list)
+			{
+				root.addChild(new TreeNode<>(new Element("element", val)));
+			}
+			return root;
+		}
 		else
 			throw new ElementValueParsingFailedException("Unsupported data type " + value.getType());
 	}
@@ -95,6 +110,15 @@ public class BasicElementValueParser implements ElementValueParser
 				variableDeclarations.add(elementToVariableDeclaration(child));
 			}
 			return Value.ModelDeclaration(new ModelDeclaration(variableDeclarations));
+		}
+		else if (targetType.equals(BasicDataType.LIST))
+		{
+			ValueList list = new ValueList(element.getContent().getContentType());
+			for (TreeNode<Element> child : element.getChildren())
+			{
+				list.add(child.getContent().getContent());
+			}
+			return Value.List(list);
 		}
 		else
 			throw new ElementValueParsingFailedException("Unsupported Datatype " + targetType);
