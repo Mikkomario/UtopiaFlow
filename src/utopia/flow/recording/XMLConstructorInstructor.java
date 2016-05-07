@@ -11,6 +11,7 @@ import utopia.flow.io.XMLIOAccessor;
  * This constructor constructs objects by using an xml stream
  * 
  * @author Mikko Hilpinen
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public class XMLConstructorInstructor
 {

@@ -11,6 +11,7 @@ import utopia.flow.structure.TreeNode;
  * @author Mikko Hilpinen
  * @param <T> The type of object held in the read tree
  * @since 21.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public class TreeFileReader<T> extends ModeUsingFileReader
 {

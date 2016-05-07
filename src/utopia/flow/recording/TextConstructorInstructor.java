@@ -11,6 +11,7 @@ import utopia.flow.io.AbstractFileReader;
  * 
  * @author Mikko Hilpinen
  * @since 24.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public class TextConstructorInstructor
 {

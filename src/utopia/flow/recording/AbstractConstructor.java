@@ -11,6 +11,7 @@ import java.util.Map;
  * @author Mikko Hilpinen
  * @param <T> The type of constrcutable this constructor constructs
  * @since 24.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public abstract class AbstractConstructor<T extends Constructable<T>>
 {

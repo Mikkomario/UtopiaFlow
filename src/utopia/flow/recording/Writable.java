@@ -8,6 +8,7 @@ import java.util.Map;
  * 
  * @author Mikko Hilpinen
  * @since 25.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public interface Writable
 {

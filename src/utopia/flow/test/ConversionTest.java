@@ -15,7 +15,7 @@ import utopia.flow.util.ExtraBoolean;
  * @author Mikko Hilpinen
  * @since 5.12.2015
  */
-public class ConversionTest
+class ConversionTest
 {
 	// CONSTRUCTOR	-----------------
 	

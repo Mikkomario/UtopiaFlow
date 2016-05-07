@@ -6,6 +6,7 @@ package utopia.flow.recording;
  * @author Mikko Hilpinen
  * @param <T> The type of object this converter converts
  * @since 5.12.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public interface ObjectParser<T>
 {

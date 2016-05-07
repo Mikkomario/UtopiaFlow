@@ -10,6 +10,7 @@ import utopia.flow.io.FileOutputAccessor;
  * 
  * @author Mikko Hilpinen
  * @since 25.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public class TextObjectWriter extends ObjectWriter
 {

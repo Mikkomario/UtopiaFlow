@@ -13,9 +13,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
-import utopia.flow.recording.ObjectParser;
-import utopia.flow.structure.TreeNode;
-
 /**
  * XMLIOAccessor is a class that provides static interfaces for creating and using 
  * xml writers and readers.
@@ -166,55 +163,6 @@ public class XMLIOAccessor
 	}
 	
 	/**
-	 * Writes the tree into an xml stream
-	 * @param tree The tree that will be written into the stream
-	 * @param parser The parser that converts tree data into strings
-	 * @param writer The writer that will do the writing
-	 * @throws XMLStreamException if the writing fails
-	 */
-	public static <T> void writeTree(TreeNode<T> tree, ObjectParser<T> parser, 
-			XMLStreamWriter writer) throws XMLStreamException
-	{
-		TreeNode<T> currentNode = tree;
-		
-		while (currentNode != null)
-		{
-			// Writes the latest element
-			if (currentNode.hasChildren())
-			{
-				writer.writeStartElement(parser.parseToString(currentNode.getContent()));
-				
-				// If the current node has children left, handles the first one next
-				currentNode = currentNode.getChild(0);
-			}
-			else
-			{
-				writer.writeEmptyElement(parser.parseToString(currentNode.getContent()));
-			
-				// Otherwise, if the node has a right sibling, handles that next
-				TreeNode<T> sibling = currentNode.getRightSibling();
-				if (sibling != null)
-					currentNode = sibling;
-				else
-				{
-					// Otherwise checks until finds a parents right sibling
-					while (sibling == null && currentNode != null)
-					{
-						sibling = currentNode.getRightSibling();
-						currentNode = currentNode.getParent();
-						
-						if (currentNode != null && sibling == null)
-							writer.writeEndElement();
-					}
-					// Until all are written
-					if (sibling != null)
-						currentNode = sibling;
-				}
-			}
-		}
-	}
-	
-	/**
 	 * Creates a new XMLStreamReader positioned to the start of the xml stream. The ownership 
 	 * of the reader moves to the calling object and it has to make sure the reader is closed 
 	 * after use.
@@ -270,52 +218,5 @@ public class XMLIOAccessor
 				e.printStackTrace();
 			}
 		}
-	}
-	
-	/**
-	 * Creates a tree from xml stream
-	 * @param parent The parent node for the read tree
-	 * @param parser A parser that is able to parse objects from strings
-	 * @param stream The xml that contains the tree data
-	 * @return A tree constructed from the xml data (same as the given parent node)
-	 * @throws XMLStreamException If the reading failed
-	 */
-	public static <T> TreeNode<T> readTree(TreeNode<T> parent, ObjectParser<T> parser, 
-			InputStream stream) throws XMLStreamException
-	{
-		XMLStreamReader reader = createReader(stream);
-		TreeNode<T> tree = parent;
-		
-		try
-		{
-			TreeNode<T> lastNode = tree;
-			boolean rootElementSkipped = false;
-		
-			while (reader.hasNext() && lastNode != null)
-			{
-				// On new element, creates a new node
-				if (reader.isStartElement())
-				{
-					// Skips the root element
-					if (!rootElementSkipped)
-						rootElementSkipped = true;
-					else
-						lastNode = new TreeNode<T>(parser.parseFromString(reader.getLocalName()), 
-								lastNode);
-				}
-				// On element end, moves upwards in the tree
-				else if (reader.isEndElement())
-					lastNode = lastNode.getParent();
-				
-				reader.next();
-			}
-		}
-		finally
-		{
-			// Closes the reader as well
-			closeReader(reader);
-		}
-		
-		return tree;
 	}
 }

@@ -21,7 +21,7 @@ import utopia.flow.util.ExtraBoolean;
  * @author Mikko Hilpinen
  * @since 6.12.2015
  */
-public class ValueOperationTest
+class ValueOperationTest
 {
 	// CONSTRUCTOR	---------------
 	

@@ -23,8 +23,9 @@ import utopia.flow.recording.XMLObjectWriter;
  * 
  * @author Mikko Hilpinen
  * @since 26.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
-public class ConstructionTest
+class ConstructionTest
 {
 	private ConstructionTest()
 	{

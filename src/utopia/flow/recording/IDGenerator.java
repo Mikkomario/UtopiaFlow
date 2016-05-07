@@ -9,6 +9,7 @@ import java.util.Random;
  * 
  * @author Mikko Hilpinen
  * @since 26.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public class IDGenerator
 {

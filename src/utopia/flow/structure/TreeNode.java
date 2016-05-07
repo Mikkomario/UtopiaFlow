@@ -2,9 +2,7 @@ package utopia.flow.structure;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
-import utopia.flow.recording.ObjectParser;
 import utopia.flow.util.Filter;
 
 /**
@@ -23,11 +21,6 @@ public class TreeNode<T> implements Node<T>
 	private List<TreeNode<T>> children;
 	private TreeNode<T> parent;
 	private T content;
-	
-	private static final char CONTINUELAYER = ',';
-	private static final char NEWLAYER = '<';
-	private static final char PREVIOUSLAYER = '>';
-	private static final char NOACTION = ' ';
 	
 	
 	// CONSTRUCTOR	------------------------------------------------------
@@ -207,32 +200,6 @@ public class TreeNode<T> implements Node<T>
 		{
 			removeChild(child);
 		}
-	}
-	
-	/**
-	 * Parses the tree into a string format using the given object parser.
-	 * 
-	 * @param parser The parser that will parse node contents
-	 * @return A string representing this tree
-	 */
-	public String toString(ObjectParser<T> parser)
-	{
-		String data = parser.parseToString(getContent());
-		if (getChildAmount() > 0)
-		{
-			data += "<";
-			
-			for (int i = 0; i < getChildAmount(); i++)
-			{
-				if (i != 0)
-					data += ",";
-				data += getChild(i).toString(parser);
-			}
-			
-			data += ">";
-		}
-		
-		return data;
 	}
 	
 	/**
@@ -503,108 +470,6 @@ public class TreeNode<T> implements Node<T>
 		return containsPath(path, canBeAnyContent, 0);
 	}
 	
-	/**
-	 * Parses a string into tree format
-	 * @param s The string that will be parsed into a tree format. Nodes under a node should 
-	 * be indicated with '<' and '>' while nodes under the same parent should be separated 
-	 * with ','. For example "a<b,c>d,e<f<g>>" would be a valid tree.
-	 * @param parent The parent node for the new tree
-	 * @return The parent node for convenience
-	 */
-	public static TreeNode<String> constructFromString(String s, TreeNode<String> parent)
-	{
-		return constructFromString(s, new ObjectParser.StringParser(), parent);
-	}
-	
-	/**
-	 * Parses a string into a tree format.
-	 * @param s The string that will be parsed into a tree format. Nodes under a node should 
-	 * be indicated with '<' and '>' while nodes under the same parent should be separated 
-	 * with ','. For example "a<b,c>d,e<f<g>>" would be a valid tree.
-	 * @param parser The parser that can construct node data from strings
-	 * @param parent The node that will act as a parent for the new nodes (is returned when 
-	 * the method ends)
-	 * @return The parent node for convenience
-	 */
-	public static <T> TreeNode<T> constructFromString(String s, ObjectParser<T> parser, 
-			TreeNode<T> parent)
-	{
-		if (countSubStrings(s, "<") != countSubStrings(s, ">"))
-			throw new IllegalArgumentException("Could not create a validation tree based on " + 
-					s + ". The amount of opened and closed elements is unequal");
-		
-		String remainingString = new String(s);
-		TreeNode<T> tree = parent;
-		Stack<TreeNode<T>> parents = new Stack<>();
-		parents.push(tree);
-		
-		// Parses each node separately (a node ends at ',' '<' or '>')
-		while (remainingString.length() > 0)
-		{
-			int nextComma = remainingString.indexOf(CONTINUELAYER);
-			int nextNewLayer = remainingString.indexOf(NEWLAYER);
-			int nextOldLayer = remainingString.indexOf(PREVIOUSLAYER);
-			
-			// Finds out how the node ends and at which point
-			int nodeEndsAt = -1;
-			char nodeEndsWith = NOACTION;
-			
-			if (nextComma != -1)
-			{
-				nodeEndsAt = nextComma;
-				nodeEndsWith = CONTINUELAYER;
-			}
-			if (nextNewLayer != -1 && (nextNewLayer < nodeEndsAt || nodeEndsAt == -1))
-			{
-				nodeEndsAt = nextNewLayer;
-				nodeEndsWith = NEWLAYER;
-			}
-			if (nextOldLayer != -1 && (nextOldLayer < nodeEndsAt || nodeEndsAt == -1))
-			{
-				nodeEndsAt = nextOldLayer;
-				nodeEndsWith = PREVIOUSLAYER;
-			}
-			if (nodeEndsAt == -1)
-				nodeEndsAt = remainingString.length();
-			
-			// Creates the new node (if there is one)
-			TreeNode<T> newNode = null;
-			if (nodeEndsAt != 0)
-				newNode = new TreeNode<>(parser.parseFromString(remainingString.substring(0, 
-						nodeEndsAt)), parents.peek());
-			
-			// Performs a specific action (depends on the action that ended the current node)
-			switch (nodeEndsWith)
-			{
-				case PREVIOUSLAYER: parents.pop(); break;
-				case NEWLAYER:
-					if (newNode != null)
-						parents.push(newNode);
-					else
-						System.err.println("Failed to parse " + remainingString);
-					break;
-			}
-			
-			// Creates a new remaining tree string
-			if (remainingString.length() < nodeEndsAt + 1)
-				remainingString = new String();
-			else
-				remainingString = remainingString.substring(nodeEndsAt + 1);
-		}
-		
-		return tree;
-	}
-	
-	/**
-	 * Parses a string type tree into a string
-	 * @param tree The tree that will be written into a string
-	 * @return A string parsed from the tree
-	 */
-	public static String treeToString(TreeNode<String> tree)
-	{
-		return tree.toString(new ObjectParser.StringParser());
-	}
-	
 	private boolean containsPath(T[] path, T canBeAnyContent, int checkIndex)
 	{
 		// If there is no path left to check, returns true
@@ -636,7 +501,7 @@ public class TreeNode<T> implements Node<T>
 		
 		return validForAnyChild;
 	}
-	
+	/*
 	private static int countSubStrings(String searchFrom, String searchedString)
 	{
 		int count = 0;
@@ -659,5 +524,5 @@ public class TreeNode<T> implements Node<T>
 		}
 		
 		return count;
-	}
+	}*/
 }

@@ -12,6 +12,7 @@ import utopia.flow.io.XMLIOAccessor;
  * 
  * @author Mikko Hilpinen
  * @since 25.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public class XMLObjectWriter extends ObjectWriter
 {

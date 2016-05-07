@@ -6,6 +6,7 @@ package utopia.flow.recording;
  * @author Mikko Hilpinen
  * @param <T> The type of this constructable
  * @since 24.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public interface Constructable<T extends Constructable<?>>
 {

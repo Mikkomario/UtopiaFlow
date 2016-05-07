@@ -6,6 +6,7 @@ package utopia.flow.recording;
  * 
  * @author Mikko Hilpinen
  * @since 5.12.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public class ObjectFormatException extends IllegalArgumentException
 {

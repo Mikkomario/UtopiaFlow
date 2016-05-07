@@ -11,6 +11,7 @@ import utopia.flow.recording.Writable;
  * 
  * @author Mikko Hilpinen
  * @since 26.11.2014
+ * @deprecated Replaced with new generic classes and xml element parsing
  */
 public class TestConstructable implements Constructable<TestConstructable>, Writable, 
 		Comparable<TestConstructable>
