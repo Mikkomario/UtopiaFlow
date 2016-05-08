@@ -102,6 +102,14 @@ public class Model<VariableType extends Variable>
 		return new HashSet<>(this.attributes);
 	}
 	
+	/**
+	 * @return The parser used for generating new model attributes
+	 */
+	public VariableParser<VariableType> getVariableParser()
+	{
+		return this.generator;
+	}
+	
 	
 	// OTHER METHODS	-----------------
 	
@@ -265,6 +273,19 @@ public class Model<VariableType extends Variable>
 			removeAttribute(previous);
 			this.attributes.add(attribute);
 		}
+	}
+	
+	/**
+	 * Adds a new attribute to the model. The attribute is generated based on the provided 
+	 * value
+	 * @param attributeName The name of the new attribute
+	 * @param attributeValue The value assigned to the new attribute
+	 * @param replaceIfExists Should an attribute be replaced if there is one with the same 
+	 * name
+	 */
+	public void addAttribute(String attributeName, Value attributeValue, boolean replaceIfExists)
+	{
+		addAttribute(this.generator.generate(attributeName, attributeValue), replaceIfExists);
 	}
 	
 	/**
