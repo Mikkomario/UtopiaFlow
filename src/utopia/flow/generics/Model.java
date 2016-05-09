@@ -256,6 +256,20 @@ public class Model<VariableType extends Variable>
 	}
 	
 	/**
+	 * @return The names of this model's attributes
+	 */
+	public Set<String> getAttributeNames()
+	{
+		Set<String> names = new HashSet<>();
+		for (Variable attribute : getAttributes())
+		{
+			names.add(attribute.getName());
+		}
+		
+		return names;
+	}
+	
+	/**
 	 * Adds a new attribute to the model
 	 * @param attribute The attribute that will be added to the model
 	 * @param replaceIfExists If there already exists an attribute with the same name, will 
