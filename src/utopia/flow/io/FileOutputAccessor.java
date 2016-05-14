@@ -14,6 +14,7 @@ import utopia.flow.structure.TreeNode;
  * 
  * @author Mikko Hilpinen
  * @since 22.11.2014
+ * @deprecated Replaced with {@link FileUtils}
  */
 public class FileOutputAccessor
 {
