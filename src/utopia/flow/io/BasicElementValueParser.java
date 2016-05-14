@@ -73,7 +73,7 @@ public class BasicElementValueParser implements ElementValueParser
 		{
 			ValueList list = value.toList();
 			TreeNode<Element> root = new TreeNode<>(new Element("list"));
-			root.getContent().addAttribute("contentType", list.getType().toString());
+			root.getContent().addAttribute("contentType", list.getType().getName());
 			
 			for (Value val : list)
 			{
