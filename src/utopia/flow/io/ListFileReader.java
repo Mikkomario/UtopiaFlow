@@ -44,4 +44,18 @@ public class ListFileReader extends AbstractFileReader
 	{
 		return this.lines;
 	}
+	
+	/**
+	 * Reads the lines of a single file
+	 * @param file a file
+	 * @param commentIndicator A string indicating that the line should be skipped
+	 * @return The lines read from the file
+	 * @throws FileNotFoundException If the file didn't exist
+	 */
+	public static List<String> readLines(File file, String commentIndicator) throws FileNotFoundException
+	{
+		ListFileReader reader = new ListFileReader();
+		reader.readFile(file, commentIndicator);
+		return reader.getLines();
+	}
 }

@@ -9,6 +9,7 @@ import java.util.List;
  * This fileReader uses modes, special lines that affect how the rest of the lines are read
  * @author Mikko Hilpinen
  * @since 21.11.2014
+ * @deprecated One should rather use xml format and readers like {@link XmlElementReader}
  */
 public abstract class ModeUsingFileReader extends AbstractFileReader
 {
