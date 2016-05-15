@@ -124,6 +124,16 @@ public class TreeNode<T> implements Node<T>
 	}
 	
 	/**
+	 * Finds the first child node that is accepted by the provided filter
+	 * @param filter a filter
+	 * @return The first child node accepted by the filter or null if there was no such node
+	 */
+	public TreeNode<T> getChild(Filter<T> filter)
+	{
+		return Filter.findFirstNode(getChildren(), filter);
+	}
+	
+	/**
 	 * @return The direct child nodes of this node. The list is a copy and the changes made to it 
 	 * won't affect the node.
 	 */
