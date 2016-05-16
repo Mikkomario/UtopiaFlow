@@ -145,6 +145,14 @@ public class TreeNode<T> implements Node<T>
 	}
 	
 	/**
+	 * @return The content of this node's children
+	 */
+	public List<T> getChildContent()
+	{
+		return Node.getNodeContent(getChildren());
+	}
+	
+	/**
 	 * @return All nodes under this node. This means the nodes direct children, their 
 	 * children and so on.
 	 */
