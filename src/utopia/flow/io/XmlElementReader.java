@@ -397,18 +397,6 @@ public class XmlElementReader
 	}
 	
 	/**
-	 * Introduces a new special case to element value parsing. The parser is introduced to 
-	 * {@link XmlElementWriter} as well. The special cases of {@link BasicDataType} 
-	 * ({@link BasicElementValueParser}) will be included by default and need not be introduced 
-	 * outside this class.
-	 * @param parser The parser that handles some element parsing special cases
-	 */
-	public static void introduceSpecialParser(ElementValueParser parser)
-	{
-		XmlElementWriter.introduceSpecialParser(parser);
-	}
-	
-	/**
 	 * Moves to the start of the next element
 	 * @param readElement Should the current element be read
 	 * @return The element that was read. Null if reading was skipped
@@ -491,13 +479,14 @@ public class XmlElementReader
 			
 			// If a special data type was found, and the element has a child
 			// parses that into element content or skips it
-			if (type != null && getLastDepthChange() > 0 && XmlElementWriter.isSpecialCase(type))
+			if (type != null && getLastDepthChange() > 0 && 
+					DataTypes.getInstance().isSpecialElementParsingCase(type))
 			{
 				if (readElement)
 				{
 					try
 					{
-					element.setContent(XmlElementWriter.getSpecialParserFor(type).readValue(
+					element.setContent(DataTypes.getInstance().getSpecialParserFor(type).readValue(
 							parseCurrentElement(), type));
 					}
 					catch (ElementValueParsingFailedException e)

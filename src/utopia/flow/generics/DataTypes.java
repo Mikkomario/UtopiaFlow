@@ -2,9 +2,13 @@ package utopia.flow.generics;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import utopia.flow.generics.ValueOperation.ValueOperationException;
+import utopia.flow.io.BasicElementValueParser;
+import utopia.flow.io.ElementValueParser;
 import utopia.flow.structure.Pair;
 import utopia.flow.structure.TreeNode;
 
@@ -22,6 +26,7 @@ public class DataTypes implements ValueParser
 	private List<DataTypeTreeNode> dataTypes;
 	private ConversionGraph graph;
 	private List<ValueOperator> operators;
+	private Map<DataType, ElementValueParser> specialElementParsers = new HashMap<>();
 	
 	
 	// CONSTRUCTOR	------------------
@@ -59,6 +64,9 @@ public class DataTypes implements ValueParser
 		addOperator(BasicMinusOperator.getInstance());
 		addOperator(BasicMultiplyOperator.getInstance());
 		addOperator(BasicDivideOperator.getInstance());
+		
+		// Introduces basic element parser
+		introduceSpecialParser(new BasicElementValueParser());
 	}
 	
 	/**
@@ -351,6 +359,41 @@ public class DataTypes implements ValueParser
 		}
 		
 		throw new DataTypeNotIntroducedException(s + " doesn't represent a known data type");
+	}
+	
+	/**
+	 * Introduces a new special case to element value parsing. The special cases of 
+	 * {@link BasicDataType} ({@link BasicElementValueParser}) will be included by default 
+	 * and need not be introduced separately.
+	 * @param parser The parser that handles some element parsing special cases
+	 */
+	public void introduceSpecialParser(ElementValueParser parser)
+	{
+		for (DataType type : parser.getParsedTypes())
+		{
+			this.specialElementParsers.put(type, parser);
+		}
+	}
+	
+	/**
+	 * Checks whether a element value parser should be used for the provided data type
+	 * @param type a data type
+	 * @return Should an element value parser be used for the provided data type
+	 */
+	public boolean isSpecialElementParsingCase(DataType type)
+	{
+		return this.specialElementParsers.containsKey(type);
+	}
+	
+	/**
+	 * Finds an element value parser used for the provided data type
+	 * @param type a data type
+	 * @return The element value parser used for the type. Null if the type doesn't need any 
+	 * special element parsing and default implementation should be used.
+	 */
+	public ElementValueParser getSpecialParserFor(DataType type)
+	{
+		return this.specialElementParsers.get(type);
 	}
 	
 	private DataTypeTreeNode getNode(DataType type)

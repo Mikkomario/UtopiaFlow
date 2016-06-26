@@ -1,6 +1,7 @@
 package utopia.flow.io;
 
 import utopia.flow.generics.DataType;
+import utopia.flow.generics.DataTypes;
 import utopia.flow.generics.Value;
 import utopia.flow.structure.Element;
 import utopia.flow.structure.TreeNode;
@@ -13,7 +14,7 @@ import utopia.flow.structure.TreeNode;
  * be automatically used.
  * @author Mikko Hilpinen
  * @since 3.5.2016
- * @see XmlElementWriter#introduceSpecialParser(ElementValueParser)
+ * @see DataTypes#introduceSpecialParser(ElementValueParser)
  */
 public interface ElementValueParser
 {

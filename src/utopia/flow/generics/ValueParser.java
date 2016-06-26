@@ -88,8 +88,30 @@ public interface ValueParser
 		 */
 		public ValueParseException(Value value, DataType to)
 		{
-			super(parseMessage(value == null ? null : value.getObjectValue(), 
-					value == null ? null : value.getType(), to));
+			super(parseMessage(value, to, (String) null));
+		}
+		
+		/**
+		 * Creates a new value parse exception
+		 * @param value The value that couldn't be parsed
+		 * @param to The target data type that couldn't be parsed
+		 * @param message The message sent along with the exception
+		 */
+		public ValueParseException(Value value, DataType to, String message)
+		{
+			super(parseMessage(value, to, message));
+		}
+		
+		/**
+		 * Creates a new value parse exception
+		 * @param value The value that couldn't be parsed
+		 * @param to The target data type that couldn't be parsed
+		 * @param message The message sent along with the exception
+		 * @param cause The cause of the exception
+		 */
+		public ValueParseException(Value value, DataType to, String message, Throwable cause)
+		{
+			super(parseMessage(value, to, message), cause);
 		}
 		
 		/**
@@ -104,6 +126,34 @@ public interface ValueParser
 		
 		
 		// OTHER METHODS	----------
+		
+		private static String parseMessage(Value value, DataType to, String extra)
+		{
+			StringBuilder s = new StringBuilder();
+			
+			s.append("Can't parse ");
+			
+			if (value != null)
+				s.append(value.getDescription());
+			else
+				s.append("?");
+			
+			if (to != null)
+			{
+				s.append(" to ");
+				s.append(to);
+			}
+			else
+				s.append(" to ?");
+			
+			if (extra != null)
+			{
+				s.append("; ");
+				s.append(extra);
+			}
+			
+			return s.toString();
+		}
 		
 		private static String parseMessage(Object value, DataType from, DataType to)
 		{	

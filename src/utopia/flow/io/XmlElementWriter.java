@@ -6,14 +6,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import utopia.flow.generics.BasicDataType;
 import utopia.flow.generics.DataType;
+import utopia.flow.generics.DataTypes;
 import utopia.flow.structure.Element;
 import utopia.flow.structure.TreeNode;
 
@@ -28,8 +27,6 @@ public class XmlElementWriter
 	
 	static final String DATATYPE_ATTNAME = "dataType";
 	static final String ELEMENT_INDEX_ATTNAME = "element";
-	
-	private static Map<DataType, ElementValueParser> specialParsers;
 	
 	private XMLStreamWriter writer;
 	private boolean encodeValues;
@@ -135,8 +132,9 @@ public class XmlElementWriter
 			{
 				// There are some special cases where the content is written as a separate 
 				// element
-				if (isSpecialCase(type))
-					writeElement(getSpecialParserFor(type).writeValue(element.getContent()));
+				if (DataTypes.getInstance().isSpecialElementParsingCase(type))
+					writeElement(DataTypes.getInstance().getSpecialParserFor(type).writeValue(
+							element.getContent()));
 				else
 				{
 					String textContent = element.getContent().toString();
@@ -236,41 +234,5 @@ public class XmlElementWriter
 		{
 			stream.close();
 		}
-	}
-	
-	/**
-	 * Introduces a new special case to element value parsing. The parser is introduced to 
-	 * {@link XmlElementReader} as well. The special cases of {@link BasicDataType} 
-	 * ({@link BasicElementValueParser}) will be included by default and need not be introduced 
-	 * outside this class.
-	 * @param parser The parser that handles some element parsing special cases
-	 */
-	public static void introduceSpecialParser(ElementValueParser parser)
-	{
-		for (DataType type : parser.getParsedTypes())
-		{
-			getSpecialParsers().put(type, parser);
-		}
-	}
-	
-	static boolean isSpecialCase(DataType type)
-	{
-		return getSpecialParsers().containsKey(type);
-	}
-	
-	static ElementValueParser getSpecialParserFor(DataType type)
-	{
-		return getSpecialParsers().get(type);
-	}
-	
-	private static Map<DataType, ElementValueParser> getSpecialParsers()
-	{
-		if (specialParsers == null)
-		{
-			specialParsers = new HashMap<>();
-			introduceSpecialParser(new BasicElementValueParser());
-		}
-		
-		return specialParsers;
 	}
 }
