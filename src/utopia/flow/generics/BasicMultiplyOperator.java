@@ -10,9 +10,12 @@ import utopia.flow.structure.Pair;
  * This class is able to perform multiplication between the basic data types
  * @author Mikko Hilpinen
  * @since 24.12.2015
+ * @deprecated Future support for operations has been (temporarily) dropped
  */
 public class BasicMultiplyOperator implements ValueOperator
 {
+	// TODO: Add support for float
+	
 	// ATTRIBUTES	----------------
 	
 	private static BasicMultiplyOperator instance = null;

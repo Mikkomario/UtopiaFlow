@@ -41,9 +41,11 @@ public class BasicValueParser implements ValueParser
 		addConversion(BasicDataType.LONG, BasicDataType.NUMBER, ConversionReliability.PERFECT);
 		*/
 		
+		// TODO: Could tweak the number conversion reliabilities
 		addConversion(BasicDataType.NUMBER, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
 		addConversion(BasicDataType.NUMBER, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
 		addConversion(BasicDataType.NUMBER, BasicDataType.DOUBLE, ConversionReliability.DATA_LOSS);
+		addConversion(BasicDataType.NUMBER, BasicDataType.FLOAT, ConversionReliability.DATA_LOSS);
 		
 		// Integers and long can be parsed from booleans and extra booleans reliably
 		addConversion(BasicDataType.BOOLEAN, BasicDataType.INTEGER, ConversionReliability.PERFECT);
@@ -61,6 +63,9 @@ public class BasicValueParser implements ValueParser
 		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
 		addConversion(BasicDataType.STRING, BasicDataType.DOUBLE, ConversionReliability.DANGEROUS);
 		addConversion(BasicDataType.INTEGER, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
+		
+		// Floats can be parsed from numbers and strings
+		addConversion(BasicDataType.STRING, BasicDataType.FLOAT, ConversionReliability.DANGEROUS);
 		
 		// Boolean values can be cast from numbers and extra booleans
 		addConversion(BasicDataType.NUMBER, BasicDataType.BOOLEAN, ConversionReliability.MEANING_LOSS);
@@ -126,6 +131,26 @@ public class BasicValueParser implements ValueParser
 	@Override
 	public Value cast(Value value, DataType to) throws ValueParseException
 	{
+		// Can cast from number to float
+		if (to.equals(BasicDataType.FLOAT))
+		{
+			if (DataTypes.dataTypeIsOfType(value.getType(), BasicDataType.NUMBER))
+				return Value.Float(value.toNumber().floatValue());
+			else if (value.getType().equals(BasicDataType.STRING))
+			{
+				try
+				{
+					return Value.Float(Float.parseFloat(value.toString()));
+				}
+				catch (NumberFormatException e)
+				{
+					throw new ValueParseException(value, to, "Number parsing failed", e);
+				}
+			}
+			else
+				throw new ValueParseException(value, to);
+		}
+		
 		return new Value(parse(value.getObjectValue(), value.getType(), to), to);
 	}
 	
@@ -146,13 +171,11 @@ public class BasicValueParser implements ValueParser
 	 * @return An object value of the targeted data type
 	 * @throws ValueParseException If the parsing failed for some reason
 	 */
-	public static Object parse(Object value, DataType from, DataType to) throws ValueParseException
+	private static Object parse(Object value, DataType from, DataType to) throws ValueParseException
 	{
-		if (from == null || to == null)
-			throw new ValueParseException(value, from, to);
-		// Null stays the same no matter the data type
-		if (value == null)
-			return null;
+		// TODO: Should use values here like in more recent value parsers
+		// These work, however and needn't be replaced right away. Float data type is handled 
+		// in the new manner
 		
 		// Any value can be wrapped into a list
 		if (to.equals(BasicDataType.LIST))

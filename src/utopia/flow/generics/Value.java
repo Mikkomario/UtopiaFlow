@@ -112,6 +112,16 @@ public class Value
 	}
 	
 	/**
+	 * Wraps a float into a value
+	 * @param number a float number
+	 * @return the wrapped value
+	 */
+	public static Value Float(Float number)
+	{
+		return new Value(number, BasicDataType.FLOAT);
+	}
+	
+	/**
 	 * Wraps a long value
 	 * @param number a long value
 	 * @return wrapped value
@@ -363,6 +373,7 @@ public class Value
 	 * @param other Another value
 	 * @return The result of the operation
 	 * @throws ValueOperationException If the operation failed
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public Value operate(ValueOperation operation, Value other) throws ValueOperationException
 	{
@@ -373,6 +384,7 @@ public class Value
 	 * Combines the two values together
 	 * @param other Another value
 	 * @return a combination of the two values
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public Value plus(Value other)
 	{
@@ -383,6 +395,7 @@ public class Value
 	 * Subtracts a value from this value
 	 * @param other Another value
 	 * @return The result of the operation
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public Value minus(Value other)
 	{
@@ -393,6 +406,7 @@ public class Value
 	 * Multiplies this value with another value
 	 * @param other A value that multiplies this value
 	 * @return The multiplication of the two values
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public Value times(Value other)
 	{
@@ -403,6 +417,7 @@ public class Value
 	 * Divides this value with another value
 	 * @param other The value that divides this value
 	 * @return The result of the operation
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public Value divided(Value other)
 	{
@@ -470,6 +485,17 @@ public class Value
 			return 0l;
 		else
 			return (Long) parseTo(BasicDataType.LONG);
+	}
+	
+	/**
+	 * @return The value casted to float
+	 */
+	public Float toFloat()
+	{
+		if (isNull())
+			return 0f;
+		else
+			return (Float) parseTo(BasicDataType.FLOAT);
 	}
 	
 	/**

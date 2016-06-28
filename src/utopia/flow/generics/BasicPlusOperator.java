@@ -12,9 +12,12 @@ import utopia.flow.structure.Pair;
  * This value operator is able to perform the plus operation on the applicable basic data types
  * @author Mikko Hilpinen
  * @since 6.12.2015
+ * @deprecated Future support for operations has been (temporarily) dropped
  */
 public class BasicPlusOperator implements ValueOperator
 {
+	// TODO: Add support for float
+	
 	// ATTRIBUTES	----------------------
 	
 	private static BasicPlusOperator instance = null;

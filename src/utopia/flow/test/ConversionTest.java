@@ -41,10 +41,12 @@ class ConversionTest
 		Value date = Value.Date(LocalDate.now());
 		Value dateTime = Value.DateTime(LocalDateTime.now());
 		Value l = Value.Long(Long.MAX_VALUE);
+		Value f = Value.Float(0.3f);
 		
 		System.out.println("Starting conversions");
 		
 		convert(string, BasicDataType.DOUBLE);
+		convert(string, BasicDataType.FLOAT);
 		convert(string, BasicDataType.INTEGER);
 		convert(string, BasicDataType.EXTRA_BOOLEAN);
 		
@@ -53,9 +55,11 @@ class ConversionTest
 		
 		convert(i, BasicDataType.DOUBLE);
 		convert(i, BasicDataType.BOOLEAN);
+		convert(i, BasicDataType.FLOAT);
 		
 		convert(d, BasicDataType.INTEGER);
 		convert(d, BasicDataType.EXTRA_BOOLEAN);
+		convert(d, BasicDataType.FLOAT);
 		
 		convert(extraBoolean, BasicDataType.BOOLEAN);
 		convert(extraBoolean, BasicDataType.DOUBLE);
@@ -65,6 +69,7 @@ class ConversionTest
 		convert(dateTime, BasicDataType.DATE);
 		
 		convert(l, BasicDataType.INTEGER);
+		convert(f, BasicDataType.NUMBER);
 		
 		/*
 		System.out.println("\nVariable Conversions");

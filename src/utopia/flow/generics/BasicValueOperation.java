@@ -5,6 +5,7 @@ package utopia.flow.generics;
  * performed on generic values.
  * @author Mikko Hilpinen
  * @since 5.12.2015
+ * @deprecated Future support for operations has been (temporarily) dropped
  */
 public enum BasicValueOperation implements ValueOperation
 {

@@ -20,6 +20,7 @@ import utopia.flow.util.ExtraBoolean;
  * This class tests the basic value operations introduced in this project
  * @author Mikko Hilpinen
  * @since 6.12.2015
+ * @deprecated Future support for operations has been (temporarily) dropped
  */
 class ValueOperationTest
 {

@@ -39,6 +39,10 @@ public enum BasicDataType implements DataType
 	 */
 	DOUBLE,
 	/**
+	 * @see Float
+	 */
+	FLOAT,
+	/**
 	 * @see Boolean
 	 */
 	BOOLEAN,

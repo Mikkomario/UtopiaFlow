@@ -9,6 +9,7 @@ import utopia.flow.structure.Pair;
  * Value operators are used for performing value operations on different values
  * @author Mikko Hilpinen
  * @since 6.12.2015
+ * @deprecated Future support for operations has been (temporarily) dropped
  */
 public interface ValueOperator
 {

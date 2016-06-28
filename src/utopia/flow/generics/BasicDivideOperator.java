@@ -10,9 +10,12 @@ import utopia.flow.structure.Pair;
  * This class is able to perform divide operation on the basic value types
  * @author Mikko Hilpinen
  * @since 25.12.2015
+ * @deprecated Future support for operations has been (temporarily) dropped
  */
 public class BasicDivideOperator implements ValueOperator
 {
+	// TODO: Add support for float
+	
 	// ATTRIBUTES	-------------------
 	
 	private static BasicDivideOperator instance = null;

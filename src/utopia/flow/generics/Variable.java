@@ -255,6 +255,7 @@ public class Variable implements Node<Value>
 	 * Adds a new value to the variables existing value (+=)
 	 * @param value A value
 	 * @see #plus(Value)
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public void add(Value value)
 	{
@@ -279,6 +280,7 @@ public class Variable implements Node<Value>
 	 * Subtracts a value from the variable's existing value (-=)
 	 * @param value A value
 	 * @see #minus(Value)
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public void subtract(Value value)
 	{
@@ -303,6 +305,7 @@ public class Variable implements Node<Value>
 	 * Multiplies the value in this variable
 	 * @param value A value that is multiplied with the variable's value
 	 * @see #times(Value)
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public void multiply(Value value)
 	{
@@ -327,6 +330,7 @@ public class Variable implements Node<Value>
 	 * Divides the value of this variable
 	 * @param value The value that divides this variable's value
 	 * @see #divided(Value)
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public void divide(Value value)
 	{

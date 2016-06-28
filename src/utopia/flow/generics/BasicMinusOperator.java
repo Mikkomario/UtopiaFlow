@@ -12,9 +12,12 @@ import utopia.flow.structure.Pair;
  * This operator is able to perform minus operations on the basic data types
  * @author Mikko Hilpinen
  * @since 8.12.2015
+ * @deprecated Future support for operations has been (temporarily) dropped
  */
 public class BasicMinusOperator implements ValueOperator
 {
+	// TODO: Add support for float
+	
 	// ATTRIBUTES	-----------------
 	
 	private Set<Pair<DataType, DataType>> parameterPairs;

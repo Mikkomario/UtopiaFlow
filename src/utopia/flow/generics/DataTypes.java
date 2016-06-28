@@ -25,12 +25,14 @@ public class DataTypes implements ValueParser
 	
 	private List<DataTypeTreeNode> dataTypes;
 	private ConversionGraph graph;
+	@SuppressWarnings("deprecation")
 	private List<ValueOperator> operators;
 	private Map<DataType, ElementValueParser> specialElementParsers = new HashMap<>();
 	
 	
 	// CONSTRUCTOR	------------------
 	
+	@SuppressWarnings("deprecation") // Operators added for backwards compatibility
 	private DataTypes()
 	{
 		this.dataTypes = new ArrayList<>();
@@ -52,6 +54,7 @@ public class DataTypes implements ValueParser
 		get(BasicDataType.INTEGER).setParent(number);
 		get(BasicDataType.DOUBLE).setParent(number);
 		get(BasicDataType.LONG).setParent(number);
+		get(BasicDataType.FLOAT).setParent(number);
 		
 		// Adds parsing between the super types
 		addParser(new SuperTypeParser());
@@ -119,6 +122,7 @@ public class DataTypes implements ValueParser
 	 * @param second The second value
 	 * @return The result value of the operation
 	 * @throws ValueOperationException If the operation couldn't be performed or it failed
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public Value operate(Value first, ValueOperation operation, Value second) throws ValueOperationException
 	{
@@ -325,6 +329,7 @@ public class DataTypes implements ValueParser
 	/**
 	 * Adds a new value operator to the available value operators
 	 * @param operator A value operator that could be used
+	 * @deprecated Future support for operations has been (temporarily) dropped
 	 */
 	public void addOperator(ValueOperator operator)
 	{
@@ -407,6 +412,9 @@ public class DataTypes implements ValueParser
 		return null;
 	}
 	
+	/**
+	 * @deprecated Future support for operations has been (temporarily) dropped
+	 */
 	private boolean operatorSupportsDataTypes(ValueOperator operator, DataType firstType, 
 			DataType secondType)
 	{
