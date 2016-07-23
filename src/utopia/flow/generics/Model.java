@@ -21,7 +21,7 @@ public class Model<VariableType extends Variable>
 	// ATTRIBUTES	--------------------
 	
 	private Set<VariableType> attributes;
-	private VariableParser<VariableType> generator;
+	private VariableParser<? extends VariableType> generator;
 	
 	
 	// CONSTRUCTOR	--------------------
@@ -30,7 +30,7 @@ public class Model<VariableType extends Variable>
 	 * Creates a new empty model
 	 * @param variableGenerator The generator that is used for generating new attributes to the model
 	 */
-	public Model(VariableParser<VariableType> variableGenerator)
+	public Model(VariableParser<? extends VariableType> variableGenerator)
 	{
 		this.generator = variableGenerator;
 		this.attributes = new HashSet<>();
@@ -41,7 +41,7 @@ public class Model<VariableType extends Variable>
 	 * @param variableGenerator The generator that is used for generating new attributes to the model
 	 * @param variables The variables the model will have
 	 */
-	public Model(VariableParser<VariableType> variableGenerator, 
+	public Model(VariableParser<? extends VariableType> variableGenerator, 
 			Collection<? extends VariableType> variables)
 	{
 		this.generator = variableGenerator;
@@ -52,7 +52,7 @@ public class Model<VariableType extends Variable>
 	 * Creates a new model by copying another
 	 * @param other A model that will be copied
 	 */
-	public Model(Model<VariableType> other)
+	public Model(Model<? extends VariableType> other)
 	{
 		this.generator = other.generator;
 		this.attributes = new HashSet<>();
@@ -105,9 +105,18 @@ public class Model<VariableType extends Variable>
 	/**
 	 * @return The parser used for generating new model attributes
 	 */
-	public VariableParser<VariableType> getVariableParser()
+	public VariableParser<? extends VariableType> getVariableParser()
 	{
 		return this.generator;
+	}
+	
+	/**
+	 * Changes the model's variable parser parser
+	 * @param parser The new variable parser for the model
+	 */
+	protected void setVariableParser(VariableParser<? extends VariableType> parser)
+	{
+		this.generator = parser;
 	}
 	
 	
