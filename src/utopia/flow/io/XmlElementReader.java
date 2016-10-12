@@ -30,6 +30,8 @@ import utopia.flow.util.Filter;
  */
 public class XmlElementReader
 {
+	// TODO: Create a common interface that can be used in json reading as well
+	
 	// ATTRIBUTES	-----------------
 	
 	private XMLStreamReader reader;
@@ -115,6 +117,24 @@ public class XmlElementReader
 		
 		return this.currentElementAttributes;
 	}
+	
+	// TODO: These two methods can't be used with json, create some other way of determining 
+	// element data type
+	// For example: data types are specified in a separate stream 
+	/*
+	 * Name1:
+	 * {
+	 * 		attName1: STRING;
+	 * 		attName2: INT;
+	 * 		attName3:
+	 * 		{
+	 * 			...
+	 * 		}
+	 * }
+	 * 
+	 * but as you can see, hierarchical data type recording gets difficult
+	 * -> Json reading will not be implemented
+	 */
 	
 	/**
 	 * @return The data type of the currently open element's content
