@@ -301,7 +301,7 @@ public class Value
 			return false;
 		
 		if (isNull())
-			return isNull();
+			return other.isNull();
 		else if (other.isNull())
 			return false;
 		
