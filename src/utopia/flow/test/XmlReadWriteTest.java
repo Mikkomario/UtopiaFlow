@@ -117,7 +117,7 @@ class XmlReadWriteTest
 			elements.add(reader.toNextElement());
 			// Reads the current element and then moves to 'updated' element
 			printReaderStatus("Read element, moved to next element", reader);
-			elements.add(reader.toNextElementWithName(true, new StringFilter("updated")));
+			elements.add(reader.toNextElementWithName(true, new StringFilter("updated"), -1));
 			printReaderStatus("Read element, moved to next 'updated'", reader);
 			
 			// Reads all remaining elements
