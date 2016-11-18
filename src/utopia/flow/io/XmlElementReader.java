@@ -102,7 +102,20 @@ public class XmlElementReader implements AutoCloseable
 	public String getCurrentElementName()
 	{
 		if (this.currentElementName == null)
-			this.currentElementName = this.reader.getLocalName();
+		{
+			boolean hasNext = false;
+			try
+			{
+				hasNext = hasNext();
+			}
+			catch (XMLStreamException e)
+			{
+				// Exception quietly ignored
+			}
+			
+			if (hasNext)
+				this.currentElementName = this.reader.getLocalName();
+		}
 		
 		return this.currentElementName;
 	}
