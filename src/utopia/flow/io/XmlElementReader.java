@@ -28,7 +28,7 @@ import utopia.flow.util.Filter;
  * @author Mikko Hilpinen
  * @since 29.4.2016
  */
-public class XmlElementReader
+public class XmlElementReader implements AutoCloseable
 {
 	// TODO: Create a common interface that can be used in json reading as well
 	
@@ -64,18 +64,22 @@ public class XmlElementReader
 				break;
 		}
 	}
-
 	
-	// OTHER METHODS	------------
+	
+	// IMPLEMENTED METHODS	--------
 	
 	/**
 	 * Closes the reader, leaving the stream open
 	 * @throws XMLStreamException If the closing failed
 	 */
+	@Override
 	public void close() throws XMLStreamException
 	{
 		this.reader.close();
 	}
+
+	
+	// OTHER METHODS	------------
 	
 	/**
 	 * Closes the reader, leaving the stream open. Any exceptions are catched and ignored.

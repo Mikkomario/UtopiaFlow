@@ -64,6 +64,7 @@ class XmlReadWriteTest
 	
 	// OTHER METHODS	----------------
 	
+	@SuppressWarnings("resource")
 	private static void writeSimple(File targetFile) throws IOException, XMLStreamException
 	{
 		OutputStream stream = new FileOutputStream(targetFile);
@@ -96,6 +97,7 @@ class XmlReadWriteTest
 		}
 	}
 	
+	@SuppressWarnings("resource")
 	private static List<Element> readSimple(File file) throws IOException, XMLStreamException, 
 			ElementParseException
 	{
