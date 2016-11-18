@@ -550,7 +550,9 @@ public class XmlElementReader implements AutoCloseable
 				else if (this.reader.isCharacters() && readElement)
 				{
 					String textContent = this.reader.getText();
-					if (textContent != null)
+					String trimmedText = textContent == null ? null : textContent.trim();
+					
+					if (trimmedText != null && !trimmedText.isEmpty())
 					{
 						if (this.decodeValues)
 							textContent = URLDecoder.decode(textContent, "UTF-8");
