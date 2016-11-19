@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -34,24 +36,29 @@ public class XMLIOAccessor
 	/**
 	 * Creates a new XMLStreamWriter. The ownership of the writer moves to the object that 
 	 * calls this method. The caller must close the writer after use.
-	 * 
 	 * @param targetStream The output stream the writer will write the data into
 	 * @return a new instance of an XMLStreamWriter.
-	 * @throws Utf8EncodingNotSupportedException If the stream doesn't support UTF-8 encoding
 	 * @throws XMLStreamException If something goes wrong during the creation of the writer
 	 */
 	public static XMLStreamWriter createWriter(OutputStream targetStream) 
-			throws Utf8EncodingNotSupportedException, XMLStreamException
+			throws XMLStreamException
 	{
-		try
-		{
-			XMLOutputFactory factory = XMLOutputFactory.newInstance();
-			return factory.createXMLStreamWriter(new OutputStreamWriter(targetStream, "UTF-8"));
-		}
-		catch (UnsupportedEncodingException e)
-		{
-			throw new Utf8EncodingNotSupportedException(e);
-		}
+		return createWriter(targetStream, StandardCharsets.UTF_8);
+	}
+	
+	/**
+	 * Creates a new XMLStreamWriter. The ownership of the writer moves to the object that 
+	 * calls this method. The caller must close the writer after use.
+	 * @param targetStream The output stream the writer will write the data into
+	 * @param charset The character set used by the writer
+	 * @return a new instance of an XMLStreamWriter.
+	 * @throws XMLStreamException If something goes wrong during the creation of the writer
+	 */
+	public static XMLStreamWriter createWriter(OutputStream targetStream, Charset charset) 
+			throws XMLStreamException
+	{
+		XMLOutputFactory factory = XMLOutputFactory.newInstance();
+		return factory.createXMLStreamWriter(new OutputStreamWriter(targetStream, charset));
 	}
 	
 	/**

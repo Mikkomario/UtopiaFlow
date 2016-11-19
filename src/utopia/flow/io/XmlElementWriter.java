@@ -25,6 +25,9 @@ public class XmlElementWriter
 {
 	// ATTRIBUTES	------------------
 	
+	// TODO: Add a common interface for other writers as well (json), also, add support for 
+	// other character sets
+	
 	static final String DATATYPE_ATTNAME = "dataType";
 	static final String ELEMENT_INDEX_ATTNAME = "element";
 	
@@ -50,12 +53,6 @@ public class XmlElementWriter
 		// Writes the document start first
 		this.writer.writeStartDocument();
 	}
-	
-	/*
-	public XmlElementWriter(File file) throws FileNotFoundException
-	{
-		this.stream = new FileOutputStream(file);
-	}*/
 	
 	
 	// OTHER METHODS	--------------
@@ -186,6 +183,9 @@ public class XmlElementWriter
 	{
 		// Writes the element and its children
 		startElement(element.getContent());
+		// TODO: This method may be static part of the common interface?
+		// At least in json mode, child nodes sharing names should be written under an 
+		// array instead
 		for (TreeNode<Element> child : element.getChildren())
 		{
 			writeElement(child);
