@@ -28,7 +28,7 @@ import utopia.flow.util.Filter;
  * @author Mikko Hilpinen
  * @since 29.4.2016
  */
-public class XmlElementReader
+public class XmlElementReader implements AutoCloseable
 {
 	// TODO: Create a common interface that can be used in json reading as well
 	
@@ -64,18 +64,22 @@ public class XmlElementReader
 				break;
 		}
 	}
-
 	
-	// OTHER METHODS	------------
+	
+	// IMPLEMENTED METHODS	--------
 	
 	/**
 	 * Closes the reader, leaving the stream open
 	 * @throws XMLStreamException If the closing failed
 	 */
+	@Override
 	public void close() throws XMLStreamException
 	{
 		this.reader.close();
 	}
+
+	
+	// OTHER METHODS	------------
 	
 	/**
 	 * Closes the reader, leaving the stream open. Any exceptions are catched and ignored.
@@ -98,7 +102,20 @@ public class XmlElementReader
 	public String getCurrentElementName()
 	{
 		if (this.currentElementName == null)
-			this.currentElementName = this.reader.getLocalName();
+		{
+			boolean hasNext = false;
+			try
+			{
+				hasNext = hasNext();
+			}
+			catch (XMLStreamException e)
+			{
+				// Exception quietly ignored
+			}
+			
+			if (hasNext)
+				this.currentElementName = this.reader.getLocalName();
+		}
 		
 		return this.currentElementName;
 	}
@@ -117,6 +134,24 @@ public class XmlElementReader
 		
 		return this.currentElementAttributes;
 	}
+	
+	// TODO: These two methods can't be used with json, create some other way of determining 
+	// element data type
+	// For example: data types are specified in a separate stream 
+	/*
+	 * Name1:
+	 * {
+	 * 		attName1: STRING;
+	 * 		attName2: INT;
+	 * 		attName3:
+	 * 		{
+	 * 			...
+	 * 		}
+	 * }
+	 * 
+	 * but as you can see, hierarchical data type recording gets difficult
+	 * -> Json reading will not be implemented
+	 */
 	
 	// TODO: These two methods can't be used with json, create some other way of determining 
 	// element data type
@@ -278,14 +313,42 @@ public class XmlElementReader
 	}
 	
 	/**
-	 * Skips through elements until reaching an element with the provided name
+	 * Skips to the next sibling element with a name accepted by the filter. If no such sibling 
+	 * is found, skips to the next element outside the current parent element.
+	 * @param nameFilter The name filter
+	 * @return Whether a suitable sibling was found
+	 * @throws XMLStreamException If the reading failed
+	 */
+	public boolean skipToNextSiblingWithName(Filter<String> nameFilter) throws XMLStreamException
+	{
+		return skipToNextElementWithName(true, nameFilter, getCurrentDepth());
+	}
+	
+	/**
+	 * Skips to the next child element with a name accepted by the filter. If no such child is 
+	 * found, skips to the next sibling instead.
+	 * @param nameFilter The name filter
+	 * @return Whether a suitable child node was found
+	 * @throws XMLStreamException If the reading failed
+	 */
+	public boolean skipToNextChildWithName(Filter<String> nameFilter) throws XMLStreamException
+	{
+		return skipToNextElementWithName(false, nameFilter, getCurrentDepth() + 1);
+	}
+	
+	/**
+	 * Skips through elements until reaching an element with the provided name.
 	 * @param skipChildren whether the child elements of the current element should be skipped
 	 * @param nameFilter The filter that decides which name is acceptable
+	 * @param minSearchDepth The minimum depth that is searched. Use a negative number if the 
+	 * parser shouldn't be limited to any depth. Use current depth to search among children and 
+	 * siblings. Use current depth + 1 to search among children. The search will stop if the 
+	 * parser escapes the depth bounds
 	 * @return Was the element found from the stream
 	 * @throws XMLStreamException If the reading failed
 	 */
 	public boolean skipToNextElementWithName(boolean skipChildren, 
-			Filter<String> nameFilter) throws XMLStreamException
+			Filter<String> nameFilter, int minSearchDepth) throws XMLStreamException
 	{
 		int startDepth = getCurrentDepth();
 		try
@@ -302,8 +365,11 @@ public class XmlElementReader
 					return false;
 			}
 			
-			while (hasNext() && !nameFilter.includes(getCurrentElementName()))
+			while (hasNext() && !nameFilter.includes(getCurrentElementName()) )
 			{
+				if (getCurrentDepth() < minSearchDepth)
+					return false;
+				
 				if (!skipToNextElement())
 					return false;
 			}
@@ -316,18 +382,54 @@ public class XmlElementReader
 		}
 	}
 	
+	/**
+	 * Moves to the next sibling element with a name accepted by the filter, reading current 
+	 * element data. If no such sibling 
+	 * is found, moves to the next element outside the current parent element.
+	 * @param nameFilter The name filter
+	 * @return The current element data
+	 * @throws XMLStreamException If the reading failed
+	 * @throws ElementParseException If the element couldn't be parsed
+	 * @throws EndOfStreamReachedException If the end of the stream was reached
+	 */
+	public Element toNextSiblingWithName(Filter<String> nameFilter) throws XMLStreamException, 
+			EndOfStreamReachedException, ElementParseException
+	{
+		return toNextElementWithName(true, nameFilter, getCurrentDepth());
+	}
+	
+	/**
+	 * Moves to the next child element with a name accepted by the filter, parsing current 
+	 * element data. If no such child is found, moves to the next sibling instead.
+	 * @param nameFilter The name filter
+	 * @return The current element data
+	 * @throws XMLStreamException If the reading failed
+	 * @throws ElementParseException If the element couldn't be parsed
+	 * @throws EndOfStreamReachedException If the end of the stream was reached
+	 */
+	public Element toNextChildWithName(Filter<String> nameFilter) throws XMLStreamException, 
+			EndOfStreamReachedException, ElementParseException
+	{
+		return toNextElementWithName(false, nameFilter, getCurrentDepth() + 1);
+	}
+	
 
 	/**
 	 * Reads the current element, then skips until reaching an element with the provided name
 	 * @param skipChildren Should the children of the current element be skipped
 	 * @param nameFilter The filter that decides which name is acceptable
+	 * @param minSearchDepth The minimum depth that is searched. Use a negative number if the 
+	 * parser shouldn't be limited to any depth. Use current depth to search among children and 
+	 * siblings. Use current depth + 1 to search among children. The search will stop if the 
+	 * parser escapes the depth bounds
 	 * @return The current element, unless the end of the stream was reached
 	 * @throws XMLStreamException If reading failed
 	 * @throws EndOfStreamReachedException If the cursor was at the end of the stream
 	 * @throws ElementParseException If element value parsing failed
 	 */
-	public Element toNextElementWithName(boolean skipChildren, Filter<String> nameFilter) throws 
-			XMLStreamException, EndOfStreamReachedException, ElementParseException
+	public Element toNextElementWithName(boolean skipChildren, Filter<String> nameFilter, 
+			int minSearchDepth) throws XMLStreamException, EndOfStreamReachedException, 
+			ElementParseException
 	{
 		Element element;
 		if (skipChildren)
@@ -335,7 +437,8 @@ public class XmlElementReader
 		else
 			element = toNextElement();
 		
-		while (hasNext() && !nameFilter.includes(getCurrentElementName()))
+		while (hasNext() && !nameFilter.includes(getCurrentElementName()) && 
+				getCurrentDepth() >= minSearchDepth)
 		{
 			skipToNextElement();
 		}
@@ -478,7 +581,9 @@ public class XmlElementReader
 				else if (this.reader.isCharacters() && readElement)
 				{
 					String textContent = this.reader.getText();
-					if (textContent != null)
+					String trimmedText = textContent == null ? null : textContent.trim();
+					
+					if (trimmedText != null && !trimmedText.isEmpty())
 					{
 						if (this.decodeValues)
 							textContent = URLDecoder.decode(textContent, "UTF-8");

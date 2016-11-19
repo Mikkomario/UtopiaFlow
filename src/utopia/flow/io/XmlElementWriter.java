@@ -21,13 +21,13 @@ import utopia.flow.structure.TreeNode;
  * @author Mikko Hilpinen
  * @since 29.4.2016
  */
-public class XmlElementWriter
+public class XmlElementWriter implements AutoCloseable
 {
 	// ATTRIBUTES	------------------
 	
 	// TODO: Add a common interface for other writers as well (json), also, add support for 
 	// other character sets
-	
+
 	static final String DATATYPE_ATTNAME = "dataType";
 	static final String ELEMENT_INDEX_ATTNAME = "element";
 	
@@ -55,19 +55,23 @@ public class XmlElementWriter
 	}
 	
 	
-	// OTHER METHODS	--------------
+	// IMPLEMENTED METHODS	------------
 	
 	/**
 	 * Closes the writer, but leaves the underlying stream open
 	 * @throws XMLStreamException If the writer couldn't be closed
 	 * before closing
 	 */
+	@Override
 	public void close() throws XMLStreamException
 	{
 		// Writes the document end before closing
 		this.writer.writeEndDocument();
 		this.writer.close();
 	}
+	
+	
+	// OTHER METHODS	--------------
 	
 	/**
 	 * Closes the writer but leaves the stream open. Any exceptions are catched quietly.

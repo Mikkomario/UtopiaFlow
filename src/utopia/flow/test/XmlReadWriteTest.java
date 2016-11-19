@@ -64,6 +64,7 @@ class XmlReadWriteTest
 	
 	// OTHER METHODS	----------------
 	
+	@SuppressWarnings("resource")
 	private static void writeSimple(File targetFile) throws IOException, XMLStreamException
 	{
 		OutputStream stream = new FileOutputStream(targetFile);
@@ -96,6 +97,7 @@ class XmlReadWriteTest
 		}
 	}
 	
+	@SuppressWarnings("resource")
 	private static List<Element> readSimple(File file) throws IOException, XMLStreamException, 
 			ElementParseException
 	{
@@ -117,7 +119,7 @@ class XmlReadWriteTest
 			elements.add(reader.toNextElement());
 			// Reads the current element and then moves to 'updated' element
 			printReaderStatus("Read element, moved to next element", reader);
-			elements.add(reader.toNextElementWithName(true, new StringFilter("updated")));
+			elements.add(reader.toNextElementWithName(true, new StringFilter("updated"), -1));
 			printReaderStatus("Read element, moved to next 'updated'", reader);
 			
 			// Reads all remaining elements

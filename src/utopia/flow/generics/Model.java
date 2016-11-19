@@ -99,6 +99,8 @@ public class Model<VariableType extends Variable>
 	 */
 	public Set<VariableType> getAttributes()
 	{
+		// TODO: May have to use some sort of lock here to prevent concurrent modification 
+		// exceptions in a multithread environment
 		return new HashSet<>(this.attributes);
 	}
 	
@@ -188,7 +190,7 @@ public class Model<VariableType extends Variable>
 		if (attributeName == null)
 			return null;
 		
-		for (VariableType attribute : this.attributes)
+		for (VariableType attribute : getAttributes())
 		{
 			if (attribute.getName().equalsIgnoreCase(attributeName))
 				return attribute;
