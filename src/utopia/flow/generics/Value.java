@@ -6,6 +6,7 @@ import java.time.LocalTime;
 
 import utopia.flow.generics.ValueOperation.ValueOperationException;
 import utopia.flow.util.ExtraBoolean;
+import utopia.flow.util.Option;
 
 /**
  * This is an immutable value class that has extra support for the basic data types
@@ -231,6 +232,116 @@ public class Value
 		return new Value(null, type);
 	}
 	
+	/**
+	 * Wraps a boolean value
+	 * @param bool a boolean value
+	 * @return wrapped boolean value
+	 */
+	public static Value of(Boolean bool)
+	{
+		return new Value(bool, BasicDataType.BOOLEAN);
+	}
+	
+	/**
+	 * Wraps an extra boolean value
+	 * @param bool an extra boolean value
+	 * @return wrapped value
+	 */
+	public static Value of(ExtraBoolean bool)
+	{
+		return new Value(bool, BasicDataType.EXTRA_BOOLEAN);
+	}
+	
+	/**
+	 * Wraps a number value
+	 * @param number a number value
+	 * @return wrapped value
+	 */
+	public static Value of(Number number)
+	{
+		return new Value(number, BasicDataType.NUMBER);
+	}
+	
+	/**
+	 * Wraps a integer value
+	 * @param number a integer value
+	 * @return wrapped value
+	 */
+	public static Value of(Integer number)
+	{
+		return new Value(number, BasicDataType.INTEGER);
+	}
+	
+	/**
+	 * Wraps a double value
+	 * @param number a double value
+	 * @return wrapped value
+	 */
+	public static Value of(Double number)
+	{
+		return new Value(number, BasicDataType.DOUBLE);
+	}
+	
+	/**
+	 * Wraps a float into a value
+	 * @param number a float number
+	 * @return the wrapped value
+	 */
+	public static Value of(Float number)
+	{
+		return new Value(number, BasicDataType.FLOAT);
+	}
+	
+	/**
+	 * Wraps a long value
+	 * @param number a long value
+	 * @return wrapped value
+	 */
+	public static Value of(Long number)
+	{
+		return new Value(number, BasicDataType.LONG);
+	}
+	
+	/**
+	 * Wraps a date value
+	 * @param date a date value
+	 * @return wrapped value
+	 */
+	public static Value of(LocalDate date)
+	{
+		return new Value(date, BasicDataType.DATE);
+	}
+	
+	/**
+	 * Wraps a datetime value
+	 * @param time a datetime value
+	 * @return wrapped value
+	 */
+	public static Value of(LocalDateTime time)
+	{
+		return new Value(time, BasicDataType.DATETIME);
+	}
+	
+	/**
+	 * Wraps a localTime value
+	 * @param time a time value
+	 * @return wrapped value
+	 */
+	public static Value of(LocalTime time)
+	{
+		return new Value(time, BasicDataType.TIME);
+	}
+	
+	/**
+	 * Wraps a string value
+	 * @param string a string object
+	 * @return A string value
+	 */
+	public static Value of(String string)
+	{
+		return new Value(string, BasicDataType.STRING);
+	}
+	
 	
 	// IMPLEMENTED METHODS	-----------
 
@@ -436,11 +547,33 @@ public class Value
 	}
 	
 	/**
+	 * @return The value casted to boolean and wrapped to option
+	 */
+	public Option<Boolean> toBooleanOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((Boolean) parseTo(BasicDataType.BOOLEAN));
+	}
+	
+	/**
 	 * @return The value casted to extra boolean
 	 */
 	public ExtraBoolean toExtraBoolean()
 	{
 		return (ExtraBoolean) parseTo(BasicDataType.EXTRA_BOOLEAN);
+	}
+	
+	/**
+	 * @return The value casted to extra boolean and wrapped to option
+	 */
+	public Option<ExtraBoolean> toExtraBooleanOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((ExtraBoolean) parseTo(BasicDataType.EXTRA_BOOLEAN));
 	}
 	
 	/**
@@ -466,6 +599,17 @@ public class Value
 	}
 	
 	/**
+	 * @return The value casted to integer and wrapped to option
+	 */
+	public Option<Integer> toIntegerOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((Integer) parseTo(BasicDataType.INTEGER));
+	}
+	
+	/**
 	 * @return The value casted to double
 	 */
 	public Double toDouble()
@@ -474,6 +618,17 @@ public class Value
 			return 0.0;
 		else
 			return (Double) parseTo(BasicDataType.DOUBLE);
+	}
+	
+	/**
+	 * @return The value casted to double and wrapped to option
+	 */
+	public Option<Double> toDoubleOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((Double) parseTo(BasicDataType.DOUBLE));
 	}
 	
 	/**
@@ -488,6 +643,17 @@ public class Value
 	}
 	
 	/**
+	 * @return The value casted to long and wrapped to option
+	 */
+	public Option<Long> toLongOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((Long) parseTo(BasicDataType.LONG));
+	}
+	
+	/**
 	 * @return The value casted to float
 	 */
 	public Float toFloat()
@@ -499,11 +665,33 @@ public class Value
 	}
 	
 	/**
+	 * @return The value casted to float and wrapped to option
+	 */
+	public Option<Float> toFloatOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((Float) parseTo(BasicDataType.FLOAT));
+	}
+	
+	/**
 	 * @return The value casted to localDate
 	 */
 	public LocalDate toLocalDate()
 	{
 		return (LocalDate) parseTo(BasicDataType.DATE);
+	}
+	
+	/**
+	 * @return The value casted to local date and wrapped to option
+	 */
+	public Option<LocalDate> toLocalDateOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((LocalDate) parseTo(BasicDataType.DATE));
 	}
 	
 	/**
@@ -515,11 +703,33 @@ public class Value
 	}
 	
 	/**
+	 * @return The value casted to local date time and wrapped to option
+	 */
+	public Option<LocalDateTime> toLocalDateTimeOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((LocalDateTime) parseTo(BasicDataType.DATETIME));
+	}
+	
+	/**
 	 * @return The value casted to local time
 	 */
 	public LocalTime toLocalTime()
 	{
 		return (LocalTime) parseTo(BasicDataType.TIME);
+	}
+	
+	/**
+	 * @return The value casted to local time and wrapped to option
+	 */
+	public Option<LocalTime> toLocalTimeOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((LocalTime) parseTo(BasicDataType.TIME));
 	}
 	
 	/**

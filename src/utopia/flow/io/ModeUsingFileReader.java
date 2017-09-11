@@ -109,7 +109,7 @@ public abstract class ModeUsingFileReader extends AbstractFileReader
 	public void readFile(File file, String commentIndicator) throws FileNotFoundException
 	{
 		// Clears the previous data
-		this.currentModes = new ArrayList<String>();
+		this.currentModes = new ArrayList<>();
 		
 		super.readFile(file, commentIndicator);
 	}

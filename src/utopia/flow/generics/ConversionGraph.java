@@ -409,8 +409,7 @@ public class ConversionGraph
 			ValueParser parser, ConversionReliability reliability, 
 			GraphNode<DataType, Pair<ValueParser, ConversionReliability>> targetNode)
 	{
-		return new GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>(
-				new Pair<>(parser, reliability), targetNode);
+		return new GraphEdge<>(new Pair<>(parser, reliability), targetNode);
 	}
 	
 	private static class ConversionRoute

@@ -470,7 +470,7 @@ public class Model<VariableType extends Variable>
 	 */
 	public Model<VariableType> plus(VariableType variable)
 	{
-		Model<VariableType> model = new Model<VariableType>(this);
+		Model<VariableType> model = new Model<>(this);
 		model.addAttribute(variable, true);
 		
 		return model;
@@ -496,7 +496,7 @@ public class Model<VariableType extends Variable>
 	 */
 	public Model<VariableType> minus(VariableDeclaration declaration)
 	{	
-		Model<VariableType> model = new Model<VariableType>(this);
+		Model<VariableType> model = new Model<>(this);
 
 		if (declaration == null)
 			return model;
@@ -516,7 +516,7 @@ public class Model<VariableType extends Variable>
 	 */
 	public Model<VariableType> minus(ModelDeclaration declaration)
 	{
-		Model<VariableType> model = new Model<VariableType>(this);
+		Model<VariableType> model = new Model<>(this);
 		
 		if (declaration == null)
 			return model;

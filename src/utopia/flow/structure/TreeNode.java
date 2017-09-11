@@ -35,7 +35,7 @@ public class TreeNode<T> implements Node<T>
 	{
 		// Initializes attributes
 		this.content = content;
-		this.children = new ArrayList<TreeNode<T>>();
+		this.children = new ArrayList<>();
 		
 		setParent(parent);
 	}
@@ -495,7 +495,7 @@ public class TreeNode<T> implements Node<T>
 			return true;
 		
 		// Finds all the children that are still on the path
-		ArrayList<TreeNode<T>> childrenOnPath = new ArrayList<TreeNode<T>>();
+		ArrayList<TreeNode<T>> childrenOnPath = new ArrayList<>();
 		for (int i = 0; i < getChildAmount(); i++)
 		{
 			TreeNode<T> node = getChild(i);

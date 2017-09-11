@@ -80,7 +80,7 @@ public class TreeFileReader<T> extends ModeUsingFileReader
 		}
 		
 		// Adds a new parent node to the tree
-		this.currentParent = new TreeNode<T>(this.parser.parseFromString(newMode), parent);
+		this.currentParent = new TreeNode<>(this.parser.parseFromString(newMode), parent);
 		this.lastDepth ++;
 	}
 	
