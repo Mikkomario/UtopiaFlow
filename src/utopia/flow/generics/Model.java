@@ -146,7 +146,7 @@ public class Model<VariableType extends Variable>
 	/**
 	 * @param attributeName The name of the attribute
 	 * @return A value for the attribute or an empty value if no such attribute exists
-	 * @since v3.2.0.0
+	 * @since v3.3.0.0
 	 */
 	public Value get(String attributeName)
 	{
@@ -156,7 +156,7 @@ public class Model<VariableType extends Variable>
 	/**
 	 * @param attributeName The name of the attribute
 	 * @return A value for the attribute or none if no such attribute exists
-	 * @since v3.2.0.0
+	 * @since v3.3.0.0
 	 */
 	public Option<Value> find(String attributeName)
 	{
