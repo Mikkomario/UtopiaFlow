@@ -17,6 +17,11 @@ public class Value
 {
 	// ATTRIBUTES	------------------
 	
+	/**
+	 * An empty value with object data type
+	 */
+	public static final Value EMPTY = Value.NullValue(BasicDataType.OBJECT);
+	
 	private Object value;
 	private DataType type;
 	

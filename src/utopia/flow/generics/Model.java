@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import utopia.flow.generics.VariableParser.VariableGenerationFailedException;
 import utopia.flow.util.ExtraBoolean;
 import utopia.flow.util.Filter;
+import utopia.flow.util.Option;
 
 /**
  * Model is a collection of variables that works much like a case-insensitive map would
@@ -72,6 +74,23 @@ public class Model<VariableType extends Variable>
 		return new Model<>(new BasicVariableParser());
 	}
 	
+	/**
+	 * Parses a model from string map. The mode's default data type will be string.
+	 * @param map a map that contains string values
+	 * @return A model based on the string map.
+	 * @since v3.2.0.0
+	 */
+	public static Model<Variable> fromMap(Map<String, String> map)
+	{
+		Model<Variable> model = new Model<>(new BasicVariableParser(Value.NullValue(BasicDataType.STRING)));
+		for (String key : map.keySet())
+		{
+			model.set(key, Value.of(map.get(key)));
+		}
+		
+		return model;
+	}
+	
 	
 	// IMPLEMENTED METHODS	-------------
 	
@@ -123,6 +142,40 @@ public class Model<VariableType extends Variable>
 	
 	
 	// OTHER METHODS	-----------------
+	
+	/**
+	 * @param attributeName The name of the attribute
+	 * @return A value for the attribute or an empty value if no such attribute exists
+	 * @since v3.2.0.0
+	 */
+	public Value get(String attributeName)
+	{
+		return find(attributeName).getOrElse(Value.EMPTY);
+	}
+	
+	/**
+	 * @param attributeName The name of the attribute
+	 * @return A value for the attribute or none if no such attribute exists
+	 * @since v3.2.0.0
+	 */
+	public Option<Value> find(String attributeName)
+	{
+		VariableType attribute = findAttribute(attributeName);
+		if (attribute == null)
+			return Option.none();
+		else
+			return new Option<>(attribute.getValue());
+	}
+	
+	/**
+	 * Sets a new value for an attribute. Same as using {@link #setAttributeValue(String, Value)}
+	 * @param attributeName The name of the attribute
+	 * @param value The value for the attribute (not null)
+	 */
+	public void set(String attributeName, Value value)
+	{
+		setAttributeValue(attributeName, value);
+	}
 	
 	/**
 	 * Finds an attribute with the provided name from this model (case-insensitive)

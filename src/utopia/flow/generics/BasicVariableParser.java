@@ -10,7 +10,7 @@ public class BasicVariableParser implements VariableParser<Variable>
 {
 	// ATTRIBUTES	---------------
 	
-	private Value defaultValue = null;
+	private Value defaultValue;
 	
 	
 	// CONSTRUCTOR	---------------
