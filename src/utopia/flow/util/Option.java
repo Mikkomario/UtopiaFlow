@@ -31,6 +31,19 @@ public class Option<T>
 	{
 		return new Option<>(null);
 	}
+	
+	/**
+	 * @param element An element. Not null.
+	 * @return The element wrapped into an option
+	 * @throws NullPointerException if element is null
+	 */
+	public static <T> Option<T> some(T element) throws NullPointerException
+	{
+		if (element == null)
+			throw new NullPointerException();
+		else
+			return new Option<>(element);
+	}
 
 	/**
 	 * @param value An integer value
