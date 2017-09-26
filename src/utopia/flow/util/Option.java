@@ -154,4 +154,19 @@ public class Option<T>
 	{
 		return this.value;
 	}
+	
+	/**
+	 * Checks whether the value inside this option is equal to another value
+	 * @param other Another value
+	 * @return Whether the value in this option is equal to the provided value
+	 */
+	public boolean valueEquals(Object other)
+	{
+		if (this.value == null)
+			return other == null;
+		else if (other == null)
+			return false;
+		else
+			return this.value.equals(other);
+	}
 }
