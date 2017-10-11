@@ -186,9 +186,9 @@ public class Option<T>
 	}
 	
 	/**
-	 * Checks if a function applies to the value of this option, if present
+	 * Checks if there exists a value for which the function applies
 	 * @param f a function
-	 * @return None if this option is empty, the value of the function over the contents of this option otherwise
+	 * @return false if this option is empty, the value of the function over the contents of this option otherwise
 	 */
 	public boolean exists(Function<? super T, Boolean> f)
 	{
@@ -196,6 +196,19 @@ public class Option<T>
 			return f.apply(this.value);
 		else
 			return false;
+	}
+	
+	/**
+	 * Checks if a function applies to the value in this option. If the option is empty, returns true.
+	 * @param f a function
+	 * @return The value of the function over the value in this option or true if this option is empty
+	 */
+	public boolean forAll(Function<? super T, Boolean> f)
+	{
+		if (isDefined())
+			return f.apply(this.value);
+		else
+			return true;
 	}
 	
 	/**

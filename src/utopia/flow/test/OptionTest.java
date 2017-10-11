@@ -25,6 +25,8 @@ class OptionTest
 		assert i.flatMap(a -> Option.some(a)).valueEquals(12);
 		assert i.exists(a -> a > 10);
 		assert !i.exists(a -> a < 10);
+		assert i.forAll(a -> a > 10);
+		assert Option.none().forAll(a -> a.equals("a"));
 		
 		System.out.println("Success!");
 	}
