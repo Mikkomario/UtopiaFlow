@@ -163,7 +163,7 @@ public class Option<T>
 	 * @param f A function that transforms the value in this option
 	 * @return An option wrapping the transformed value or none if this option was empty
 	 */
-	public <B> Option<B> map(Function<T, B> f)
+	public <B> Option<B> map(Function<? super T, B> f)
 	{
 		if (isDefined())
 			return new Option<>(f.apply(this.value));
@@ -176,13 +176,26 @@ public class Option<T>
 	 * @param f A function that transforms the value in this option but may return None
 	 * @return An option wrapping the transformed value or none if this option was empty
 	 */
-	public <B> Option<B> flatMap(Function<T, Option<B>> f)
+	public <B> Option<B> flatMap(Function<? super T, Option<B>> f)
 	{
 		Option<Option<B>> result = map(f);
 		if (result.isDefined())
 			return result.get();
 		else
 			return Option.none();
+	}
+	
+	/**
+	 * Checks if a function applies to the value of this option, if present
+	 * @param f a function
+	 * @return None if this option is empty, the value of the function over the contents of this option otherwise
+	 */
+	public boolean exists(Function<? super T, Boolean> f)
+	{
+		if (isDefined())
+			return f.apply(this.value);
+		else
+			return false;
 	}
 	
 	/**
