@@ -1,5 +1,8 @@
 package utopia.flow.util;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 /**
  * Optionals can be used for more null-safe access of values
  * @author Mikko Hilpinen
@@ -137,12 +140,49 @@ public class Option<T>
 	 * @param defaultOption An option returned if this option is empty
 	 * @return this option, if defined, or another option if not defined
 	 */
-	public Option<T> orElse(Option<T> defaultOption)
+	public Option<? extends T> orElse(Option<? extends T> defaultOption)
 	{
 		if (isDefined())
 			return this;
 		else
 			return defaultOption;
+	}
+	
+	/**
+	 * Performs a function over the value of this option, if there is one
+	 * @param c The consumer that uses the value
+	 */
+	public void forEach(Consumer<? super T> c)
+	{
+		if (isDefined())
+			c.accept(this.value);
+	}
+	
+	/**
+	 * Maps this option into a different type of option
+	 * @param f A function that transforms the value in this option
+	 * @return An option wrapping the transformed value or none if this option was empty
+	 */
+	public <B> Option<B> map(Function<T, B> f)
+	{
+		if (isDefined())
+			return new Option<>(f.apply(this.value));
+		else
+			return Option.none();
+	}
+	
+	/**
+	 * Maps this option into a different type of option, flattening the result
+	 * @param f A function that transforms the value in this option but may return None
+	 * @return An option wrapping the transformed value or none if this option was empty
+	 */
+	public <B> Option<B> flatMap(Function<T, Option<B>> f)
+	{
+		Option<Option<B>> result = map(f);
+		if (result.isDefined())
+			return result.get();
+		else
+			return Option.none();
 	}
 	
 	/**
