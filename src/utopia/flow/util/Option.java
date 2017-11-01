@@ -1,7 +1,11 @@
 package utopia.flow.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Optionals can be used for more null-safe access of values
@@ -190,10 +194,10 @@ public class Option<T>
 	 * @param f a function
 	 * @return false if this option is empty, the value of the function over the contents of this option otherwise
 	 */
-	public boolean exists(Function<? super T, Boolean> f)
+	public boolean exists(Predicate<? super T> f)
 	{
 		if (isDefined())
-			return f.apply(this.value);
+			return f.test(this.value);
 		else
 			return false;
 	}
@@ -203,10 +207,10 @@ public class Option<T>
 	 * @param f a function
 	 * @return The value of the function over the value in this option or true if this option is empty
 	 */
-	public boolean forAll(Function<? super T, Boolean> f)
+	public boolean forAll(Predicate<? super T> f)
 	{
 		if (isDefined())
-			return f.apply(this.value);
+			return f.test(this.value);
 		else
 			return true;
 	}
@@ -234,5 +238,15 @@ public class Option<T>
 			return false;
 		else
 			return this.value.equals(other);
+	}
+	
+	/**
+	 * @return A stream of this option
+	 */
+	public Stream<T> stream()
+	{
+		List<T> list = new ArrayList<>();
+		forEach(list::add);
+		return list.stream();
 	}
 }

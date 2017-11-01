@@ -124,7 +124,7 @@ public class Pair<T1, T2>
 	 * @param newFirst The first value of the new pair
 	 * @return A new pair with a shared second value
 	 */
-	public Pair<T1, T2> withFirst(T1 newFirst)
+	public <K> Pair<K, T2> withFirst(K newFirst)
 	{
 		return new Pair<>(newFirst, getSecond());
 	}
@@ -134,7 +134,7 @@ public class Pair<T1, T2>
 	 * @param newSecond The second value of the new pair
 	 * @return A new pair with a shared first value
 	 */
-	public Pair<T1, T2> withSecond(T2 newSecond)
+	public <K> Pair<T1, K> withSecond(K newSecond)
 	{
 		return new Pair<>(getFirst(), newSecond);
 	}
