@@ -144,7 +144,7 @@ public class Option<T>
 	 * @param defaultOption An option returned if this option is empty
 	 * @return this option, if defined, or another option if not defined
 	 */
-	public Option<? extends T> orElse(Option<? extends T> defaultOption)
+	public Option<T> orElse(Option<T> defaultOption)
 	{
 		if (isDefined())
 			return this;

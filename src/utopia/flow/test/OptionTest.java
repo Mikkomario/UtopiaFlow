@@ -11,7 +11,7 @@ class OptionTest
 		assert i.isDefined();
 		assert Option.none().isEmpty();
 		assert i.orElse(Option.none()).isDefined();
-		assert Option.none().orElse(i).isDefined();
+		//assert Option.none().orElse(i).isDefined();
 		assert i.getOrElse(1).equals(12);
 		assert Option.none().getOrElse(99).equals(99);
 		
