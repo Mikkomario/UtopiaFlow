@@ -44,6 +44,8 @@ public class FileUtils
 			else
 				file.delete();
 		}
+		
+		directory.delete();
 	}
 	
 	/**
