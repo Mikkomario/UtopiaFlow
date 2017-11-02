@@ -29,6 +29,24 @@ public class FileUtils
 	// OTHER METHODS	--------
 	
 	/**
+	 * Deletes a directory and all of its contents
+	 * @param directory A directory
+	 */
+	public static void deleteDirectory(File directory)
+	{
+		if (!directory.isDirectory())
+			return;
+		
+		for (File file : directory.listFiles())
+		{
+			if (file.isDirectory())
+				deleteDirectory(file);
+			else
+				file.delete();
+		}
+	}
+	
+	/**
 	 * Finds all of the names of the files under the provided directory path that are written 
 	 * in a certain format
 	 * @param directory The directory that is checked
