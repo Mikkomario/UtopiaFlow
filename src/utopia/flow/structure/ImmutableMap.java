@@ -34,7 +34,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public ImmutableMap()
 	{
-		this.map = new HashMap<>();
+		this.map = new HashMap<>(0);
 	}
 	
 	/**
@@ -43,7 +43,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public ImmutableMap(Collection<? extends Pair<Key, Value>> data)
 	{
-		this.map = new HashMap<>();
+		this.map = new HashMap<>(data.size());
 		for (Pair<Key, Value> pair : data)
 		{
 			this.map.put(pair.getFirst(), pair.getSecond());
@@ -71,7 +71,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public static <Key, Value> ImmutableMap<Key, Value> withValue(Key key, Value value)
 	{
-		Map<Key, Value> map = new HashMap<>();
+		Map<Key, Value> map = new HashMap<>(1);
 		map.put(key, value);
 		return new ImmutableMap<>(map);
 	}
@@ -84,6 +84,15 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	public static <Key, Value> ImmutableMap<Key, Value> of(Map<Key, Value> map)
 	{
 		return new ImmutableMap<>(new HashMap<>(map));
+	}
+	
+	/**
+	 * @param data key value pairs
+	 * @return A map of the key value pairs
+	 */
+	public static <Key, Value> ImmutableMap<Key, Value> of(ImmutableList<Pair<Key, Value>> data)
+	{
+		return new ImmutableMap<>(data.toMutableList());
 	}
 	
 	
@@ -129,9 +138,22 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public HashMap<Key, Value> toMutableMap()
 	{
-		HashMap<Key, Value> mutable = new HashMap<>();
+		return new HashMap<>(this.map);
+	}
+	
+	private HashMap<Key, Value> toMutableMap(int extraCapacity)
+	{
+		HashMap<Key, Value> mutable = new HashMap<>(size() + extraCapacity);
 		mutable.putAll(this.map);
 		return mutable;
+	}
+	
+	/**
+	 * @return An immutable list representation of this map
+	 */
+	public ImmutableList<Pair<Key, Value>> toList()
+	{
+		return ImmutableList.of(toSet());
 	}
 	
 	/**
@@ -210,7 +232,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public ImmutableMap<Key, Value> plus(Key key, Value value)
 	{
-		Map<Key, Value> map = toMutableMap();
+		Map<Key, Value> map = toMutableMap(1);
 		map.put(key, value);
 		return new ImmutableMap<>(map);
 	}
@@ -222,7 +244,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public ImmutableMap<Key, Value> plus(Collection<? extends Pair<Key, Value>> data)
 	{
-		Map<Key, Value> map = toMutableMap();
+		Map<Key, Value> map = toMutableMap(data.size());
 		for (Pair<Key, Value> pair : data)
 		{
 			map.put(pair.getFirst(), pair.getSecond());
@@ -237,7 +259,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public ImmutableMap<Key, Value> plus(Map<? extends Key, ? extends Value> other)
 	{
-		Map<Key, Value> map = toMutableMap();
+		Map<Key, Value> map = toMutableMap(other.size());
 		map.putAll(other);
 		return new ImmutableMap<>(map);
 	}

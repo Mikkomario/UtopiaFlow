@@ -7,6 +7,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import utopia.flow.structure.ImmutableList;
+
 /**
  * Optionals can be used for more null-safe access of values
  * @author Mikko Hilpinen
@@ -248,5 +250,16 @@ public class Option<T>
 		List<T> list = new ArrayList<>();
 		forEach(list::add);
 		return list.stream();
+	}
+	
+	/**
+	 * @return A list representation of this option
+	 */
+	public ImmutableList<T> toList()
+	{
+		if (isDefined())
+			return ImmutableList.withValue(this.value);
+		else
+			return ImmutableList.empty();
 	}
 }
