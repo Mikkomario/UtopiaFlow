@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -122,6 +122,29 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 		else if (!this.map.equals(other.map))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder s = new StringBuilder("");
+		s.append("{");
+		
+		boolean isFirst = true;
+		for (Pair<Key, Value> keyValuePair : toSet())
+		{
+			if (isFirst)
+				isFirst = false;
+			else
+				s.append(", ");
+			
+			s.append(keyValuePair.getFirst());
+			s.append(":");
+			s.append(keyValuePair.getSecond());
+		}
+		
+		s.append("}");
+		return s.toString();
 	}
 	
 	@Override
@@ -354,8 +377,9 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a predicate that determines whether a key value pair is kept in the map
 	 * @return A filtered map
 	 */
-	public ImmutableMap<Key, Value> filter(Predicate<Pair<Key, Value>> f)
+	public ImmutableMap<Key, Value> filter(BiPredicate<Key, Value> f)
 	{
-		return new ImmutableMap<>(toSet().stream().filter(f).collect(Collectors.toSet()));
+		return new ImmutableMap<>(toSet().stream().filter(keyValue -> 
+				f.test(keyValue.getFirst(), keyValue.getSecond())).collect(Collectors.toSet()));
 	}
 }

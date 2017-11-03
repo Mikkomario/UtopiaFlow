@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -106,6 +107,22 @@ public class ImmutableList<T> implements Iterable<T>
 		else if (!this.list.equals(other.list))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder s = new StringBuilder("[");
+		
+		if (!isEmpty())
+		{
+			s.append(head());
+			tail().forEach(item -> s.append(", " + item));
+		}
+		
+		s.append("]");
+		
+		return s.toString();
 	}
 
 	@Override
@@ -490,6 +507,53 @@ public class ImmutableList<T> implements Iterable<T>
 	public <B> ImmutableList<B> flatMap(Function<? super T, Stream<? extends B>> f)
 	{
 		return new ImmutableList<>(stream().flatMap(f).collect(Collectors.toList()));
+	}
+	
+	/**
+	 * Performs a fold operation over this list, going from left to right
+	 * @param start The starting value
+	 * @param f A function that folds items into the result value
+	 * @return The resulting value
+	 */
+	public <B> B fold(B start, BiFunction<? super B, ? super T, ? extends B> f)
+	{
+		B result = start;
+		for (T item : this)
+		{
+			result = f.apply(result, item);
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Performs a reduce over the list from left to right
+	 * @param f The reduce function
+	 * @return The reduce result
+	 * @throws NoSuchElementException If the list is empty
+	 */
+	public T reduce(BiFunction<? super T, ? super T, ? extends T> f) throws NoSuchElementException
+	{
+		T result = head();
+		for (T item : tail())
+		{
+			result = f.apply(result, item);
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Performs a reduce over the list from left to right
+	 * @param f The reduce function
+	 * @return The reduce result. None if the list was empty
+	 */
+	public Option<T> reduceOption(BiFunction<? super T, ? super T, ? extends T> f)
+	{
+		if (isEmpty())
+			return Option.none();
+		else
+			return Option.some(reduce(f));
 	}
 	
 	/**

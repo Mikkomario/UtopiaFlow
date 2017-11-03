@@ -98,6 +98,15 @@ public class Option<T>
 		return true;
 	}
 	
+	@Override
+	public String toString()
+	{
+		if (isDefined())
+			return "Some(" + this.value.toString() + ")";
+		else
+			return "None";
+	}
+	
 	
 	// OTHER METHODS	-----------------
 
