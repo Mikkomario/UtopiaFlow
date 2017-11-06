@@ -161,6 +161,24 @@ public class Model<VariableType extends Variable>
 	// OTHER METHODS	-----------------
 	
 	/**
+	 * @param lowerCaseNames Should the map contain only lower case attribute names
+	 * @return A map with attribute names as keys and attributes as values
+	 */
+	public ImmutableMap<String, VariableType> getAttributeMap(boolean lowerCaseNames)
+	{
+		return ImmutableMap.of(getAttributes().map(att -> new Pair<>(lowerCaseNames ? att.getName().toLowerCase() : att.getName(), att)));
+	}
+	
+	/**
+	 * @param lowerCaseNames Should the map contain only lower case attribute names
+	 * @return A map with attribute names as keys and attribute values as values
+	 */
+	public ImmutableMap<String, Value> getValuesMap(boolean lowerCaseNames)
+	{
+		return ImmutableMap.of(getAttributes().map(att -> new Pair<>(lowerCaseNames ? att.getName().toLowerCase() : att.getName(), att.getValue())));
+	}
+	
+	/**
 	 * @param attributeName The name of the attribute
 	 * @return A value for the attribute or an empty value if no such attribute exists
 	 * @since v3.3.0.0
