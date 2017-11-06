@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -381,5 +382,17 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	{
 		return new ImmutableMap<>(toSet().stream().filter(keyValue -> 
 				f.test(keyValue.getFirst(), keyValue.getSecond())).collect(Collectors.toSet()));
+	}
+	
+	/**
+	 * Performs a consumer for each key value pair in this map
+	 * @param f a consumer for key value pairs
+	 */
+	public void forEach(BiConsumer<Key, Value> f)
+	{
+		for (Pair<Key, Value> keyValue : this)
+		{
+			f.accept(keyValue.getFirst(), keyValue.getSecond());
+		}
 	}
 }

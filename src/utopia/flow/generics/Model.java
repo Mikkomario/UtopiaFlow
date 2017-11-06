@@ -100,6 +100,18 @@ public class Model<VariableType extends Variable>
 		return model;
 	}
 	
+	/**
+	 * Parses a model from string map. The mode's default data type will be string.
+	 * @param map a map that contains string values
+	 * @return A model based on the string map
+	 */
+	public static Model<Variable> fromMap(ImmutableMap<String, String> map)
+	{
+		Model<Variable> model = new Model<>(new BasicVariableParser(Value.NullValue(BasicDataType.STRING)));
+		map.forEach((name, value) -> model.set(name, Value.of(value)));
+		return model;
+	}
+	
 	
 	// IMPLEMENTED METHODS	-------------
 	
