@@ -252,6 +252,18 @@ public class Option<T>
 	}
 	
 	/**
+	 * @param f a filter
+	 * @return This option if it is accepted by the filter. None otherwise
+	 */
+	public Option<T> filter(Predicate<? super T> f)
+	{
+		if (exists(f))
+			return this;
+		else
+			return none();
+	}
+	
+	/**
 	 * @return A stream of this option
 	 */
 	public Stream<T> stream()

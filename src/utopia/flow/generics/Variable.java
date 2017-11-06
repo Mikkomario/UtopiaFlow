@@ -104,6 +104,14 @@ public class Variable implements Node<Value>
 		this.value = other.value;
 	}
 	
+	/**
+	 * @return Copies another variable
+	 */
+	public Variable copy()
+	{
+		return new Variable(this);
+	}
+	
 	
 	// IMPLEMENTED METHODS	----------------
 

@@ -2,12 +2,13 @@ package utopia.flow.generics;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import utopia.flow.generics.VariableParser.VariableGenerationFailedException;
+import utopia.flow.structure.ImmutableList;
+import utopia.flow.structure.ImmutableMap;
+import utopia.flow.structure.Pair;
 import utopia.flow.util.ExtraBoolean;
 import utopia.flow.util.Filter;
 import utopia.flow.util.Option;
@@ -22,7 +23,7 @@ public class Model<VariableType extends Variable>
 {
 	// ATTRIBUTES	--------------------
 	
-	private Set<VariableType> attributes;
+	private ImmutableList<VariableType> attributes;
 	private VariableParser<? extends VariableType> generator;
 	
 	
@@ -35,7 +36,7 @@ public class Model<VariableType extends Variable>
 	public Model(VariableParser<? extends VariableType> variableGenerator)
 	{
 		this.generator = variableGenerator;
-		this.attributes = new HashSet<>();
+		this.attributes = ImmutableList.empty();
 	}
 
 	/**
@@ -43,11 +44,21 @@ public class Model<VariableType extends Variable>
 	 * @param variableGenerator The generator that is used for generating new attributes to the model
 	 * @param variables The variables the model will have
 	 */
-	public Model(VariableParser<? extends VariableType> variableGenerator, 
-			Collection<? extends VariableType> variables)
+	public Model(VariableParser<? extends VariableType> variableGenerator, Collection<? extends VariableType> variables)
 	{
 		this.generator = variableGenerator;
-		this.attributes = new HashSet<>(variables);
+		this.attributes = ImmutableList.of(variables);
+	}
+	
+	/**
+	 * Creates a new model with predefined variables
+	 * @param variableGenerator The generator that is used for generating new attributes to the model
+	 * @param variables The variables the model will have
+	 */
+	public Model(VariableParser<? extends VariableType> variableGenerator, ImmutableList<? extends VariableType> variables)
+	{
+		this.generator = variableGenerator;
+		this.attributes = ImmutableList.of(variables.toMutableList());
 	}
 	
 	/**
@@ -57,13 +68,11 @@ public class Model<VariableType extends Variable>
 	public Model(Model<? extends VariableType> other)
 	{
 		this.generator = other.generator;
-		this.attributes = new HashSet<>();
+		this.attributes = ImmutableList.empty();
 		
 		if (other != null)
 			addAttributes(other.getAttributes(), true);
 	}
-	
-	// TODO: Create from TreeNode<Element> constructor
 	
 	/**
 	 * Creates a new model that will use the basic variable parser
@@ -97,6 +106,8 @@ public class Model<VariableType extends Variable>
 	@Override
 	public String toString()
 	{
+		return ImmutableMap.of(this.attributes.map(att -> new Pair<>(att.getName(), att.getValue()))).toString();
+		/*
 		StringBuilder s = new StringBuilder();
 		
 		s.append("Model");
@@ -106,21 +117,27 @@ public class Model<VariableType extends Variable>
 			s.append(attribute);
 		}
 		
-		return s.toString();
+		return s.toString();*/
 	}
 	
 	
 	// ACCESSORS	---------------------
 	
 	/**
-	 * @return The attributes stored into this model. The returned set is a copy of the 
-	 * model's original set and changes made to it won't affect the model.
+	 * @return The attributes stored into this model. Editing these attributes' values still affects this model
 	 */
-	public Set<VariableType> getAttributes()
+	public ImmutableList<VariableType> getAttributes()
 	{
-		// TODO: May have to use some sort of lock here to prevent concurrent modification 
-		// exceptions in a multithread environment
-		return new HashSet<>(this.attributes);
+		return this.attributes;
+	}
+	
+	/**
+	 * Overwrites existing attributes with new ones
+	 * @param attributes The new attributes for the model
+	 */
+	public void setAttributes(ImmutableList<VariableType> attributes)
+	{
+		this.attributes = attributes;
 	}
 	
 	/**
@@ -160,11 +177,7 @@ public class Model<VariableType extends Variable>
 	 */
 	public Option<Value> find(String attributeName)
 	{
-		VariableType attribute = findAttribute(attributeName);
-		if (attribute == null)
-			return Option.none();
-		else
-			return new Option<>(attribute.getValue());
+		return findAttribute(attributeName).map(att -> att.getValue());
 	}
 	
 	/**
@@ -186,8 +199,8 @@ public class Model<VariableType extends Variable>
 	 */
 	public VariableType getAttribute(String attributeName) throws NoSuchAttributeException
 	{
-		VariableType attribute = findAttribute(attributeName);
-		if (attribute == null)
+		Option<VariableType> attribute = findAttribute(attributeName);
+		if (attribute.isEmpty())
 		{
 			try
 			{
@@ -199,7 +212,7 @@ public class Model<VariableType extends Variable>
 			}
 		}
 		else
-			return attribute;
+			return attribute.get();
 	}
 	
 	/**
@@ -214,11 +227,11 @@ public class Model<VariableType extends Variable>
 	public VariableType getAttribute(String attributeName, Value defaultValue) throws 
 			VariableGenerationFailedException
 	{
-		VariableType attribute = findAttribute(attributeName);
-		if (attribute == null)
+		Option<VariableType> attribute = findAttribute(attributeName);
+		if (attribute.isEmpty())
 			return generateAttribute(attributeName, defaultValue);
 		else
-			return attribute;
+			return attribute.get();
 	}
 	
 	/**
@@ -238,18 +251,12 @@ public class Model<VariableType extends Variable>
 	 * @param attributeName The name of the attribute
 	 * @return A model's attribute with the provided name or null if no such attribute exists.
 	 */
-	public VariableType findAttribute(String attributeName)
+	public Option<VariableType> findAttribute(String attributeName)
 	{
 		if (attributeName == null)
-			return null;
+			return Option.none();
 		
-		for (VariableType attribute : getAttributes())
-		{
-			if (attribute.getName().equalsIgnoreCase(attributeName))
-				return attribute;
-		}
-		
-		return null;
+		return getAttributes().find(att -> att.getName().equalsIgnoreCase(attributeName));
 	}
 	
 	/**
@@ -258,7 +265,7 @@ public class Model<VariableType extends Variable>
 	 * @return The model's corresponding attribute or null if the model doesn't contain such 
 	 * an attribute
 	 */
-	public Variable findCorrespondingAttribute(Variable attribute)
+	public Option<VariableType> findCorrespondingAttribute(Variable attribute)
 	{
 		return findAttribute(attribute.getName());
 	}
@@ -270,23 +277,17 @@ public class Model<VariableType extends Variable>
 	 * @return A model containing the provided attributes. Changes made to the attributes 
 	 * will affect this model as well.
 	 */
-	public List<VariableType> findAttributes(String... attributeNames)
+	public ImmutableList<VariableType> findAttributes(String... attributeNames)
 	{
-		List<VariableType> attributes = new ArrayList<>();
-		for (String attributeName : attributeNames)
-		{
-			VariableType attribute = findAttribute(attributeName);
-			if (attribute != null)
-				attributes.add(attribute);
-		}
-		
-		return attributes;
+		ImmutableList<String> attNamesList = ImmutableList.of(attributeNames);
+		return getAttributes().filter(att -> attNamesList.exists(attName -> attName.equalsIgnoreCase(att.getName())));
 	}
 	
 	/**
 	 * Finds attributes based on the the attribute name
 	 * @param nameFilter The filter used in the search
 	 * @return The attributes included by the filter
+	 * @deprecated Replaced with ImmutableList filter function
 	 */
 	public List<VariableType> findAttributesByName(Filter<String> nameFilter)
 	{
@@ -303,34 +304,30 @@ public class Model<VariableType extends Variable>
 	 * Finds attributes based on the the attribute value
 	 * @param valueFilter The filter used in the search
 	 * @return The attributes included by the filter
+	 * @deprecated Replaced with ImmutableList filter function
 	 */
 	public List<VariableType> findAttributesByValue(Filter<Value> valueFilter)
 	{
-		return Filter.filterNodes(getAttributes(), valueFilter);
+		return Filter.filterNodes(getAttributes().toMutableList(), valueFilter);
 	}
 	
 	/**
 	 * Finds attributes
 	 * @param attributeFilter The filter used in the search
 	 * @return The attributes included by the filter
+	 * @deprecated Replaced with ImmutableList filter function
 	 */
 	public List<VariableType> findAttributes(Filter<VariableType> attributeFilter)
 	{
-		return Filter.filter(getAttributes(), attributeFilter);
+		return Filter.filter(getAttributes().toMutableList(), attributeFilter);
 	}
 	
 	/**
 	 * @return The names of this model's attributes
 	 */
-	public Set<String> getAttributeNames()
-	{
-		Set<String> names = new HashSet<>();
-		for (Variable attribute : getAttributes())
-		{
-			names.add(attribute.getName());
-		}
-		
-		return names;
+	public ImmutableList<String> getAttributeNames()
+	{	
+		return getAttributes().map(att -> att.getName());
 	}
 	
 	/**
@@ -341,16 +338,10 @@ public class Model<VariableType extends Variable>
 	 */
 	public void addAttribute(VariableType attribute, boolean replaceIfExists)
 	{
-		// Checks if there is a previous attribute in place
-		Variable previous = findCorrespondingAttribute(attribute);
-		
-		if (previous == null)
-			this.attributes.add(attribute);
-		else if (replaceIfExists)
-		{
-			removeAttribute(previous);
-			this.attributes.add(attribute);
-		}
+		if (replaceIfExists)
+			this.attributes = this.attributes.filter(existing -> !existing.getName().equalsIgnoreCase(attribute.getName())).plus(attribute);
+		else if (!this.attributes.exists(existing -> existing.getName().equalsIgnoreCase(attribute.getName())))
+			this.attributes = this.attributes.plus(attribute);
 	}
 	
 	/**
@@ -372,13 +363,25 @@ public class Model<VariableType extends Variable>
 	 * @param replaceIfExists Should possible existing attributes with identical names be 
 	 * replaced
 	 */
-	public void addAttributes(Collection<? extends VariableType> attributes, 
-			boolean replaceIfExists)
+	public void addAttributes(ImmutableList<? extends VariableType> attributes, boolean replaceIfExists)
 	{
-		for (VariableType var : attributes)
-		{
-			addAttribute(var, replaceIfExists);
-		}
+		if (replaceIfExists)
+			this.attributes = this.attributes.filter(att -> !attributes.exists(newAtt -> 
+					newAtt.getName().equalsIgnoreCase(att.getName()))).plus(attributes);
+		else
+			this.attributes = this.attributes.plus(attributes.filter(newAtt -> 
+					!getAttributes().exists(existing -> existing.getName().equalsIgnoreCase(newAtt.getName()))));
+	}
+	
+	/**
+	 * Adds multiple attributes to the model
+	 * @param attributes The attributes that are added to the model
+	 * @param replaceIfExists Should possible existing attributes with identical names be 
+	 * replaced
+	 */
+	public void addAttributes(Collection<? extends VariableType> attributes, boolean replaceIfExists)
+	{
+		addAttributes(ImmutableList.of(attributes), replaceIfExists);
 	}
 	
 	/**
@@ -390,8 +393,8 @@ public class Model<VariableType extends Variable>
 	 */
 	public void setAttributeValue(String attributeName, Value newValue) throws NoSuchAttributeException
 	{
-		Variable attribute = findAttribute(attributeName);
-		if (attribute == null)
+		Option<VariableType> attribute = findAttribute(attributeName);
+		if (attribute.isEmpty())
 		{
 			try
 			{
@@ -403,7 +406,7 @@ public class Model<VariableType extends Variable>
 			}
 		}
 		else
-			attribute.setValue(newValue);
+			attribute.get().setValue(newValue);
 	}
 	
 	/**
@@ -413,7 +416,7 @@ public class Model<VariableType extends Variable>
 	 */
 	public void removeAttribute(String attributeName)
 	{
-		removeAttribute(findAttribute(attributeName));
+		this.attributes = this.attributes.filter(att -> !att.getName().equalsIgnoreCase(attributeName));
 	}
 	
 	/**
@@ -424,7 +427,7 @@ public class Model<VariableType extends Variable>
 	public void removeAttribute(Variable attribute)
 	{
 		if (attribute != null)
-			this.attributes.remove(attribute);
+			this.attributes = this.attributes.minus(attribute);
 	}
 	
 	/**
@@ -434,7 +437,7 @@ public class Model<VariableType extends Variable>
 	 */
 	public boolean containsAttribute(String attributeName)
 	{
-		return findAttribute(attributeName) != null;
+		return this.attributes.exists(att -> att.getName().equalsIgnoreCase(attributeName));
 	}
 	
 	/**
@@ -446,10 +449,10 @@ public class Model<VariableType extends Variable>
 	 */
 	public ExtraBoolean containsAttribute(VariableDeclaration declaration)
 	{
-		VariableType corresponding = findAttribute(declaration.getName());
-		if (corresponding == null)
+		Option<VariableType> corresponding = findAttribute(declaration.getName());
+		if (corresponding.isEmpty())
 			return ExtraBoolean.EXTRA_FALSE;
-		else if (corresponding.getType().equals(declaration.getType()))
+		else if (corresponding.get().getType().equals(declaration.getType()))
 			return ExtraBoolean.EXTRA_TRUE;
 		else
 			return ExtraBoolean.WEAK_TRUE;
@@ -465,14 +468,14 @@ public class Model<VariableType extends Variable>
 	 */
 	public ExtraBoolean containsAttribute(Variable attribute)
 	{
-		Variable corresponding = findCorrespondingAttribute(attribute);
-		if (corresponding == null)
+		Option<VariableType> corresponding = findCorrespondingAttribute(attribute);
+		if (corresponding.isEmpty())
 			return ExtraBoolean.EXTRA_FALSE;
 		else
 		{
-			if (attribute.equals(corresponding))
+			if (attribute.equals(corresponding.get()))
 				return ExtraBoolean.EXTRA_TRUE;
-			else if (attribute.hasEqualValueWith(corresponding))
+			else if (attribute.hasEqualValueWith(corresponding.get()))
 				return ExtraBoolean.WEAK_TRUE;
 			else
 				return ExtraBoolean.WEAK_FALSE;
@@ -484,6 +487,7 @@ public class Model<VariableType extends Variable>
 	 */
 	public ModelDeclaration getDeclaration()
 	{
+		// TODO: Use immutable list in declaration
 		List<VariableDeclaration> declarations = new ArrayList<>();
 		for (Variable attribute : getAttributes())
 		{
@@ -505,12 +509,7 @@ public class Model<VariableType extends Variable>
 		Model<VariableType> model = new Model<>(this);
 		
 		if (other != null)
-		{
-			for (VariableType attribute : other.getAttributes())
-			{
-				model.addAttribute(attribute, true);
-			}
-		}
+			model.addAttributes(other.getAttributes(), true);
 		
 		return model;
 	}
@@ -554,9 +553,8 @@ public class Model<VariableType extends Variable>
 		if (declaration == null)
 			return model;
 		
-		Variable corresponding = model.findAttribute(declaration.getName());
-		if (corresponding != null && corresponding.getType().equals(declaration.getType()))
-			model.removeAttribute(corresponding);
+		Option<VariableType> corresponding = model.findAttribute(declaration.getName());
+		corresponding.filter(dec -> dec.getType().equals(declaration.getType())).forEach(model::removeAttribute);
 		
 		return model;
 	}
@@ -576,9 +574,8 @@ public class Model<VariableType extends Variable>
 		
 		for (VariableDeclaration varDec : declaration.getAttributeDeclarations())
 		{
-			Variable corresponding = model.findAttribute(varDec.getName());
-			if (corresponding != null && corresponding.getType().equals(varDec.getType()))
-				model.removeAttribute(corresponding);
+			Option<VariableType> corresponding = model.findAttribute(varDec.getName());
+			corresponding.filter(dec -> dec.getType().equals(varDec.getType())).forEach(model::removeAttribute);
 		}
 		
 		return model;

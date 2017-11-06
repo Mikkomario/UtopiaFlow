@@ -1,5 +1,7 @@
 package utopia.flow.generics;
 
+import utopia.flow.util.Option;
+
 /**
  * This variable parser uses an existing model declaration when generating new variables
  * @author Mikko Hilpinen
@@ -56,10 +58,10 @@ public class DeclarationVariableParser<VariableType extends Variable> implements
 			throws utopia.flow.generics.VariableParser.VariableGenerationFailedException
 	{
 		// Checks if the declaration contains a matching variable
-		VariableDeclaration declaration = this.declaration.findAttributeDeclaration(variableName);
+		Option<VariableDeclaration> declaration = this.declaration.find(variableName);
 		
 		// If there is no declaration, one may try to generate one anyway or fail straight away
-		if (declaration == null)
+		if (declaration.isEmpty())
 		{
 			if (this.allowOnlyDeclared)
 				throw new VariableGenerationFailedException(
@@ -68,16 +70,16 @@ public class DeclarationVariableParser<VariableType extends Variable> implements
 				return this.parser.generate(variableName);
 		}
 		else
-			return declaration.assignDefaultValue(this.parser);
+			return declaration.get().assignDefaultValue(this.parser);
 	}
 
 	@Override
 	public VariableType generate(String variableName, Value value)
 			throws utopia.flow.generics.VariableParser.VariableGenerationFailedException
 	{
-		VariableDeclaration declaration = this.declaration.findAttributeDeclaration(variableName);
+		Option<VariableDeclaration> declaration = this.declaration.find(variableName);
 		
-		if (declaration == null)
+		if (declaration.isEmpty())
 		{
 			if (this.allowOnlyDeclared)
 				throw new VariableGenerationFailedException(
@@ -86,7 +88,7 @@ public class DeclarationVariableParser<VariableType extends Variable> implements
 				return this.parser.generate(variableName, value);
 		}
 		else
-			return declaration.assignValue(this.parser, value);
+			return declaration.get().assignValue(this.parser, value);
 	}
 
 	@Override

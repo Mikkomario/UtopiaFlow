@@ -1,10 +1,9 @@
 package utopia.flow.generics;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import utopia.flow.structure.ImmutableList;
+import utopia.flow.util.Option;
 
 /**
  * A modelDeclaration works like a class, so that it declares which variables the model will 
@@ -16,7 +15,7 @@ public class ModelDeclaration
 {
 	// ATTRIBUTES	-------------------
 	
-	private Set<VariableDeclaration> attributeDeclarations;
+	private ImmutableList<VariableDeclaration> attributeDeclarations;
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -27,7 +26,16 @@ public class ModelDeclaration
 	 */
 	public ModelDeclaration(Collection<? extends VariableDeclaration> attributeDeclarations)
 	{
-		this.attributeDeclarations = new HashSet<>(attributeDeclarations);
+		this.attributeDeclarations = ImmutableList.of(attributeDeclarations);
+	}
+	
+	/**
+	 * Creates a new model declaration
+	 * @param attributeDeclarations The attributes the declaration contains
+	 */
+	public ModelDeclaration(ImmutableList<VariableDeclaration> attributeDeclarations)
+	{
+		this.attributeDeclarations = attributeDeclarations;
 	}
 	
 	
@@ -55,9 +63,9 @@ public class ModelDeclaration
 	 * @return The attributes declared in this class / modelDeclaration. The returned set 
 	 * is a copy and changes made to it won't affect this instance.
 	 */
-	public Set<VariableDeclaration> getAttributeDeclarations()
+	public ImmutableList<VariableDeclaration> getAttributeDeclarations()
 	{
-		return new HashSet<>(this.attributeDeclarations);
+		return this.attributeDeclarations;
 	}
 	
 	
@@ -70,7 +78,7 @@ public class ModelDeclaration
 	 */
 	public boolean containsAttribute(String attributeName)
 	{
-		return findAttributeDeclaration(attributeName) != null;
+		return this.attributeDeclarations.exists(dec -> dec.getName().equalsIgnoreCase(attributeName));
 	}
 	
 	/**
@@ -81,13 +89,17 @@ public class ModelDeclaration
 	 */
 	public boolean containsAttribute(VariableDeclaration attribute)
 	{
-		for (VariableDeclaration declaration : this.attributeDeclarations)
-		{
-			if (declaration.equals(attribute))
-				return true;
-		}
-		
-		return false;
+		return this.attributeDeclarations.contains(attribute);
+	}
+	
+	/**
+	 * Finds an attribute declaration based on attribute name (case-insensitive)
+	 * @param attributeName The name of the requested attribute
+	 * @return A declaration for the attribute
+	 */
+	public Option<VariableDeclaration> find(String attributeName)
+	{
+		return this.attributeDeclarations.find(dec -> dec.getName().equalsIgnoreCase(attributeName));
 	}
 	
 	/**
@@ -96,6 +108,23 @@ public class ModelDeclaration
 	 * @return The declaration for the attribute with the provided name
 	 * @throws Model.NoSuchAttributeException If this declaration doesn't contain such an 
 	 * attribute
+	 */
+	public VariableDeclaration get(String attributeName) throws Model.NoSuchAttributeException
+	{
+		Option<VariableDeclaration> dec = find(attributeName);
+		if (dec.isDefined())
+			return dec.get();
+		else
+			throw new Model.NoSuchAttributeException(attributeName);
+	}
+	
+	/**
+	 * Finds an attribute declaration for an attribute with the provided name (case-insensitive)
+	 * @param attributeName The name of the attribute
+	 * @return The declaration for the attribute with the provided name
+	 * @throws Model.NoSuchAttributeException If this declaration doesn't contain such an 
+	 * attribute
+	 * @see #get(String)
 	 */
 	public VariableDeclaration getAttributeDeclaration(String attributeName) throws Model.NoSuchAttributeException
 	{
@@ -111,6 +140,7 @@ public class ModelDeclaration
 	 * @param attributeName The name of the attribute
 	 * @return The attribute with the provided name declared in this declaration. Null if no 
 	 * such attribute could be found.
+	 * @deprecated Please use {@link #find(String)} instead
 	 */
 	public VariableDeclaration findAttributeDeclaration(String attributeName)
 	{
@@ -138,15 +168,8 @@ public class ModelDeclaration
 	 */
 	public ModelDeclaration findAttributeDeclarations(String... attributeNames)
 	{
-		List<VariableDeclaration> declarations = new ArrayList<>();
-		for (String attributeName : attributeNames)
-		{
-			VariableDeclaration declaration = findAttributeDeclaration(attributeName);
-			if (declaration != null)
-				declarations.add(declaration);
-		}
-		
-		return new ModelDeclaration(declarations);
+		ImmutableList<String> namesList = ImmutableList.of(attributeNames);
+		return new ModelDeclaration(this.attributeDeclarations.filter(dec -> namesList.exists(name -> dec.getName().equalsIgnoreCase(name))));
 	}
 	
 	/**
@@ -159,13 +182,7 @@ public class ModelDeclaration
 	public <VariableType extends Variable> Model<VariableType> instantiate(
 			VariableParser<VariableType> parser)
 	{
-		Model<VariableType> model = new Model<>(parser);
-		for (VariableDeclaration declaration : this.attributeDeclarations)
-		{
-			model.addAttribute(declaration.assignDefaultValue(parser), true);
-		}
-		
-		return model;
+		return new Model<>(parser, this.attributeDeclarations.map(dec -> dec.assignDefaultValue(parser)));
 	}
 	
 	/**
@@ -188,11 +205,8 @@ public class ModelDeclaration
 		if (other == null)
 			return this;
 		
-		Set<VariableDeclaration> combinedDeclarations = new HashSet<>();
-		combinedDeclarations.addAll(this.attributeDeclarations);
-		combinedDeclarations.addAll(other.attributeDeclarations);
-		
-		return new ModelDeclaration(combinedDeclarations);
+		return new ModelDeclaration(this.attributeDeclarations.filter(my -> 
+				!other.getAttributeDeclarations().contains(my)).plus(other.getAttributeDeclarations()));
 	}
 	
 	/**
@@ -206,10 +220,7 @@ public class ModelDeclaration
 		if (attributeDeclaration == null)
 			return this;
 		
-		Set<VariableDeclaration> declarations = getAttributeDeclarations();
-		declarations.add(attributeDeclaration);
-		
-		return new ModelDeclaration(declarations);
+		return new ModelDeclaration(this.attributeDeclarations.plus(attributeDeclaration));
 	}
 	
 	/**
@@ -224,11 +235,7 @@ public class ModelDeclaration
 		if (other == null)
 			return this;
 		
-		Set<VariableDeclaration> declarations = getAttributeDeclarations();
-		if (declarations.removeAll(other.attributeDeclarations))
-			return new ModelDeclaration(declarations);
-		else
-			return this;
+		return new ModelDeclaration(this.attributeDeclarations.minus(other.getAttributeDeclarations()));
 	}
 	
 	/**
@@ -240,13 +247,7 @@ public class ModelDeclaration
 	{
 		if (attributeDeclaration == null)
 			return this;
-		else if (containsAttribute(attributeDeclaration))
-		{
-			Set<VariableDeclaration> declarations = getAttributeDeclarations();
-			declarations.remove(attributeDeclaration);
-			return new ModelDeclaration(declarations);
-		}
-		else
-			return this;
+		
+		return new ModelDeclaration(this.attributeDeclarations.minus(attributeDeclaration));
 	}
 }

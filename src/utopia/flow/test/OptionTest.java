@@ -28,6 +28,9 @@ class OptionTest
 		assert i.forAll(a -> a > 10);
 		assert Option.none().forAll(a -> a.equals("a"));
 		
+		assert i.filter(a -> a < 12).isEmpty();
+		assert i.filter(a -> a > 10).equals(i);
+		
 		System.out.println("Success!");
 	}
 }

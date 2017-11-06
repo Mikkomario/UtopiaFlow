@@ -78,6 +78,22 @@ public class ImmutableList<T> implements Iterable<T>
 	{
 		return new ImmutableList<>(new ArrayList<>(collection));
 	}
+	
+	/**
+	 * Copies an array into an immutable list
+	 * @param array An array
+	 * @return An immutable copy of the array
+	 */
+	public static <T> ImmutableList<T> of(T[] array)
+	{
+		List<T> list = new ArrayList<>(array.length);
+		for (T item : array)
+		{
+			list.add(item);
+		}
+		
+		return new ImmutableList<>(list);
+	}
 
 
 	// IMPLEMENTED METHODS	-----------
@@ -240,6 +256,19 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Creates a new list with the element appended. If the element already exists on the list, returns self
+	 * @param element The element that will be included in the list
+	 * @return If this list contains the element, return this list. Otherwise, creates a new list with the element added
+	 */
+	public ImmutableList<T> withElement(T element)
+	{
+		if (contains(element))
+			return this;
+		else
+			return plus(element);
+	}
+	
+	/**
 	 * Creates a new list with the element prepended (to the beginning of the list)
 	 * @param element an element
 	 * @return a list with the element prepended
@@ -257,7 +286,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param element an element to be removed from the list
 	 * @return a copy of this list without the specified element. This list if it didn't contain the element
 	 */
-	public ImmutableList<T> minus(T element)
+	public ImmutableList<T> minus(Object element)
 	{
 		ArrayList<T> mutable = toMutableList();
 		if (mutable.remove(element))
@@ -271,7 +300,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param elements the elements to be removed from the list
 	 * @return a copy of this list without the specified elements. This list if it didn't contain any of the elements
 	 */
-	public ImmutableList<T> minus(Collection<? extends T> elements)
+	public ImmutableList<T> minus(Collection<? extends Object> elements)
 	{
 		ArrayList<T> mutable = toMutableList();
 		if (mutable.removeAll(elements))
@@ -285,7 +314,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param elements the elements to be removed from the list
 	 * @return a copy of this list without the specified elements. This list if it didn't contain any of the elements
 	 */
-	public ImmutableList<T> minus(ImmutableList<? extends T> elements)
+	public ImmutableList<T> minus(ImmutableList<? extends Object> elements)
 	{
 		return minus(elements.list);
 	}
