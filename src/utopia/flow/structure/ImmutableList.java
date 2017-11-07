@@ -35,6 +35,16 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Creates a copy of another immutable list
+	 * @param list another immutable list
+	 */
+	public ImmutableList(ImmutableList<? extends T> list)
+	{
+		this.list = new ArrayList<>(list.size());
+		this.list.addAll(list.list);
+	}
+	
+	/**
 	 * @return An empty list
 	 */
 	public static <T> ImmutableList<T> empty()
@@ -91,6 +101,38 @@ public class ImmutableList<T> implements Iterable<T>
 		{
 			list.add(item);
 		}
+		
+		return new ImmutableList<>(list);
+	}
+	
+	/**
+	 * Copies another immutable list (changing the typing). Please note that as long as the type remains the same, an 
+	 * immutable list can freely be passed without copying.
+	 * @param other Another immutable list
+	 * @return A copy of the original list
+	 */
+	public static <T> ImmutableList<T> of(ImmutableList<? extends T> other)
+	{
+		List<T> list = new ArrayList<>(other.size());
+		list.addAll(other.list);
+		return new ImmutableList<>(list);
+	}
+	
+	/**
+	 * Creates a combination of multiple immutable lists
+	 * @param first The first list
+	 * @param more More lists
+	 * @return A combination of the lists
+	 */
+	@SafeVarargs
+	public static <T> ImmutableList<T> of(ImmutableList<? extends T> first, ImmutableList<? extends T>... more)
+	{
+		int size = first.size();
+		for (ImmutableList<?> list : more) { size += list.size(); }
+		
+		List<T> list = new ArrayList<>(size);
+		list.addAll(first.list);
+		for (ImmutableList<? extends T> m : more) { list.addAll(m.list); }
 		
 		return new ImmutableList<>(list);
 	}

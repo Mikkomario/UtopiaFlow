@@ -55,10 +55,10 @@ public class Model<VariableType extends Variable>
 	 * @param variableGenerator The generator that is used for generating new attributes to the model
 	 * @param variables The variables the model will have
 	 */
-	public Model(VariableParser<? extends VariableType> variableGenerator, ImmutableList<? extends VariableType> variables)
+	public Model(VariableParser<? extends VariableType> variableGenerator, ImmutableList<VariableType> variables)
 	{
 		this.generator = variableGenerator;
-		this.attributes = ImmutableList.of(variables.toMutableList());
+		this.attributes = variables;
 	}
 	
 	/**
