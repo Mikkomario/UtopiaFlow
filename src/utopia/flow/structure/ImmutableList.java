@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -23,6 +24,8 @@ import utopia.flow.util.Option;
 public class ImmutableList<T> implements Iterable<T>
 {
 	// ATTRIBUTES	-------------------
+	
+	private static final BiPredicate<Object, Object> SAFE_EQUALS = (a, b) -> a == null ? b == null : a.equals(b);
 	
 	private List<T> list;
 	
@@ -295,6 +298,93 @@ public class ImmutableList<T> implements Iterable<T>
 	public ImmutableList<T> plus(ImmutableList<? extends T> elements)
 	{
 		return plus(elements.list);
+	}
+	
+	/**
+	 * Adds multiple elements to this list but keeps it distinct. Doesn't add already existing elements.
+	 * @param elements The new elements
+	 * @param equals method for checking equality
+	 * @return A combined list
+	 */
+	public ImmutableList<T> plusDistinct(ImmutableList<? extends T> elements, BiPredicate<? super T, ? super T> equals)
+	{
+		return plus(elements.filter(newElem -> !exists(oldElem -> equals.test(oldElem, newElem))));
+	}
+	
+	/**
+	 * Adds multiple elements to this list but keeps it distinct. Doesn't add already existing elements.
+	 * @param elements The new elements
+	 * @return A combined list
+	 */
+	public ImmutableList<T> plusDistinct(ImmutableList<? extends T> elements)
+	{
+		return plusDistinct(elements, SAFE_EQUALS);
+	}
+	
+	/**
+	 * Adds an element to this list but keeps it distinct. Doesn't add already existing elements.
+	 * @param element The new element
+	 * @param equals method for checking equality
+	 * @return A resulting list
+	 */
+	public ImmutableList<T> plusDistinct(T element, BiPredicate<? super T, ? super T> equals)
+	{
+		if (exists(oldElem -> equals.test(oldElem, element)))
+			return this;
+		else
+			return plus(element);
+	}
+	
+	/**
+	 * Adds an element to this list but keeps it distinct. Doesn't add already existing elements.
+	 * @param element The new element
+	 * @return A resulting list
+	 */
+	public ImmutableList<T> plusDistinct(T element)
+	{
+		return plusDistinct(element, SAFE_EQUALS);
+	}
+	
+	/**
+	 * Adds multiple elements to this list but keeps it distinct. Overwrites old elements with new versions.
+	 * @param elements The new elements
+	 * @param equals method for checking equality
+	 * @return A combined list
+	 */
+	public ImmutableList<T> overwrite(ImmutableList<? extends T> elements, BiPredicate<? super T, ? super T> equals)
+	{
+		return filter(oldElem -> !elements.exists(newElem -> equals.test(oldElem, newElem))).plus(elements);
+	}
+	
+	/**
+	 * Adds multiple elements to this list but keeps it distinct. Overwrites old elements with new versions.
+	 * @param elements The new elements
+	 * @return A combined list
+	 */
+	public ImmutableList<T> overwrite(ImmutableList<? extends T> elements)
+	{
+		return overwrite(elements, SAFE_EQUALS);
+	}
+	
+	/**
+	 * Adds an element to this list but keeps it distinct. Possibly overwrites old element with a new version.
+	 * @param element The new element
+	 * @param equals method for checking equality
+	 * @return A resulting list
+	 */
+	public ImmutableList<T> overwrite(T element, BiPredicate<? super T, ? super T> equals)
+	{
+		return filter(oldElem -> !equals.test(oldElem, element)).plus(element);
+	}
+	
+	/**
+	 * Adds an element to this list but keeps it distinct. Possibly overwrites old element with a new version.
+	 * @param element The new element
+	 * @return A resulting list
+	 */
+	public ImmutableList<T> overwrite(T element)
+	{
+		return overwrite(element, SAFE_EQUALS);
 	}
 	
 	/**

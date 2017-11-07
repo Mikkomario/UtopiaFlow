@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
 
 import utopia.flow.generics.VariableParser.VariableGenerationFailedException;
 import utopia.flow.structure.ImmutableList;
@@ -22,6 +23,8 @@ import utopia.flow.util.Option;
 public class Model<VariableType extends Variable>
 {
 	// ATTRIBUTES	--------------------
+	
+	private static final BiPredicate<Variable, Variable> VARNAMES_EQUAL  = (a, b) -> a.getName().equalsIgnoreCase(b.getName());
 	
 	private ImmutableList<VariableType> attributes;
 	private VariableParser<? extends VariableType> generator;
@@ -369,9 +372,9 @@ public class Model<VariableType extends Variable>
 	public void addAttribute(VariableType attribute, boolean replaceIfExists)
 	{
 		if (replaceIfExists)
-			this.attributes = this.attributes.filter(existing -> !existing.getName().equalsIgnoreCase(attribute.getName())).plus(attribute);
-		else if (!this.attributes.exists(existing -> existing.getName().equalsIgnoreCase(attribute.getName())))
-			this.attributes = this.attributes.plus(attribute);
+			this.attributes = this.attributes.overwrite(attribute, VARNAMES_EQUAL);
+		else
+			this.attributes = this.attributes.plusDistinct(attribute, VARNAMES_EQUAL);
 	}
 	
 	/**
@@ -396,11 +399,9 @@ public class Model<VariableType extends Variable>
 	public void addAttributes(ImmutableList<? extends VariableType> attributes, boolean replaceIfExists)
 	{
 		if (replaceIfExists)
-			this.attributes = this.attributes.filter(att -> !attributes.exists(newAtt -> 
-					newAtt.getName().equalsIgnoreCase(att.getName()))).plus(attributes);
+			this.attributes = this.attributes.overwrite(attributes, VARNAMES_EQUAL);
 		else
-			this.attributes = this.attributes.plus(attributes.filter(newAtt -> 
-					!getAttributes().exists(existing -> existing.getName().equalsIgnoreCase(newAtt.getName()))));
+			this.attributes = this.attributes.plusDistinct(attributes, VARNAMES_EQUAL);
 	}
 	
 	/**
