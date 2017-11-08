@@ -241,7 +241,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param element an element
 	 * @return Whether this list contains the specified element
 	 */
-	public boolean contains(T element)
+	public boolean contains(Object element)
 	{
 		return this.list.contains(element);
 	}
@@ -251,7 +251,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param elements A collection of elements
 	 * @return Whether this list contains all elements from the specified collection
 	 */
-	public boolean contains(Collection<? extends T> elements)
+	public boolean containsAll(Collection<?> elements)
 	{
 		return this.list.containsAll(elements);
 	}
@@ -261,9 +261,9 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param elements A collection of elements
 	 * @return Whether this list contains all elements from the specified collection
 	 */
-	public boolean contains(ImmutableList<T> elements)
+	public boolean containsAll(ImmutableList<?> elements)
 	{
-		return contains(elements.list);
+		return containsAll(elements.list);
 	}
 	
 	/**
