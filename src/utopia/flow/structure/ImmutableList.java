@@ -285,9 +285,14 @@ public class ImmutableList<T> implements Iterable<T>
 	 */
 	public ImmutableList<T> plus(Collection<? extends T> elements)
 	{
-		ArrayList<T> mutable = toMutableList(elements.size());
-		mutable.addAll(elements);
-		return new ImmutableList<>(mutable);
+		if (elements.isEmpty())
+			return this;
+		else
+		{
+			ArrayList<T> mutable = toMutableList(elements.size());
+			mutable.addAll(elements);
+			return new ImmutableList<>(mutable);
+		}
 	}
 	
 	/**
