@@ -2,6 +2,7 @@ package utopia.flow.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -250,6 +251,37 @@ public class Option<T>
 			return f.test(this.value);
 		else
 			return true;
+	}
+	
+	/**
+	 * Checks whether this option has an equal value with anohter option
+	 * @param other Another option
+	 * @param equals A method for checking equality between values
+	 * @return Whether the two options have equal values
+	 */
+	public boolean hasEqualValueWith(Option<T> other, BiPredicate<? super T, ? super T> equals)
+	{
+		if (isEmpty())
+			return other.isEmpty();
+		else if (other.isEmpty())
+			return false;
+		else
+			return equals.test(getValue(), other.getValue());
+	}
+	
+	/**
+	 * Checks whether this option has an equal value with anohter option
+	 * @param other Another option
+	 * @return Whether the two options have equal values
+	 */
+	public boolean hasEqualValueWith(Option<?> other)
+	{
+		if (isEmpty())
+			return other.isEmpty();
+		else if (other.isEmpty())
+			return false;
+		else
+			return getValue().equals(other.getValue());
 	}
 	
 	/**
