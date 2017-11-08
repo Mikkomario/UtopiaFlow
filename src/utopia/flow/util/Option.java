@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import utopia.flow.structure.ImmutableList;
@@ -152,6 +153,19 @@ public class Option<T>
 	}
 	
 	/**
+	 * Returns the value from this option, if it is defined or a default value
+	 * @param defaultValue The default value
+	 * @return The value from this option or default value if there was no specified value in this option
+	 */
+	public T getOrElse(Supplier<? extends T> defaultValue)
+	{
+		if (isDefined())
+			return this.value;
+		else
+			return defaultValue.get();
+	}
+	
+	/**
 	 * @param defaultOption An option returned if this option is empty
 	 * @return this option, if defined, or another option if not defined
 	 */
@@ -161,6 +175,18 @@ public class Option<T>
 			return this;
 		else
 			return defaultOption;
+	}
+	
+	/**
+	 * @param defaultOption An option returned if this option is empty
+	 * @return this option, if defined, or another option if not defined
+	 */
+	public Option<T> orElse(Supplier<Option<T>> defaultOption)
+	{
+		if (isDefined())
+			return this;
+		else
+			return defaultOption.get();
 	}
 	
 	/**
@@ -249,6 +275,16 @@ public class Option<T>
 			return false;
 		else
 			return this.value.equals(other);
+	}
+	
+	/**
+	 * Checks whether this option contains the specific value
+	 * @param value a value
+	 * @return Whether the value is contained within this option
+	 */
+	public boolean contains(Object value)
+	{
+		return valueEquals(value);
 	}
 	
 	/**
