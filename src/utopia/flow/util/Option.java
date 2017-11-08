@@ -259,7 +259,7 @@ public class Option<T>
 	 * @param equals A method for checking equality between values
 	 * @return Whether the two options have equal values
 	 */
-	public boolean hasEqualValueWith(Option<T> other, BiPredicate<? super T, ? super T> equals)
+	public boolean hasEqualValueWith(Option<? extends T> other, BiPredicate<? super T, ? super T> equals)
 	{
 		if (isEmpty())
 			return other.isEmpty();
