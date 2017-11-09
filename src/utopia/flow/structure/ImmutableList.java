@@ -279,6 +279,26 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Creates a new list with the specified element added to a certain index
+	 * @param element The element that is added
+	 * @param index The index the element is added to
+	 * @return A list with the element added
+	 */
+	public ImmutableList<T> plus(T element, int index)
+	{
+		if (index <= 0)
+			return prepend(element);
+		else if (index >= size() - 1)
+			return plus(element);
+		else
+		{
+			List<T> mutable = toMutableList();
+			mutable.add(index, element);
+			return new ImmutableList<>(mutable);
+		}
+	}
+	
+	/**
 	 * Creates a new list with the elements appended
 	 * @param elements multiple elements
 	 * @return a list with the elements appended
@@ -390,6 +410,26 @@ public class ImmutableList<T> implements Iterable<T>
 	public ImmutableList<T> overwrite(T element)
 	{
 		return overwrite(element, SAFE_EQUALS);
+	}
+	
+	/**
+	 * Overwrites an element at a specified index
+	 * @param element The new element
+	 * @param index The index that is replaced
+	 * @return The new version of the list
+	 */
+	public ImmutableList<T> overwrite(T element, int index)
+	{
+		if (index < 0)
+			return prepend(element);
+		else if (index >= size())
+			return plus(element);
+		else
+		{
+			List<T> mutable = toMutableList();
+			mutable.set(index, element);
+			return new ImmutableList<>(mutable);
+		}
 	}
 	
 	/**
