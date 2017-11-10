@@ -385,6 +385,17 @@ public class Value
 		return (String) parseTo(BasicDataType.STRING);
 	}
 	
+	/**
+	 * @return The value casted to string or none if the value is empty or couldn't be casted.
+	 */
+	public Option<String> toStringOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((String) parseTo(BasicDataType.STRING));
+	}
+	
 	@Override
 	public int hashCode()
 	{
