@@ -197,17 +197,17 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	/**
 	 * @return A set containing all keys of this map
 	 */
-	public Set<Key> keySet()
+	public ImmutableList<Key> keys()
 	{
-		return this.map.keySet();
+		return ImmutableList.of(this.map.keySet());
 	}
 	
 	/**
 	 * @return A set containing all values of this map
 	 */
-	public Collection<Value> values()
+	public ImmutableList<Value> values()
 	{
-		return this.map.values();
+		return ImmutableList.of(this.map.values());
 	}
 	
 	/**
