@@ -224,6 +224,33 @@ public class Model<VariableType extends Variable>
 	}
 	
 	/**
+	 * Sets a new value for an attribute
+	 * @param attributeName The name of the attribute
+	 * @param value The new value for the attribute. None if the value should be set to empty
+	 */
+	public void set(String attributeName, Option<Value> value)
+	{
+		Option<VariableType> attribute = findAttribute(attributeName);
+		
+		if (attribute.isDefined() || value.isDefined())
+		{
+			if (attribute.isEmpty())
+			{
+				try
+				{
+					generateAttribute(attributeName, value.get());
+				}
+				catch (VariableGenerationFailedException e)
+				{
+					throw new NoSuchAttributeException(attributeName, this);
+				}
+			}
+			else
+				attribute.get().setValue(Value.NullValue(attribute.get().getType()));
+		}
+	}
+	
+	/**
 	 * Finds an attribute with the provided name from this model (case-insensitive)
 	 * @param attributeName The name of the attribute
 	 * @return A model's attribute
