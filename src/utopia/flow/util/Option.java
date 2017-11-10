@@ -27,21 +27,24 @@ public class Option<T>
 	// CONSTRUCTOR	--------------------
 	
 	/**
-	 * Copies an option. This should only be used when the type of the option needs to change
-	 * @param other Another option
-	 */
-	public Option(Option<? extends T> other)
-	{
-		this.value = other.value;
-	}
-	
-	/**
 	 * Creates a new option
 	 * @param value The value that is wrapped in this option
 	 */
 	public Option(T value)
 	{
 		this.value = value;
+	}
+	
+	/**
+	 * Copies an option. This should only be used when the type of the option needs to change
+	 * @param other Another option
+	 */
+	public Option(Option<? extends T> other)
+	{
+		if (other == null)
+			this.value = null;
+		else
+			this.value = other.value;
 	}
 	
 	/**
