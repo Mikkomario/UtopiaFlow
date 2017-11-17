@@ -8,10 +8,10 @@ import utopia.flow.generics.DataType;
 import utopia.flow.generics.Model;
 import utopia.flow.generics.ModelDeclaration;
 import utopia.flow.generics.Value;
-import utopia.flow.generics.ValueList;
 import utopia.flow.generics.Variable;
 import utopia.flow.generics.VariableDeclaration;
 import utopia.flow.structure.Element;
+import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.TreeNode;
 
 /**
@@ -25,14 +25,16 @@ public class BasicElementValueParser implements ElementValueParser
 {
 	// IMPLEMENTED METHODS	---------------
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public DataType[] getParsedTypes()
 	{
 		return new DataType[] {BasicDataType.MODEL, BasicDataType.VARIABLE, 
-				BasicDataType.MODEL_DECLARATION, BasicDataType.VARIABLE_DECLARATION, 
+				BasicDataType.MODEL_DECLARATION, BasicDataType.VARIABLE_DECLARATION, BasicDataType.IMMUTABLE_LIST, 
 				BasicDataType.LIST};
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public TreeNode<Element> writeValue(Value value)
 			throws ElementValueParsingFailedException
@@ -71,9 +73,22 @@ public class BasicElementValueParser implements ElementValueParser
 		// Lists add their content as children
 		else if (value.getType().equals(BasicDataType.LIST))
 		{
-			ValueList list = value.toList();
+			utopia.flow.generics.ValueList list = value.toValueList();
 			TreeNode<Element> root = new TreeNode<>(new Element("list"));
 			root.getContent().addAttribute("contentType", list.getType().getName());
+			
+			for (Value val : list)
+			{
+				root.addChild(new TreeNode<>(new Element("element", val)));
+			}
+			return root;
+		}
+		// Lists add their content as children
+		else if (value.getType().equals(BasicDataType.IMMUTABLE_LIST))
+		{
+			ImmutableList<Value> list = value.toList();
+			TreeNode<Element> root = new TreeNode<>(new Element("list"));
+			// root.getContent().addAttribute("contentType", list.getType().getName());
 			
 			for (Value val : list)
 			{
@@ -85,6 +100,7 @@ public class BasicElementValueParser implements ElementValueParser
 			throw new ElementValueParsingFailedException("Unsupported data type " + value.getType());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public Value readValue(TreeNode<Element> element, DataType targetType) throws 
 			ElementValueParsingFailedException
@@ -113,12 +129,17 @@ public class BasicElementValueParser implements ElementValueParser
 		}
 		else if (targetType.equals(BasicDataType.LIST))
 		{
-			ValueList list = new ValueList(element.getContent().getContentType());
+			utopia.flow.generics.ValueList list = new utopia.flow.generics.ValueList(element.getContent().getContentType());
 			for (TreeNode<Element> child : element.getChildren())
 			{
 				list.add(child.getContent().getContent());
 			}
 			return Value.List(list);
+		}
+		else if (targetType.equals(BasicDataType.IMMUTABLE_LIST))
+		{
+			ImmutableList<Value> list = ImmutableList.of(element.getChildren()).map(elem -> elem.getContent().getContent());
+			return Value.of(list);
 		}
 		else
 			throw new ElementValueParsingFailedException("Unsupported Datatype " + targetType);

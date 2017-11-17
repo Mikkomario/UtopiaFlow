@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import utopia.flow.structure.ImmutableList;
+
 /**
  * A value list contains multiple values. All of the values are cast to a certain data type
  * @author Mikko Hilpinen
  * @since 1.1.2016
+ * @deprecated Please use {@link ImmutableList} instead
  */
 public class ValueList extends ArrayList<Value>
 {

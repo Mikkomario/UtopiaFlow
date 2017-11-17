@@ -24,6 +24,7 @@ public class BasicValueParser implements ValueParser
 	
 	// CONSTRUCTOR	-------------------
 	
+	@SuppressWarnings("deprecation")
 	private BasicValueParser()
 	{
 		// Initialises the possible conversions
@@ -171,6 +172,7 @@ public class BasicValueParser implements ValueParser
 	 * @return An object value of the targeted data type
 	 * @throws ValueParseException If the parsing failed for some reason
 	 */
+	@SuppressWarnings("deprecation")
 	private static Object parse(Object value, DataType from, DataType to) throws ValueParseException
 	{
 		// TODO: Should use values here like in more recent value parsers

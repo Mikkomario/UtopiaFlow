@@ -197,9 +197,9 @@ public class BasicPlusOperator implements ValueOperator
 		else if (firstType.equals(BasicDataType.LIST))
 		{
 			if (secondType.equals(BasicDataType.LIST))
-				return Value.List(first.toList().plus(second.toList()));
+				return Value.List(first.toValueList().plus(second.toValueList()));
 			else
-				return Value.List(first.toList().plus(second));
+				return Value.List(first.toValueList().plus(second));
 		}
 			
 		// Other operations are impossible

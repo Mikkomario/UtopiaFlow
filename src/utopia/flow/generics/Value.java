@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import utopia.flow.generics.ValueOperation.ValueOperationException;
+import utopia.flow.structure.ImmutableList;
 import utopia.flow.util.ExtraBoolean;
 import utopia.flow.util.Option;
 
@@ -221,6 +222,7 @@ public class Value
 	 * Wraps a value list
 	 * @param list a value list
 	 * @return a value list value
+	 * @deprecated Please use {@link #of(ImmutableList)} instead
 	 */
 	public static Value List(ValueList list)
 	{
@@ -345,6 +347,16 @@ public class Value
 	public static Value of(String string)
 	{
 		return new Value(string, BasicDataType.STRING);
+	}
+	
+	/**
+	 * Wraps a list value
+	 * @param list a list of values
+	 * @return A list value
+	 */
+	public static Value of(ImmutableList<Value> list)
+	{
+		return new Value(list, BasicDataType.IMMUTABLE_LIST);
 	}
 	
 	
@@ -473,6 +485,23 @@ public class Value
 	}
 	
 	/**
+	 * Returns the value's object value in a specific data type
+	 * @param type The desired data type
+	 * @return Casted value or null
+	 */
+	public Object safeParseTo(DataType type)
+	{
+		try
+		{
+			return parseTo(type);
+		}
+		catch (DataTypeException e)
+		{
+			return null;
+		}
+	}
+	
+	/**
 	 * Casts the value to a new value with a different data type
 	 * @param type The desired data type
 	 * @return The value cast to the desired data type
@@ -570,7 +599,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((Boolean) parseTo(BasicDataType.BOOLEAN));
+			return new Option<>((Boolean) safeParseTo(BasicDataType.BOOLEAN));
 	}
 	
 	/**
@@ -589,7 +618,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((ExtraBoolean) parseTo(BasicDataType.EXTRA_BOOLEAN));
+			return new Option<>((ExtraBoolean) safeParseTo(BasicDataType.EXTRA_BOOLEAN));
 	}
 	
 	/**
@@ -622,7 +651,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((Integer) parseTo(BasicDataType.INTEGER));
+			return new Option<>((Integer) safeParseTo(BasicDataType.INTEGER));
 	}
 	
 	/**
@@ -644,7 +673,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((Double) parseTo(BasicDataType.DOUBLE));
+			return new Option<>((Double) safeParseTo(BasicDataType.DOUBLE));
 	}
 	
 	/**
@@ -666,7 +695,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((Long) parseTo(BasicDataType.LONG));
+			return new Option<>((Long) safeParseTo(BasicDataType.LONG));
 	}
 	
 	/**
@@ -688,7 +717,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((Float) parseTo(BasicDataType.FLOAT));
+			return new Option<>((Float) safeParseTo(BasicDataType.FLOAT));
 	}
 	
 	/**
@@ -707,7 +736,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((LocalDate) parseTo(BasicDataType.DATE));
+			return new Option<>((LocalDate) safeParseTo(BasicDataType.DATE));
 	}
 	
 	/**
@@ -726,7 +755,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((LocalDateTime) parseTo(BasicDataType.DATETIME));
+			return new Option<>((LocalDateTime) safeParseTo(BasicDataType.DATETIME));
 	}
 	
 	/**
@@ -745,7 +774,7 @@ public class Value
 		if (isNull())
 			return Option.none();
 		else
-			return new Option<>((LocalTime) parseTo(BasicDataType.TIME));
+			return new Option<>((LocalTime) safeParseTo(BasicDataType.TIME));
 	}
 	
 	/**
@@ -782,10 +811,36 @@ public class Value
 	}
 	
 	/**
+	 * @return The value casted to a list. Never null.
+	 */
+	@SuppressWarnings("unchecked")
+	public ImmutableList<Value> toList()
+	{
+		ImmutableList<Value> list = (ImmutableList<Value>) parseTo(BasicDataType.IMMUTABLE_LIST);
+		if (list == null)
+			return ImmutableList.empty();
+		else
+			return list;
+	}
+	
+	/**
+	 * @return The value casted to a list or None if casting failed / value was empty
+	 */
+	@SuppressWarnings("unchecked")
+	public Option<ImmutableList<Value>> toListOption()
+	{
+		if (isNull())
+			return Option.none();
+		else
+			return new Option<>((ImmutableList<Value>) safeParseTo(BasicDataType.IMMUTABLE_LIST));
+	}
+	
+	/**
 	 * @return The value casted to list. If the casting failed, wraps the value into a list 
 	 * instead
+	 * @deprecated Please use {@link #toList()} instead
 	 */
-	public ValueList toList()
+	public ValueList toValueList()
 	{
 		try
 		{
@@ -799,6 +854,7 @@ public class Value
 	
 	/**
 	 * @return A value list that contains this value
+	 * @deprecated Please use {@link ImmutableList#withValue(Object)} instead
 	 */
 	public ValueList wrapToList()
 	{

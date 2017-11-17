@@ -185,9 +185,9 @@ public class BasicMinusOperator implements ValueOperator
 		else if (firstType.equals(BasicDataType.LIST))
 		{
 			if (secondType.equals(BasicDataType.LIST))
-				return Value.List(first.toList().minus(second.toList()));
+				return Value.List(first.toValueList().minus(second.toValueList()));
 			else
-				return Value.List(first.toList().minus(second));
+				return Value.List(first.toValueList().minus(second));
 		}
 		
 		throw new ValueOperationException(getOperation(), first, second);

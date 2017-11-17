@@ -513,9 +513,10 @@ public class Variable implements Node<Value>
 	
 	/**
 	 * @return The variable's valuea as a value list
+	 * @deprecated Please used {@link Value#toList()} instead
 	 */
 	public ValueList getListValue()
 	{
-		return getValue().toList();
+		return getValue().toValueList();
 	}
 }

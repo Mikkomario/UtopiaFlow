@@ -122,13 +122,27 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Flattens a list of lists
+	 * @param list a list of lists
+	 * @return a list containing all elements in the lists
+	 */
+	public static <T> ImmutableList<T> flatten(ImmutableList<ImmutableList<? extends T>> list)
+	{
+		int size = list.fold(0, (total, elem) -> total + elem.size());
+		List<T> mutable = new ArrayList<>(size);
+		list.forEach(elem -> mutable.addAll(elem.list));
+		
+		return new ImmutableList<>(mutable);
+	}
+	
+	/**
 	 * Creates a combination of multiple immutable lists
 	 * @param first The first list
 	 * @param more More lists
 	 * @return A combination of the lists
 	 */
 	@SafeVarargs
-	public static <T> ImmutableList<T> of(ImmutableList<? extends T> first, ImmutableList<? extends T>... more)
+	public static <T> ImmutableList<T> flatten(ImmutableList<? extends T> first, ImmutableList<? extends T>... more)
 	{
 		int size = first.size();
 		for (ImmutableList<?> list : more) { size += list.size(); }
@@ -138,6 +152,28 @@ public class ImmutableList<T> implements Iterable<T>
 		for (ImmutableList<? extends T> m : more) { list.addAll(m.list); }
 		
 		return new ImmutableList<>(list);
+	}
+	
+	/**
+	 * Flattens a list of options
+	 * @param list A list containing optional values
+	 * @return A list containing only defined (non-null) option values
+	 */
+	public static <T> ImmutableList<T> flattenOptions(ImmutableList<? extends Option<? extends T>> list)
+	{
+		return list.filter(option -> option.isDefined()).map(option -> option.get());
+	}
+	
+	/**
+	 * Flattens a number of options
+	 * @param first the first option
+	 * @param more More options
+	 * @return A list containing only non-null option values
+	 */
+	@SafeVarargs
+	public static <T> ImmutableList<T> flattenOptions(Option<? extends T> first, Option<? extends T>... more)
+	{
+		return flattenOptions(ImmutableList.withValues(first, more));
 	}
 
 
@@ -276,6 +312,19 @@ public class ImmutableList<T> implements Iterable<T>
 		ArrayList<T> mutable = toMutableList(1);
 		mutable.add(element);
 		return new ImmutableList<>(mutable);
+	}
+	
+	/**
+	 * Creates a new list with the element appended
+	 * @param element An element or none
+	 * @return a list with the element appended. This list if there was no element to append.
+	 */
+	public ImmutableList<T> plus(Option<T> element)
+	{
+		if (element.isDefined())
+			return plus(element.get());
+		else
+			return this;
 	}
 	
 	/**

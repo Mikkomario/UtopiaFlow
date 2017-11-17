@@ -86,8 +86,13 @@ public enum BasicDataType implements DataType
 	MODEL_DECLARATION,
 	/**
 	 * @see ValueList
+	 * @deprecated Replaced with {@link #IMMUTABLE_LIST}
 	 */
-	LIST;
+	LIST, 
+	/**
+	 * Specifically instances of ImmutableList<Value>. Other types are not allowed
+	 */
+	IMMUTABLE_LIST;
 	
 	
 	// IMPLEMENTED METHODS	-------------
