@@ -285,6 +285,21 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	}
 	
 	/**
+	 * Creates a new map with multiple key value pairs appended
+	 * @param data The data that is appended
+	 * @return A map containing both this map's key value pairs and the provided pairs
+	 */
+	public ImmutableMap<Key, Value> plus(ImmutableList<? extends Pair<Key, Value>> data)
+	{
+		Map<Key, Value> map = toMutableMap(data.size());
+		for (Pair<Key, Value> pair : data)
+		{
+			map.put(pair.getFirst(), pair.getSecond());
+		}
+		return new ImmutableMap<>(map);
+	}
+	
+	/**
 	 * Creates a new map with the other map's key value pairs appended
 	 * @param other Another map
 	 * @return A map containing both this map's key value pairs and the other map's key value pairs
