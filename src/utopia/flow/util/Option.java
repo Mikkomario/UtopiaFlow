@@ -70,11 +70,12 @@ public class Option<T>
 
 	/**
 	 * @param value An integer value
+	 * @param allowZero Should a zero value be allowed as some
 	 * @return The same integer if it is > 0. None if not.
 	 */
-	public static Option<Integer> positiveInt(int value)
+	public static Option<Integer> positiveInt(int value, boolean allowZero)
 	{
-		if (value > 0)
+		if (value > 0 || (value == 0 && allowZero))
 			return new Option<>(value);
 		else
 			return none();

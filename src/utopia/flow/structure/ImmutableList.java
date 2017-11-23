@@ -195,15 +195,22 @@ public class ImmutableList<T> implements Iterable<T>
 			return false;
 		if (!(obj instanceof ImmutableList))
 			return false;
+		
 		ImmutableList<?> other = (ImmutableList<?>) obj;
 		if (this.list == null)
-		{
-			if (other.list != null)
-				return false;
-		}
-		else if (!this.list.equals(other.list))
+			return other.list == null;
+		else if (size() != other.size())
 			return false;
-		return true;
+		else
+		{
+			for (int i = 0; i < size(); i++)
+			{
+				if (!SAFE_EQUALS.test(get(i), other.get(i)))
+					return false;
+			}
+			
+			return true;
+		}
 	}
 	
 	@Override
@@ -552,7 +559,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 */
 	public Option<Integer> indexOf(T element)
 	{
-		return Option.positiveInt(this.list.indexOf(element));
+		return Option.positiveInt(this.list.indexOf(element), true);
 	}
 	
 	/**
