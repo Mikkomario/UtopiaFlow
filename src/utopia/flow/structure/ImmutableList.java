@@ -3,8 +3,10 @@ package utopia.flow.structure;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -884,6 +886,37 @@ public class ImmutableList<T> implements Iterable<T>
 	public ImmutableList<T> distinct()
 	{
 		return distinct(SAFE_EQUALS);
+	}
+	
+	/**
+	 * Groups the contents of this list into subcategories based on mapping results
+	 * @param f A mapping function
+	 * @return The contents of this list grouped to categories based on the mapping function results
+	 */
+	public <B> ImmutableMap<B, ImmutableList<T>> groupBy(Function<? super T, ? extends B> f)
+	{
+		Map<B, List<T>> buffer = new HashMap<>();
+		for (T item : this)
+		{
+			B category = f.apply(item);
+			if (!buffer.containsKey(category))
+				buffer.put(category, new ArrayList<>());
+			buffer.get(category).add(item);
+		}
+		
+		return ImmutableMap.of(buffer).mapValues(list -> new ImmutableList<>(list));
+	}
+	
+	/**
+	 * Creates a map based on the contents of this list and mapping results. Multiple values may be grouped 
+	 * together under a single key
+	 * @param f a function that maps the items in this list to key value pairs
+	 * @return A map with values of mapped items
+	 */
+	public <Key, Value> ImmutableMap<Key, ImmutableList<Value>> toListMap(Function<? super T, Pair<Key, Value>> f)
+	{
+		return map(f).groupBy(keyValue -> keyValue.getFirst()).mapValues(keyValueList -> 
+				keyValueList.map(keyValue -> keyValue.getSecond()));
 	}
 	
 	/**
