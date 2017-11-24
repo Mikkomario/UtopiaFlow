@@ -590,6 +590,14 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * @return Sorts the elements based on their natural ordering. Returns the sorted version of the list
+	 */
+	public ImmutableList<T> sorted()
+	{
+		return sortedWith(null);
+	}
+	
+	/**
 	 * @return The first element in this list
 	 * @throws NoSuchElementException If the list is empty
 	 * @see #headOption()
@@ -648,6 +656,25 @@ public class ImmutableList<T> implements Iterable<T>
 			for (int i = 0; i < n; i++) { result.add(get(i)); }
 			return new ImmutableList<>(result);
 		}
+	}
+	
+	/**
+	 * Takes elements from the list as long as they satisfy a certain predicate
+	 * @param f The predicate
+	 * @return The first n elements in this list which all satisfy the predicate
+	 */
+	public ImmutableList<T> takeWhile(Predicate<? super T> f)
+	{
+		List<T> buffer = new ArrayList<>(size());
+		for (T item : this)
+		{
+			if (f.test(item))
+				buffer.add(item);
+			else
+				break;
+		}
+		
+		return new ImmutableList<>(buffer);
 	}
 	
 	/**
@@ -816,6 +843,47 @@ public class ImmutableList<T> implements Iterable<T>
 			return Option.none();
 		else
 			return Option.some(reduce(f));
+	}
+	
+	/**
+	 * Filters the list so that it contains only unique elements. When filtering out elements, 
+	 * the leftmost unique item is preserved. For example, when using distinct on [1, 2, 3, 4, 4, 3, 1], the 
+	 * resulting list is [1, 2, 3, 4]
+	 * @param equals A function that is used for checking equality between items
+	 * @return A list containing only a single instance of each unique item from this list.
+	 */
+	public ImmutableList<T> distinct(BiPredicate<? super T, ? super T> equals)
+	{
+		List<T> distinctValues = new ArrayList<>();
+		for (T item : this)
+		{
+			boolean isUnique = true;
+			for (T existing : distinctValues)
+			{
+				if (equals.test(item, existing))
+				{
+					isUnique = false;
+					break;
+				}
+			}
+			
+			if (isUnique)
+				distinctValues.add(item);
+		}
+		
+		return new ImmutableList<>(distinctValues);
+	}
+	
+	/**
+	 * Filters the list so that it contains only unique elements. When filtering out elements, 
+	 * the leftmost unique item is preserved. For example, when using distinct on [1, 2, 3, 4, 4, 3, 1], the 
+	 * resulting list is [1, 2, 3, 4]
+	 * @return Returns a distict (all values are unique) version of this list. Basic equals method is used for 
+	 * checking equality between elements
+	 */
+	public ImmutableList<T> distinct()
+	{
+		return distinct(SAFE_EQUALS);
 	}
 	
 	/**
