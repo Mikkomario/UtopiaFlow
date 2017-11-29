@@ -224,29 +224,25 @@ public class Model<VariableType extends Variable>
 	}
 	
 	/**
-	 * Sets a new value for an attribute
+	 * Sets a new value for an attribute. NB: Doesn't set any value if setting none to a non-existing attribute
 	 * @param attributeName The name of the attribute
 	 * @param value The new value for the attribute. None if the value should be set to empty
 	 */
 	public void set(String attributeName, Option<Value> value)
 	{
 		Option<VariableType> attribute = findAttribute(attributeName);
-		
-		if (attribute.isDefined() || value.isDefined())
+		if (attribute.isDefined())
+			attribute.get().setValue(value.getOrElse(() -> Value.NullValue(attribute.get().getType())));
+		else if (value.isDefined())
 		{
-			if (attribute.isEmpty())
+			try
 			{
-				try
-				{
-					generateAttribute(attributeName, value.get());
-				}
-				catch (VariableGenerationFailedException e)
-				{
-					throw new NoSuchAttributeException(attributeName, this);
-				}
+				generateAttribute(attributeName, value.get());
 			}
-			else
-				attribute.get().setValue(Value.NullValue(attribute.get().getType()));
+			catch (VariableGenerationFailedException e)
+			{
+				throw new NoSuchAttributeException(attributeName, this);
+			}
 		}
 	}
 	
