@@ -180,6 +180,20 @@ public class Option<T>
 	}
 	
 	/**
+	 * Returns the value from this option or throws an exception
+	 * @param errorSuplier The supplier that will create the exception if necessary
+	 * @return The value inside this option
+	 * @throws E If the option was empty
+	 */
+	public <E extends Throwable> T getOrFail(Supplier<E> errorSuplier) throws E
+	{
+		if (isDefined())
+			return this.value;
+		else
+			throw errorSuplier.get();
+	}
+	
+	/**
 	 * @param defaultOption An option returned if this option is empty
 	 * @return this option, if defined, or another option if not defined
 	 */
@@ -208,6 +222,17 @@ public class Option<T>
 	 * @param c The consumer that uses the value
 	 */
 	public void forEach(Consumer<? super T> c)
+	{
+		if (isDefined())
+			c.accept(this.value);
+	}
+	
+	/**
+	 * Performs a function over the value of this option, if there is one
+	 * @param c The consumer that uses the value
+	 * @throws Exception The consumer may throw
+	 */
+	public void forEachThrowing(ThrowingConsumer<? super T> c) throws Exception
 	{
 		if (isDefined())
 			c.accept(this.value);

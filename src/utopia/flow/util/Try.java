@@ -46,6 +46,18 @@ public class Try<T>
 	}
 	
 	
+	// IMPLEMENTED METHODS	-------------
+	
+	@Override
+	public String toString()
+	{
+		if (isSuccess())
+			return "Success(" + getSuccess().get() + ")";
+		else
+			return "Failure(" + getFailure().get().getMessage() + ")";
+	}
+	
+	
 	// ACCESSORS	---------------------
 	
 	/**
@@ -156,7 +168,7 @@ public class Try<T>
 	 * @param successHandler The function called on success
 	 * @throws Exception Throws on failure
 	 */
-	public void forEach(ThrowingConsumer<? super T> successHandler) throws Exception
+	public void forEachThrowing(ThrowingConsumer<? super T> successHandler) throws Exception
 	{
 		throwIfFailure();
 		successHandler.accept(getSuccess().get());
