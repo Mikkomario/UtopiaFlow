@@ -24,6 +24,23 @@ public class Try<T>
 		this.success = success;
 		this.exception = exception;
 	}
+	
+	/**
+	 * Creates a new try by "trying" a throwing function. If the function throws, the resulting try is a failure, 
+	 * otherwise the resulting try will contain the function result
+	 * @param f A function that produces the tried result
+	 */
+	public Try(ThrowingSupplier<? extends T> f)
+	{
+		try
+		{
+			this.success = Option.some(f.throwingGet());
+		}
+		catch (Exception e)
+		{
+			this.exception = Option.some(e);
+		}
+	}
 
 	/**
 	 * Creates a new success result
