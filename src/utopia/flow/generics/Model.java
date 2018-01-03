@@ -244,6 +244,19 @@ public class Model<VariableType extends Variable>
 				throw new NoSuchAttributeException(attributeName, this);
 			}
 		}
+		else
+		{
+			// In case an empty value is set and the attribute doesn't exist yet, tries to generate a new attribute 
+			// but doesn't throw if it doesn't work
+			try
+			{
+				generateAttribute(attributeName);
+			}
+			catch  (VariableGenerationFailedException e)
+			{
+				// Ignored
+			}
+		}
 	}
 	
 	/**
