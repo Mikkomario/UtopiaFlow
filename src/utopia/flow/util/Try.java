@@ -35,10 +35,12 @@ public class Try<T>
 		try
 		{
 			this.success = Option.some(f.throwingGet());
+			this.exception = Option.none();
 		}
 		catch (Exception e)
 		{
 			this.exception = Option.some(e);
+			this.success = Option.none();
 		}
 	}
 
