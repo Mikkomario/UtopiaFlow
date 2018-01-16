@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import utopia.flow.util.Lazy;
 import utopia.flow.util.Option;
 
 /**
@@ -29,7 +30,8 @@ public class ImmutableList<T> implements Iterable<T>
 	
 	private static final BiPredicate<Object, Object> SAFE_EQUALS = (a, b) -> a == null ? b == null : a.equals(b);
 	
-	private List<T> list;
+	private final List<T> list;
+	private final Lazy<Integer> size;
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -37,6 +39,7 @@ public class ImmutableList<T> implements Iterable<T>
 	private ImmutableList(List<T> list)
 	{
 		this.list = list;
+		this.size = new Lazy<>(() -> this.list.size());
 	}
 	
 	/**
@@ -47,6 +50,7 @@ public class ImmutableList<T> implements Iterable<T>
 	{
 		this.list = new ArrayList<>(list.size());
 		this.list.addAll(list.list);
+		this.size = new Lazy<>(() -> this.list.size());
 	}
 	
 	/**
@@ -260,7 +264,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 */
 	public int size()
 	{
-		return this.list.size();
+		return this.size.get();
 	}
 	
 	/**

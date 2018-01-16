@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import utopia.flow.util.Lazy;
 import utopia.flow.util.Option;
 
 /**
@@ -25,7 +26,12 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 {
 	// ATTRIBUTES	------------------
 	
-	private Map<Key, Value> map;
+	private final Map<Key, Value> map;
+	
+	private final Lazy<Integer> size;
+	private final Lazy<ImmutableList<Key>> keys;
+	private final Lazy<ImmutableList<Value>> values;
+	private final Lazy<ImmutableList<Pair<Key, Value>>> list;
 	
 	
 	// CONSTRUCTOR	-----------------
@@ -36,6 +42,11 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	public ImmutableMap()
 	{
 		this.map = new HashMap<>(0);
+		
+		this.keys = new Lazy<>(() -> ImmutableList.of(this.map.keySet()));
+		this.values = new Lazy<>(() -> ImmutableList.of(this.map.values()));
+		this.list = new Lazy<>(() -> ImmutableList.of(toSet()));
+		this.size = new Lazy<>(() -> this.map.size());
 	}
 	
 	/**
@@ -49,11 +60,21 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 		{
 			this.map.put(pair.getFirst(), pair.getSecond());
 		}
+		
+		this.keys = new Lazy<>(() -> ImmutableList.of(this.map.keySet()));
+		this.values = new Lazy<>(() -> ImmutableList.of(this.map.values()));
+		this.size = new Lazy<>(() -> this.map.size());
+		this.list = new Lazy<>(() -> ImmutableList.of(toSet()));
 	}
 	
 	private ImmutableMap(Map<Key, Value> map)
 	{
 		this.map = map;
+		
+		this.keys = new Lazy<>(() -> ImmutableList.of(this.map.keySet()));
+		this.values = new Lazy<>(() -> ImmutableList.of(this.map.values()));
+		this.size = new Lazy<>(() -> this.map.size());
+		this.list = new Lazy<>(() -> ImmutableList.of(toSet()));
 	}
 	
 	/**
@@ -177,7 +198,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public ImmutableList<Pair<Key, Value>> toList()
 	{
-		return ImmutableList.of(toSet());
+		return this.list.get();
 	}
 	
 	/**
@@ -199,7 +220,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public ImmutableList<Key> keys()
 	{
-		return ImmutableList.of(this.map.keySet());
+		return this.keys.get();
 	}
 	
 	/**
@@ -207,7 +228,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public ImmutableList<Value> values()
 	{
-		return ImmutableList.of(this.map.values());
+		return this.values.get();
 	}
 	
 	/**
@@ -223,7 +244,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public int size()
 	{
-		return this.map.size();
+		return this.size.get();
 	}
 	
 	/**
@@ -336,6 +357,16 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 		}
 		else
 			return this;
+	}
+	
+	/**
+	 * Finds a key value pair from this map
+	 * @param f The function that tests keys & values
+	 * @return the first matching key value pair in the map or none if there were no matches
+	 */
+	public Option<Pair<Key, Value>> find(BiPredicate<? super Key, ? super Value> f)
+	{
+		return toList().find(p -> f.test(p.getFirst(), p.getSecond()));
 	}
 	
 	/**
