@@ -67,7 +67,12 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 		this.list = new Lazy<>(() -> ImmutableList.of(toSet()));
 	}
 	
-	private ImmutableMap(Map<Key, Value> map)
+	/**
+	 * Creates a new map with a mutable map<br>
+	 * <b>NB: The provided map must not be owned, used or modified by any other object after this method is called</b>
+	 * @param map A mutable map
+	 */
+	protected ImmutableMap(Map<Key, Value> map)
 	{
 		this.map = map;
 		
@@ -440,5 +445,61 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 		{
 			f.accept(keyValue.getFirst(), keyValue.getSecond());
 		}
+	}
+	
+	/**
+	 * @return A version of this map that has lists for values
+	 */
+	public ImmutableMap<Key, ImmutableList<Value>> toListMap()
+	{
+		return mapValues(v -> ImmutableList.withValue(v));
+	}
+	
+	/**
+	 * Combines two list maps with each other. the final list map will contain values from both maps
+	 * @param first The first list map
+	 * @param second The second list map
+	 * @return The combined map
+	 */
+	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> append(
+			ImmutableMap<Key, ImmutableList<Value>> first, ImmutableMap<? extends Key, ? extends ImmutableList<Value>> second)
+	{
+		Map<Key, ImmutableList<Value>> buffer = first.toMutableMap(second.size());
+		second.forEach((key, values) -> 
+		{
+			ImmutableList<Value> newValues = first.getOption(key).map(l -> l.plus(values)).getOrElse(values);
+			buffer.put(key, newValues);
+		});
+		
+		return new ImmutableMap<>(buffer);
+	}
+	
+	/**
+	 * Combines a list map with a set of values
+	 * @param listMap A list map
+	 * @param key The targeted key
+	 * @param values The appended values
+	 * @return A new map with the values appended
+	 */
+	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> append(
+			ImmutableMap<Key, ImmutableList<Value>> listMap, Key key, ImmutableList<Value> values)
+	{
+		ImmutableList<Value> newValues = listMap.getOption(key).map(l -> l.plus(values)).getOrElse(values);
+		return listMap.plus(key, newValues);
+	}
+	
+	/**
+	 * Appends a value to a list map
+	 * @param listMap A list map
+	 * @param key The targeted key
+	 * @param value The appended value
+	 * @return A new map with the value appended
+	 */
+	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> append(
+			ImmutableMap<Key, ImmutableList<Value>> listMap, Key key, Value value)
+	{
+		ImmutableList<Value> newValues = listMap.getOption(key).map(l -> l.plus(value)).getOrElse(
+				() -> ImmutableList.withValue(value));
+		return listMap.plus(key, newValues);
 	}
 }
