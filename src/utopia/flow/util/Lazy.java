@@ -8,7 +8,7 @@ import java.util.function.Supplier;
  * @param <T> The type of object accessed through this class
  * @since 16.1.2018
  */
-public class Lazy<T>
+public class Lazy<T> implements Supplier<T>
 {
 	// ATTRIBUTES	------------------
 	
@@ -33,6 +33,7 @@ public class Lazy<T>
 	/**
 	 * @return The lazily initialized item
 	 */
+	@Override
 	public T get()
 	{
 		if (this.item.isDefined())
