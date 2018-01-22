@@ -110,6 +110,20 @@ public class Try<T>
 	}
 	
 	/**
+	 * Unwraps the try, throwing the exception on failure. The exception is wrapped into another exception
+	 * @param e A function that wraps the exception to a specific type
+	 * @return The item inside this try on success
+	 * @throws E An exception on failure
+	 */
+	public <E extends Exception> T unwrapThrowing(Function<Exception, E> e) throws E
+	{
+		if (isFailure())
+			throw e.apply(getFailure().get());
+		else
+			return getSuccess().get();
+	}
+	
+	/**
 	 * @return Whether this try is a success
 	 */
 	public boolean isSuccess()
