@@ -181,6 +181,27 @@ public class ImmutableList<T> implements Iterable<T>
 	{
 		return flattenOptions(ImmutableList.withValues(first, more));
 	}
+	
+	/**
+	 * Creates an immutable list that spans the provided range of integers
+	 * @param minInclusive The smallest included number
+	 * @param maxInclusive The largest included number
+	 * @return A list that contains numbers in the provided range
+	 */
+	public static ImmutableList<Integer> range(int minInclusive, int maxInclusive)
+	{
+		if (maxInclusive <= minInclusive)
+			return empty();
+		else
+		{
+			List<Integer> buffer = new ArrayList<>(maxInclusive - minInclusive);
+			for (int i = minInclusive; i <= maxInclusive; i++)
+			{
+				buffer.add(i);
+			}
+			return new ImmutableList<>(buffer);
+		}
+	}
 
 
 	// IMPLEMENTED METHODS	-----------
