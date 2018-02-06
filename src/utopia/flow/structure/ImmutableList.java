@@ -409,6 +409,16 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Creates a new list with the elements appended
+	 * @param elements an array of elements
+	 * @return a list with the elements appended
+	 */
+	public ImmutableList<T> plus(T[] elements)
+	{
+		return plus(ImmutableList.of(elements));
+	}
+	
+	/**
 	 * Adds multiple elements to this list but keeps it distinct. Doesn't add already existing elements.
 	 * @param elements The new elements
 	 * @param equals method for checking equality
@@ -617,11 +627,42 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Sorts the lists by transforming the items to a comparable form
+	 * @param f The transform function
+	 * @return The sorted list
+	 */
+	public <K extends Comparable<? super K>> ImmutableList<T> sortedBy(Function<? super T, ? extends K> f)
+	{	
+		return sortedWith((a, b) -> f.apply(a).compareTo(f.apply(b)));
+	}
+	
+	/**
+	 * Sorts the list by using possibly multiple sort functions. Uses the more important comparators first and 
+	 * tweaks the sorting using the less important comparators.
+	 * @param comparators The comparators that are available. Ordered from the most important to the least important comparator.
+	 * @return The list sorted with the comparators
+	 */
+	public ImmutableList<T> sortedWith(ImmutableList<? extends Comparator<? super T>> comparators)
+	{
+		Comparator<T> comparator = new Comparator<T>()
+		{
+			@Override
+			public int compare(T a, T b)
+			{
+				Option<Integer> result = comparators.flatMapFirst(c -> Option.some(c.compare(a, b)).filter(i -> i != 0));
+				return result.getOrElse(0);
+			}
+		};
+		
+		return sortedWith(comparator);
+	}
+	
+	/**
 	 * @return Sorts the elements based on their natural ordering. Returns the sorted version of the list
 	 */
 	public ImmutableList<T> sorted()
 	{
-		return sortedWith(null);
+		return sortedWith((Comparator<T>) null);
 	}
 	
 	/**
@@ -823,6 +864,25 @@ public class ImmutableList<T> implements Iterable<T>
 	public <B> ImmutableList<B> flatMap(Function<? super T, Stream<? extends B>> f)
 	{
 		return new ImmutableList<>(stream().flatMap(f).collect(Collectors.toList()));
+	}
+	
+	/**
+	 * Returns the first transformed item where the transformation is available. Similar to calling flatMap(f).first(), 
+	 * except that this function doesn't transform unnecessary items.
+	 * @param f The transformation function
+	 * @return The first transformation result where the transformation is defined. None if none of this list's items 
+	 * could be transformed.
+	 */
+	public <B> Option<B> flatMapFirst(Function<? super T, Option<B>> f)
+	{
+		for (T item : this)
+		{
+			Option<B> result = f.apply(item);
+			if (result.isDefined())
+				return result;
+		}
+		
+		return Option.none();
 	}
 	
 	/**

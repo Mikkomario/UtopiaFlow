@@ -42,6 +42,23 @@ class ListTest
 		assert groupedWords.get(5).size() == 4;
 		assert groupedWords.getOption(2).isEmpty();
 		
+		ImmutableList<String> words3 = ImmutableList.withValues("ant", "abc", "y", "aakkonen");
+		
+		ImmutableList<String> sortedByLetters = words3.sorted();
+		ImmutableList<String> sortedByLength = words3.sortedBy(s -> s.length());
+		
+		ImmutableList<String> sortedByLengthAndLetters = words3.sortedWith(ImmutableList.withValues(
+				(a, b) -> a.length() - b.length() , (a, b) -> a.compareTo(b)));
+		
+		System.out.println(sortedByLetters);
+		System.out.println(sortedByLength);
+		System.out.println(sortedByLengthAndLetters);
+		assert sortedByLetters.head().equals("aakkonen");
+		assert sortedByLetters.last().valueEquals("y");
+		assert sortedByLength.head().equals("y");
+		assert sortedByLength.last().valueEquals("aakkonen");
+		assert sortedByLengthAndLetters.equals(ImmutableList.withValues("y", "abc", "ant", "aakkonen"));
+		
 		System.out.println("Success!");
 	}
 }
