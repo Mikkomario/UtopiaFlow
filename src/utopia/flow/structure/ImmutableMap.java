@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -379,9 +380,10 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a function that maps key value pairs
 	 * @return A mapped map
 	 */
-	public <K, V> ImmutableMap<K, V> map(Function<Pair<Key, Value>, Pair<K, V>> f)
+	public <K, V> ImmutableMap<K, V> map(BiFunction<Key, Value, Pair<K, V>> f)
 	{
-		return new ImmutableMap<>(toSet().stream().map(f).collect(Collectors.toSet()));
+		return new ImmutableMap<>(toSet().stream().map(
+				keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())).collect(Collectors.toSet()));
 	}
 	
 	/**
@@ -389,9 +391,10 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a function that maps key value pairs to collections
 	 * @return A mapped map
 	 */
-	public <K, V> ImmutableMap<K, V> flatMap(Function<Pair<Key, Value>, Stream<Pair<K, V>>> f)
+	public <K, V> ImmutableMap<K, V> flatMap(BiFunction<Key, Value, Stream<Pair<K, V>>> f)
 	{
-		return new ImmutableMap<>(toSet().stream().flatMap(f).collect(Collectors.toSet()));
+		return new ImmutableMap<>(toSet().stream().flatMap(
+				keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())).collect(Collectors.toSet()));
 	}
 	
 	/**
@@ -401,7 +404,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public <K> ImmutableMap<K, Value> mapKeys(Function<? super Key, K> f)
 	{
-		return map(pair -> pair.withFirst(f.apply(pair.getFirst())));
+		return map((k, v) -> new Pair<>(f.apply(k), v));
 	}
 	
 	/**
@@ -411,7 +414,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public <V> ImmutableMap<Key, V> mapValues(Function<? super Value, V> f)
 	{
-		return map(pair -> pair.withSecond(f.apply(pair.getSecond())));
+		return map((k, v) -> new Pair<>(k, f.apply(v)));
 	}
 	
 	/**
@@ -421,7 +424,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 */
 	public <V> ImmutableMap<Key, V> flatMapValues(Function<? super Value, Option<V>> f)
 	{
-		return flatMap(pair -> f.apply(pair.getSecond()).map(value -> pair.withSecond(value)).stream());
+		return flatMap((k, v) -> f.apply(v).map(newValue -> new Pair<>(k, newValue)).stream());
 	}
 	
 	/**
