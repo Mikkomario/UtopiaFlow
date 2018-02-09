@@ -31,11 +31,23 @@ public class Pair<T1, T2>
 	/**
 	 * Creates a new pair by copying another
 	 * @param other Another pair
+	 * @deprecated Pair has value semantics so copying one is not necessary
 	 */
 	public Pair(Pair<T1, T2> other)
 	{
 		this.first = other.first;
 		this.second = other.second;
+	}
+	
+	/**
+	 * Creates a new pair
+	 * @param first The first value
+	 * @param second The second value
+	 * @return A new pair with the provided values
+	 */
+	public static <T1, T2> Pair<T1, T2> withValues(T1 first, T2 second)
+	{
+		return new Pair<>(first, second);
 	}
 	
 	
