@@ -666,6 +666,20 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * @return A reversed version of this list
+	 */
+	public ImmutableList<T> reversed()
+	{
+		ArrayList<T> copy = new ArrayList<>(size());
+		for (int i = size() - 1; i >= 0; i--)
+		{
+			copy.add(get(i));
+		}
+		
+		return new ImmutableList<>(copy);
+	}
+	
+	/**
 	 * @return The first element in this list
 	 * @throws NoSuchElementException If the list is empty
 	 * @see #headOption()
