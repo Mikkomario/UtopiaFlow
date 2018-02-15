@@ -150,6 +150,34 @@ public class Try<T>
 	}
 	
 	/**
+	 * Gets the value from this try or uses the default value, which may also fail
+	 * @param defaultValue The default value that may fail
+	 * @return This try if success or the default value otherwise
+	 */
+	public Try<T> orElse(Try<T> defaultValue)
+	{
+		if (isSuccess())
+			return this;
+		else
+			return defaultValue;
+	}
+	
+	/**
+	 * Gets the value from this try or uses the default value, which may also fail
+	 * @param defaultValue The default value. None implies a failure.
+	 * @return This try if success or the default value otherwise
+	 */
+	public Try<T> orElse(Option<? extends T> defaultValue)
+	{
+		if (isSuccess())
+			return this;
+		else if (defaultValue.isDefined())
+			return Try.success(defaultValue.get());
+		else
+			return this;
+	}
+	
+	/**
 	 * Maps the success value of this try
 	 * @param f a transformation function
 	 * @return The transformed try
