@@ -1,5 +1,7 @@
 package utopia.flow.util;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -53,6 +55,19 @@ public class Promise<T>
 		};
 		
 		new Thread(r).start();
+		return promise;
+	}
+	
+	/**
+	 * Creates a promise that is fulfilled right from the beginning. This function should be used as a wrapper 
+	 * when necessary
+	 * @param result The result that will be wrapped in a promise
+	 * @return The wrapped result
+	 */
+	public static <T> Promise<T> fulfilled(T result)
+	{
+		Promise<T> promise = new Promise<>();
+		promise.fulfill(result);
 		return promise;
 	}
 	
@@ -148,5 +163,45 @@ public class Promise<T>
 	{
 		this.item = Option.some(result);
 		notifyAll();
+	}
+	
+	/**
+	 * Performs an asynchronous operation on this promise one it has been completed
+	 * @param f The function that is performed asynchronously
+	 */
+	public synchronized void doAsync(Consumer<? super T> f)
+	{
+		new Thread(() -> f.accept(waitFor())).start();
+	}
+	
+	/**
+	 * Performs an operation on this promise. If the promise is fulfilled, performs the function right away in a 
+	 * synchronized manner. If the promise is still empty, performs the function asynchronously once the promise is 
+	 * fulfilled
+	 * @param f The opertation that is performed for the promise results
+	 * @see #doAsync(Consumer)
+	 */
+	public synchronized void doOnceFulfilled(Consumer<? super T> f)
+	{
+		if (isFulfilled())
+			f.accept(getCurrentItem().get());
+		else
+			doAsync(f);
+	}
+	
+	/**
+	 * Creates a new promise that uses the value of this promise
+	 * @param forceAsync Whether the mapping function should always be run asynchronously (use this for blocking functions)
+	 * @param f The mapping function for the value of this promise
+	 * @return The mapped promise
+	 */
+	public synchronized <U> Promise<U> map(boolean forceAsync, Function<? super T, ? extends U> f)
+	{
+		if (isFulfilled() && !forceAsync)
+			return Promise.fulfilled(f.apply(getCurrentItem().get()));
+		else
+		{
+			return asynchronous(() -> f.apply(waitFor()));
+		}
 	}
 }
