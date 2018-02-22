@@ -110,24 +110,6 @@ public class Pair<T1, T2>
 		return this.second;
 	}
 	
-	/**
-	 * Updates the first value of the pair
-	 * @param first The new first value of the pair
-	 */
-	protected void setFirst(T1 first)
-	{
-		this.first = first;
-	}
-	
-	/**
-	 * Updates the second value of the pair
-	 * @param second The new second value of the pair
-	 */
-	protected void setSecond(T2 second)
-	{
-		this.second = second;
-	}
-	
 	
 	// OTHER METHODS	--------------
 	

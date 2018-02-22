@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 
 import utopia.flow.util.Lazy;
 import utopia.flow.util.Option;
+import utopia.flow.util.ThrowingConsumer;
 
 /**
  * This list cannot be modified after creation and is safe to pass around as a value
@@ -552,6 +554,36 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Merges this list with another list using a merge function. If the lists have different sizes, only the 
+	 * beginning of one of the list will be used
+	 * @param other Another list
+	 * @param merge The merge function (left takes elements from this list, right takes elements from the other list and 
+	 * the results are stored in the merged list)
+	 * @return The merged list
+	 */
+	public <U, R> ImmutableList<R> mergedWith(ImmutableList<U> other, BiFunction<? super T, ? super U, ? extends R> merge)
+	{
+		List<R> buffer = new ArrayList<>();
+		for (int i = 0; i < size() && i < other.size(); i++)
+		{
+			buffer.add(merge.apply(get(i), other.get(i)));
+		}
+		return new ImmutableList<>(buffer);
+	}
+	
+	/**
+	 * Merges this list with another list, creating a list of pairs. If the lists have different sizes, only the 
+	 * beginning of one of the list will be used
+	 * @param other Another list
+	 * @return The merged list consisting of value pairs (left side value from this list, right side value from the 
+	 * other list)
+	 */
+	public <U> ImmutableList<Pair<T, U>> mergedWith(ImmutableList<U> other)
+	{
+		return mergedWith(other, (a, b) -> new Pair<>(a, b));
+	}
+	
+	/**
 	 * Creates a new list without the specified element
 	 * @param element an element to be removed from the list
 	 * @return a copy of this list without the specified element. This list if it didn't contain the element
@@ -973,6 +1005,30 @@ public class ImmutableList<T> implements Iterable<T>
 		}
 		
 		return new ImmutableList<>(distinctValues);
+	}
+	
+	/**
+	 * Performs a throwing operation on each of the elements in this list. Stops iterating on the first exception.
+	 * @param f The function that is performed for each element in the list
+	 * @throws Exception The first exception thrown by the function
+	 */
+	public void forEachThrowing(ThrowingConsumer<? super T> f) throws Exception
+	{
+		for (T item : this)
+		{
+			f.accept(item);
+		}
+	}
+	
+	/**
+	 * Performs an operation on two lists at the same time
+	 * @param other Another list
+	 * @param f A function that operates on two values at the same time. The left values come from this list. 
+	 * The right values come from the other list.
+	 */
+	public <U> void forEachSimultaneouslyWith(ImmutableList<U> other, BiConsumer<T, U> f)
+	{
+		mergedWith(other).forEach(p -> f.accept(p.getFirst(), p.getSecond()));
 	}
 	
 	/**
