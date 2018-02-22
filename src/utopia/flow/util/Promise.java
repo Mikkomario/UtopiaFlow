@@ -72,6 +72,15 @@ public class Promise<T>
 	}
 	
 	
+	// IMPLEMENTED METHODS	-----------
+	
+	@Override
+	public String toString()
+	{
+		return getCurrentItem().map(r -> "Promised(" + r + ")").getOrElse("Promise");
+	}
+	
+	
 	// ACCESSORS	-------------------
 	
 	/**

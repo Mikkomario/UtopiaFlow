@@ -32,6 +32,6 @@ public class PromiseTest
 			}
 		});
 		
-		System.out.println(promise.waitFor());
+		System.out.println(promise.map(false, s -> "The test is " + s).waitFor());
 	}
 }
