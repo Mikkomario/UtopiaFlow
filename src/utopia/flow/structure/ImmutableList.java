@@ -853,6 +853,28 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Finds the maximum value in this list based on a mapped value
+	 * @param f A mapping function
+	 * @return The maximum item in the list based on the mapped value
+	 * @see #maxFrom(ImmutableList)
+	 */
+	public <K extends Comparable<? super K>> T maxBy(Function<? super T, ? extends K> f)
+	{
+		return maxFrom(this, (a, b) -> f.apply(a).compareTo(f.apply(b)));
+	}
+	
+	/**
+	 * Finds the minimum value in this list based on a mapped value
+	 * @param f A mapping function
+	 * @return The minimum item in the list based on the mapped value
+	 * @see #minFrom(ImmutableList)
+	 */
+	public <K extends Comparable<? super K>> T minBy(Function<? super T, ? extends K> f)
+	{
+		return minFrom(this, (a, b) -> f.apply(a).compareTo(f.apply(b)));
+	}
+	
+	/**
 	 * Finds the first element that satisfies the predicate
 	 * @param f A predicate
 	 * @return The first element that satisfies the predicate
@@ -1090,5 +1112,65 @@ public class ImmutableList<T> implements Iterable<T>
 	public Stream<T> stream()
 	{
 		return this.list.stream();
+	}
+	
+	/**
+	 * Finds the maximum value from the provided items
+	 * @param items The items the maximum value is searched from
+	 * @param comparator The comparator used for comparing the values
+	 * @return The maximum value from the list
+	 * @throws NoSuchElementException If the list is empty
+	 */
+	public static <T> T maxFrom(ImmutableList<? extends T> items, Comparator<? super T> comparator) throws NoSuchElementException
+	{
+		T top = items.head();
+		for (T item : items.tail())
+		{
+			if (comparator.compare(item, top) > 0)
+				top = item;
+		}
+		
+		return top;
+	}
+	
+	/**
+	 * Finds the maximum value from the provided items
+	 * @param items The items the maximum value is searched from
+	 * @return The maximum value from the list
+	 * @throws NoSuchElementException If the list is empty
+	 */
+	public static <T extends Comparable<? super T>> T maxFrom(ImmutableList<? extends T> items) throws NoSuchElementException
+	{
+		return maxFrom(items, (a, b) -> a.compareTo(b));
+	}
+	
+	/**
+	 * Finds the minimum value from the provided items
+	 * @param items The items the minimum value is searched from
+	 * @param comparator The comparator used for comparing the values
+	 * @return The minimum value from the list
+	 * @throws NoSuchElementException If the list is empty
+	 */
+	public static <T> T minFrom(ImmutableList<? extends T> items, Comparator<? super T> comparator) throws NoSuchElementException
+	{
+		T top = items.head();
+		for (T item : items.tail())
+		{
+			if (comparator.compare(item, top) < 0)
+				top = item;
+		}
+		
+		return top;
+	}
+	
+	/**
+	 * Finds the minimum value from the provided items
+	 * @param items The items the minimum value is searched from
+	 * @return The minimum value from the list
+	 * @throws NoSuchElementException If the list is empty
+	 */
+	public static <T extends Comparable<? super T>> T minFrom(ImmutableList<? extends T> items) throws NoSuchElementException
+	{
+		return minFrom(items, (a, b) -> a.compareTo(b));
 	}
 }
