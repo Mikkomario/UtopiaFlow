@@ -554,6 +554,16 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Creates a new list with the element prepended (to the beginning of the list).
+	 * @param element an element
+	 * @return a list with the element prepended. If an empty element was provided, this list is returned
+	 */
+	public ImmutableList<T> prepend(Option<? extends T> element)
+	{
+		return element.map(e -> prepend(e)).getOrElse(this);
+	}
+	
+	/**
 	 * Merges this list with another list using a merge function. If the lists have different sizes, only the 
 	 * beginning of one of the list will be used
 	 * @param other Another list
