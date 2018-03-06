@@ -370,6 +370,19 @@ public class Option<T>
 	}
 	
 	/**
+	 * Calls either the itemHandler or the emptyHandler based on whether the option has a value or not
+	 * @param itemHandler The function that will be called if the option is defined
+	 * @param emptyHandler The function that will be called if the option is empty
+	 */
+	public void handle(Consumer<? super T> itemHandler, Runnable emptyHandler)
+	{
+		if (isDefined())
+			itemHandler.accept(this.value);
+		else
+			emptyHandler.run();
+	}
+	
+	/**
 	 * @return A stream of this option
 	 */
 	public Stream<T> stream()
