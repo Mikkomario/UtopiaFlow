@@ -339,6 +339,18 @@ public class ImmutableList<T> implements Iterable<T>
 	}
 	
 	/**
+	 * Checks whether this list contains all and only the elements from the other list. The order of the items 
+	 * isn't checked in this operation.
+	 * @param other Another list
+	 * @return Whether this list contains the same elements as the other list, possibly in different order
+	 * @see #equals(Object)
+	 */
+	public boolean containsExactly(ImmutableList<?> other)
+	{
+		return size() == other.size() && containsAll(other);
+	}
+	
+	/**
 	 * Creates a new list with the element appended
 	 * @param element an element
 	 * @return a list with the element appended
