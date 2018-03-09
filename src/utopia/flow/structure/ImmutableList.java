@@ -415,7 +415,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param element An element or none
 	 * @return a list with the element appended. This list if there was no element to append.
 	 */
-	public ImmutableList<T> plus(Option<T> element)
+	public ImmutableList<T> plus(Option<? extends T> element)
 	{
 		if (element.isDefined())
 			return plus(element.get());
