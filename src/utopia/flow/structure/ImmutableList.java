@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 
 import utopia.flow.util.Lazy;
 import utopia.flow.util.Option;
+import utopia.flow.util.Streamable;
 import utopia.flow.util.ThrowingConsumer;
 
 /**
@@ -27,7 +28,7 @@ import utopia.flow.util.ThrowingConsumer;
  * @param <T> The type of element stored within this list
  * @since 2.11.2017
  */
-public class ImmutableList<T> implements Iterable<T>
+public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 {
 	// ATTRIBUTES	-------------------
 	
@@ -135,11 +136,11 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param list a list of lists
 	 * @return a list containing all elements in the lists
 	 */
-	public static <T> ImmutableList<T> flatten(ImmutableList<ImmutableList<? extends T>> list)
+	public static <T> ImmutableList<T> flatten(Streamable<? extends Streamable<? extends T>> list)
 	{
-		int size = list.fold(0, (total, elem) -> total + elem.size());
-		List<T> mutable = new ArrayList<>(size);
-		list.forEach(elem -> mutable.addAll(elem.list));
+		// int size = list.fold(0, (total, elem) -> total + elem.size());
+		List<T> mutable = new ArrayList<>();
+		list.stream().forEach(elem -> elem.stream().forEach(mutable::add));
 		
 		return new ImmutableList<>(mutable);
 	}
@@ -151,38 +152,9 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @return A combination of the lists
 	 */
 	@SafeVarargs
-	public static <T> ImmutableList<T> flatten(ImmutableList<? extends T> first, ImmutableList<? extends T>... more)
+	public static <T> ImmutableList<T> flatten(Streamable<? extends T> first, Streamable<? extends T>... more)
 	{
-		int size = first.size();
-		for (ImmutableList<?> list : more) { size += list.size(); }
-		
-		List<T> list = new ArrayList<>(size);
-		list.addAll(first.list);
-		for (ImmutableList<? extends T> m : more) { list.addAll(m.list); }
-		
-		return new ImmutableList<>(list);
-	}
-	
-	/**
-	 * Flattens a list of options
-	 * @param list A list containing optional values
-	 * @return A list containing only defined (non-null) option values
-	 */
-	public static <T> ImmutableList<T> flattenOptions(ImmutableList<? extends Option<? extends T>> list)
-	{
-		return list.filter(option -> option.isDefined()).map(option -> option.get());
-	}
-	
-	/**
-	 * Flattens a number of options
-	 * @param first the first option
-	 * @param more More options
-	 * @return A list containing only non-null option values
-	 */
-	@SafeVarargs
-	public static <T> ImmutableList<T> flattenOptions(Option<? extends T> first, Option<? extends T>... more)
-	{
-		return flattenOptions(ImmutableList.withValues(first, more));
+		return flatten(ImmutableList.of(more).prepend(first));
 	}
 	
 	/**
@@ -310,6 +282,12 @@ public class ImmutableList<T> implements Iterable<T>
 	public Iterator<T> iterator()
 	{
 		return this.list.iterator();
+	}
+	
+	@Override
+	public Stream<T> stream()
+	{
+		return this.list.stream();
 	}
 	
 	
@@ -465,9 +443,9 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param elements multiple elements
 	 * @return a list with the elements appended
 	 */
-	public ImmutableList<T> plus(ImmutableList<? extends T> elements)
+	public ImmutableList<T> plus(Streamable<? extends T> elements)
 	{
-		return plus(elements.list);
+		return plus(elements.stream().collect(Collectors.toList()));
 	}
 	
 	/**
@@ -486,9 +464,9 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param equals method for checking equality
 	 * @return A combined list
 	 */
-	public ImmutableList<T> plusDistinct(ImmutableList<? extends T> elements, BiPredicate<? super T, ? super T> equals)
+	public ImmutableList<T> plusDistinct(Streamable<? extends T> elements, BiPredicate<? super T, ? super T> equals)
 	{
-		return plus(elements.filter(newElem -> !exists(oldElem -> equals.test(oldElem, newElem))));
+		return plus(elements.stream().filter(newElem -> !exists(oldElem -> equals.test(oldElem, newElem))).collect(Collectors.toList()));
 	}
 	
 	/**
@@ -496,7 +474,7 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param elements The new elements
 	 * @return A combined list
 	 */
-	public ImmutableList<T> plusDistinct(ImmutableList<? extends T> elements)
+	public ImmutableList<T> plusDistinct(Streamable<? extends T> elements)
 	{
 		return plusDistinct(elements, SAFE_EQUALS);
 	}
@@ -999,9 +977,9 @@ public class ImmutableList<T> implements Iterable<T>
 	 * @param f a mapping function
 	 * @return The mapped list
 	 */
-	public <B> ImmutableList<B> flatMap(Function<? super T, Stream<? extends B>> f)
+	public <B> ImmutableList<B> flatMap(Function<? super T, Streamable<? extends B>> f)
 	{
-		return new ImmutableList<>(stream().flatMap(f).collect(Collectors.toList()));
+		return new ImmutableList<>(stream().flatMap(i -> f.apply(i).stream()).collect(Collectors.toList()));
 	}
 	
 	/**
@@ -1174,14 +1152,6 @@ public class ImmutableList<T> implements Iterable<T>
 	public ImmutableMap<Boolean, ImmutableList<T>> divideBy(Predicate<? super T> f)
 	{
 		return ImmutableMap.withValue(true, filter(f)).plus(false, filter(f.negate()));
-	}
-	
-	/**
-	 * @return A stream from this list
-	 */
-	public Stream<T> stream()
-	{
-		return this.list.stream();
 	}
 	
 	/**

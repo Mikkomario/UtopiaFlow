@@ -17,7 +17,7 @@ import utopia.flow.structure.ImmutableList;
  * @param <T> The type of the value handled by this option
  * @since 6.9.2017
  */
-public class Option<T>
+public class Option<T> implements Streamable<T>
 {
 	// ATTRIBUTES	---------------------
 	
@@ -81,6 +81,19 @@ public class Option<T>
 			return none();
 	}
 	
+	/**
+	 * Flattens a two levels deep option
+	 * @param option A two level deep option
+	 * @return A single level deep option
+	 */
+	public static <T> Option<T> flatten(Option<? extends Option<? extends T>> option)
+	{
+		if (option.exists(o -> o.isDefined()))
+			return Option.some(option.get().get());
+		else
+			return Option.none();
+	}
+	
 	
 	// IMPLEMENTED METHODS	-------------------
 	
@@ -120,6 +133,14 @@ public class Option<T>
 			return "Some(" + this.value.toString() + ")";
 		else
 			return "None";
+	}
+	
+	@Override
+	public Stream<T> stream()
+	{
+		List<T> list = new ArrayList<>();
+		forEach(list::add);
+		return list.stream();
 	}
 	
 	
@@ -380,16 +401,6 @@ public class Option<T>
 			itemHandler.accept(this.value);
 		else
 			emptyHandler.run();
-	}
-	
-	/**
-	 * @return A stream of this option
-	 */
-	public Stream<T> stream()
-	{
-		List<T> list = new ArrayList<>();
-		forEach(list::add);
-		return list.stream();
 	}
 	
 	/**
