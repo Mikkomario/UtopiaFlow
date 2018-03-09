@@ -13,6 +13,7 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -203,6 +204,53 @@ public class ImmutableList<T> implements Iterable<T>
 			}
 			return new ImmutableList<>(buffer);
 		}
+	}
+	
+	/**
+	 * Reads the contents of an iterator into an immutable list
+	 * @param iterator An iterator
+	 * @return The items read from the iterator in list format
+	 */
+	public static <T> ImmutableList<T> readWith(Iterator<? extends T> iterator)
+	{
+		List<T> buffer = new ArrayList<>();
+		while (iterator.hasNext())
+		{
+			buffer.add(iterator.next());
+		}
+		return new ImmutableList<>(buffer);
+	}
+	
+	/**
+	 * Fills a list with a value generator
+	 * @param size The size of the list
+	 * @param generator The generator that produces the items
+	 * @return A list filled with items
+	 */
+	public static <T> ImmutableList<T> filledWith(int size, Supplier<? extends T> generator)
+	{
+		List<T> buffer = new ArrayList<>(size);
+		for (int i = 0; i < size; i++)
+		{
+			buffer.add(generator.get());
+		}
+		return new ImmutableList<>(buffer);
+	}
+	
+	/**
+	 * Fills a list with a single item repeated multiple times
+	 * @param size The size of the list
+	 * @param item The item that will fill the list
+	 * @return A list filled with the item
+	 */
+	public static <T> ImmutableList<T> filledWith(int size, T item)
+	{
+		List<T> buffer = new ArrayList<>(size);
+		for (int i = 0; i < size; i++)
+		{
+			buffer.add(item);
+		}
+		return new ImmutableList<>(buffer);
 	}
 
 
