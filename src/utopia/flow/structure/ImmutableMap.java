@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -271,6 +272,28 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	public Option<Value> getOption(Key key)
 	{
 		return new Option<>(this.map.get(key));
+	}
+	
+	/**
+	 * Retrieves a value from the map
+	 * @param key A key
+	 * @param defaultValue The default value that is used if no such key is available
+	 * @return A value from the map, or the default value
+	 */
+	public Value getOrElse(Key key, Supplier<? extends Value> defaultValue)
+	{
+		return getOption(key).getOrElse(defaultValue);
+	}
+	
+	/**
+	 * Retrieves a value from the map
+	 * @param key A key
+	 * @param defaultValue The default value that is used if no such key is available
+	 * @return A value from the map, or the default value
+	 */
+	public Value getOrElse(Key key, Value defaultValue)
+	{
+		return getOption(key).getOrElse(defaultValue);
 	}
 	
 	/**
