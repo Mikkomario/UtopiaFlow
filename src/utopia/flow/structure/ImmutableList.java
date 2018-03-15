@@ -1133,6 +1133,17 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	}
 	
 	/**
+	 * Transforms this list into a map
+	 * @param f A function that maps items to key value pairs
+	 * @return A map based on this list's contents. If multiple items are mapped to the same key, only the last 
+	 * item is included
+	 */
+	public <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super T, Pair<Key, Value>> f)
+	{
+		return ImmutableMap.of(map(f));
+	}
+	
+	/**
 	 * Creates a map based on the contents of this list and mapping results. Multiple values may be grouped 
 	 * together under a single key
 	 * @param f a function that maps the items in this list to key value pairs
