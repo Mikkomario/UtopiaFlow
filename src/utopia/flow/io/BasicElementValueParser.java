@@ -27,11 +27,11 @@ public class BasicElementValueParser implements ElementValueParser
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public DataType[] getParsedTypes()
+	public ImmutableList<DataType> getParsedTypes()
 	{
-		return new DataType[] {BasicDataType.MODEL, BasicDataType.VARIABLE, 
+		return ImmutableList.withValues(BasicDataType.MODEL, BasicDataType.VARIABLE, 
 				BasicDataType.MODEL_DECLARATION, BasicDataType.VARIABLE_DECLARATION, BasicDataType.IMMUTABLE_LIST, 
-				BasicDataType.LIST};
+				BasicDataType.LIST);
 	}
 
 	@SuppressWarnings("deprecation")

@@ -1,15 +1,17 @@
 package utopia.flow.generics;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import utopia.flow.generics.ValueParser.ValueParseException;
 import utopia.flow.structure.Graph;
 import utopia.flow.structure.GraphEdge;
 import utopia.flow.structure.GraphNode;
+import utopia.flow.structure.ImmutableList;
+import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.Pair;
+import utopia.flow.util.Lazy;
+import utopia.flow.util.Option;
 
 /**
  * This class handles data type casting and finds the optimal ways to cast a value of a 
@@ -21,20 +23,8 @@ public class ConversionGraph
 {
 	// ATTRIBUTES	-------------------
 	
-	private Graph<DataType, Pair<ValueParser, ConversionReliability>> conversionGraph;
-	private Map<Pair<DataType, DataType>, ConversionRoute> optimalConversions;
-	
-	
-	// CONSTRUCTOR	-------------------
-	
-	/**
-	 * Creates a new data type conversion graph
-	 */
-	public ConversionGraph()
-	{
-		this.conversionGraph = new Graph<>();
-		this.optimalConversions = new HashMap<>();
-	}
+	private Graph<DataType, Pair<ValueParser, ConversionReliability>> conversionGraph = new Graph<>();
+	private ImmutableMap<Pair<DataType, DataType>, ConversionRoute> optimalConversions = ImmutableMap.empty();
 	
 	
 	// OTHER METHODS	---------------
@@ -45,11 +35,7 @@ public class ConversionGraph
 	 */
 	public void addParser(ValueParser parser)
 	{
-		for (Conversion conversion : parser.getConversions())
-		{
-			addConversion(conversion.getSourceType(), conversion.getTargetType(), parser, 
-					conversion.getReliability());
-		}
+		parser.getConversions().forEach(c -> addConversion(c.getSourceType(), c.getTargetType(), parser, c.getReliability()));
 	}
 	
 	/**
@@ -59,19 +45,18 @@ public class ConversionGraph
 	 * @param parser The parser that does the actual casting
 	 * @param reliability The reliability of the parser
 	 */
-	public void addConversion(DataType from, DataType to, ValueParser parser, 
-			ConversionReliability reliability)
+	public void addConversion(DataType from, DataType to, ValueParser parser, ConversionReliability reliability)
 	{
 		if (from == null || to == null || parser == null || reliability == null)
 			return;
 		
 		// Clears any previous optimal conversions, since they may be changed
-		this.optimalConversions.clear();
+		this.optimalConversions = ImmutableMap.empty();
 		
 		// Finds the existing data type nodes (where possible)
-		List<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> fromNodes = 
+		ImmutableList<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> fromNodes = 
 				findDataTypeNodes(from, false, false);
-		List<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> toNodes = 
+		ImmutableList<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> toNodes = 
 				findDataTypeNodes(to, false, false);
 		
 		GraphNode<DataType, Pair<ValueParser, ConversionReliability>> toNode, fromNode;
@@ -83,7 +68,7 @@ public class ConversionGraph
 			this.conversionGraph.addNode(toNode);
 		}
 		else
-			toNode = toNodes.get(0);
+			toNode = toNodes.head();
 		
 		// If there was no source node before, adds a new one and connects it to the target 
 		// node
@@ -97,7 +82,7 @@ public class ConversionGraph
 		// reliability is offered
 		else
 		{
-			fromNode = fromNodes.get(0);
+			fromNode = fromNodes.head();
 			GraphEdge<DataType, Pair<ValueParser, ConversionReliability>> previousConnection = 
 					fromNode.getConnectingEdge(toNode);
 			if (previousConnection == null || 
@@ -125,6 +110,7 @@ public class ConversionGraph
 		SubTypeSet targetTypes = new SubTypeSet(to);
 		DataType singleTarget = targetTypes.getSingularType();
 		
+		// TODO: Refactor once SubTypeSet has been refactored
 		if (singleTarget == null)
 			return cast(value, targetTypes);
 		else
@@ -133,11 +119,8 @@ public class ConversionGraph
 	
 	private Value castNoSubTypes(Value value, DataType to)
 	{		
-		ConversionRoute route = findOptimalRouteBetween(value.getType(), to);
-		if (route == null)
-			throw new ValueParser.ValueParseException(value, to);
-		
-		return route.cast(value);
+		return findOptimalRouteBetween(value.getType(), to).getOrFail(
+				() -> new ValueParser.ValueParseException(value, to)).cast(value);
 	}
 	
 	/**
@@ -156,12 +139,10 @@ public class ConversionGraph
 		if (to.contains(value.getType()))
 			return value;
 		
-		DataType optimalTarget = findOptimalTargetType(value.getType(), to);
+		DataType optimalTarget = findOptimalTargetType(value.getType(), to).getOrFail(
+				() -> new ValueParser.ValueParseException(value));
 		
-		if (optimalTarget == null)
-			throw new ValueParser.ValueParseException(value);
-		else
-			return castNoSubTypes(value, optimalTarget);
+		return castNoSubTypes(value, optimalTarget);
 	}
 	
 	/**
@@ -169,25 +150,13 @@ public class ConversionGraph
 	 * @param from The source data type
 	 * @param to The target data types
 	 * @return The target data types which the source data type can be cast from most reliably. 
-	 * Null if the source data type can't be converted to any of the target data types.
+	 * None if the source data type can't be converted to any of the target data types.
 	 */
-	public DataType findOptimalTargetType(DataType from, SubTypeSet to)
+	public Option<DataType> findOptimalTargetType(DataType from, SubTypeSet to)
 	{
-		// Finds the optimal target data type
-		DataType optimalTarget = null;
-		int smallestCost = -1;
-		
-		for (DataType type : to)
-		{
-			int cost = getConversionCost(from, type);
-			if (cost >= 0 && (optimalTarget == null || cost < smallestCost))
-			{
-				optimalTarget = type;
-				smallestCost = cost;
-			}
-		}
-		
-		return optimalTarget;
+		// Finds the optimal target data type (lowest defined cost)
+		return ImmutableList.of(to).flatMap(type -> getConversionCost(from, type).map(
+				cost -> new Pair<>(type, cost))).sortedBy(p -> p.getSecond()).headOption().map(p -> p.getFirst());
 	}
 	
 	/**
@@ -195,22 +164,18 @@ public class ConversionGraph
 	 * another
 	 * @param from The source value data type
 	 * @param to The target data type
-	 * @return How reliable the conversion is. Null if the conversion is impossible. In a 
+	 * @return How reliable the conversion is. None if the conversion is impossible. In a 
 	 * perfect conversion, each separate conversion is perfect.
 	 */
-	public ConversionReliability getConversionReliability(DataType from, DataType to)
+	public Option<ConversionReliability> getConversionReliability(DataType from, DataType to)
 	{
 		if (from == null || to == null)
-			return null;
+			return Option.none();
 		
 		if (from.equals(to))
-			return ConversionReliability.NO_CONVERSION;
+			return Option.some(ConversionReliability.NO_CONVERSION);
 		
-		ConversionRoute route = findOptimalRouteBetween(from, to);
-		if (route == null)
-			return null;
-		else
-			return route.getReliability();
+		return findOptimalRouteBetween(from, to).map(r -> r.getReliability());
 	}
 	
 	/**
@@ -218,21 +183,17 @@ public class ConversionGraph
 	 * @param from The source value data type
 	 * @param to The target data type
 	 * @return The cost of the conversion. The higher value, the more changes the value 
-	 * will experience. A negative number is returned for impossible conversions.
+	 * will experience. None is returned for impossible conversions.
 	 */
-	public int getConversionCost(DataType from, DataType to)
+	public Option<Integer> getConversionCost(DataType from, DataType to)
 	{
 		if (from == null || to == null)
-			return -1;
+			return Option.none();
 		
 		if (from.equals(to))
-			return 0;
+			return Option.some(0);
 		
-		ConversionRoute route = findOptimalRouteBetween(from, to);
-		if (route == null)
-			return -1;
-		else
-			return route.getCost();
+		return findOptimalRouteBetween(from, to).map(r -> r.getCost());
 	}
 	
 	/**
@@ -249,14 +210,14 @@ public class ConversionGraph
 		if (from.equals(to))
 			return true;
 		
-		return findOptimalRouteBetween(from, to) != null;
+		return findOptimalRouteBetween(from, to).isDefined();
 	}
 	
 	/**
 	 * @return All the possible single cast conversions available through this graph. This 
 	 * does not include subtype conversions.
 	 */
-	public List<Conversion> getPossibleConversions()
+	public ImmutableList<Conversion> getPossibleConversions()
 	{
 		List<Conversion> conversions = new ArrayList<>();
 		for (GraphNode<DataType, Pair<ValueParser, ConversionReliability>> node : 
@@ -271,35 +232,34 @@ public class ConversionGraph
 			}
 		}
 		
-		return conversions;
+		return ImmutableList.of(conversions);
 	}
 	
-	private ConversionRoute findOptimalRouteBetween(DataType from, DataType to)
+	private Option<ConversionRoute> findOptimalRouteBetween(DataType from, DataType to)
 	{
 		if (from == null || to == null)
-			return null;
+			return Option.none();
 		
 		// If the conversion is not necessary, returns an empty list
 		if (DataTypes.dataTypeIsOfType(from, to))
-			return new ConversionRoute(new ArrayList<>());
+			return Option.some(ConversionRoute.EMPTY);
 		
 		// Checks if the optimal conversion check has already been made
 		Pair<DataType, DataType> cast = new Pair<>(from, to);
 		if (this.optimalConversions.containsKey(cast))
-			return this.optimalConversions.get(cast);
+			return this.optimalConversions.getOption(cast);
 		
-		List<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> fromNodes = 
+		ImmutableList<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> fromNodes = 
 				findDataTypeNodes(from, false, true);
-		List<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> toNodes = 
+		ImmutableList<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> toNodes = 
 				findDataTypeNodes(to, true, false);
 		
 		// If either of the nodes can't be found from this graph, fails
 		if (fromNodes.isEmpty() || toNodes.isEmpty())
-			return null;
+			return Option.none();
 		
 		// First finds all conversion routes possible
-		List<List<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>>> 
-				routes = new ArrayList<>();
+		List<List<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>>> routes = new ArrayList<>();
 		for (GraphNode<DataType, Pair<ValueParser, ConversionReliability>> fromNode : fromNodes)
 		{
 			for (GraphNode<DataType, Pair<ValueParser, ConversionReliability>> toNode : toNodes)
@@ -313,70 +273,48 @@ public class ConversionGraph
 		
 		// If there are no possible conversions, fails
 		if (routes.isEmpty())
-			return null;
+			return Option.none();
 		
 		// If there is only a single route, uses that
 		if (routes.size() == 1)
 		{
 			ConversionRoute route = parseRoute(routes.get(0), from);
-			this.optimalConversions.put(cast, route);
-			return route;
+			this.optimalConversions = this.optimalConversions.plus(cast, route);
+			return Option.some(route);
 		}
 		// Otherwise finds the one with the smallest cost (most reliable)
 		else
 		{
-			List<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> bestRoute = null;
-			int bestCost = -1;
-			for (List<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> route : routes)
-			{
-				int cost = calculateRouteCost(route);
-				if (bestRoute == null || cost < bestCost)
-				{
-					bestRoute = route;
-					bestCost = cost;
-				}
-			}
+			List<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> bestRoute = 
+					ImmutableList.of(routes).minBy(ConversionGraph::calculateRouteCost).get();
 			
 			ConversionRoute route = parseRoute(bestRoute, from);
-			this.optimalConversions.put(cast, route);
-			return route;
+			this.optimalConversions = this.optimalConversions.plus(cast, route);
+			return Option.some(route);
 		}
 	}
 	
-	private List<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> 
+	private ImmutableList<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> 
 			findDataTypeNodes(DataType type, boolean subTypesIncluded, boolean superTypesIncluded)
 	{
 		if (!subTypesIncluded && !superTypesIncluded)
 			return this.conversionGraph.findNodes(type);
 		
-		List<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> nodes = 
-				new ArrayList<>();
+		ImmutableList<GraphNode<DataType, Pair<ValueParser, ConversionReliability>>> nodes = this.conversionGraph.findNodes(type);
 		
 		// Finds the nodes for the type. If There were none, tries for the subtypes, then 
 		// their subtypes and so on
 		if (subTypesIncluded)
-		{
-			for (DataType targetType : DataTypes.getInstance().getSubTypesFor(type, true))
-			{
-				nodes.addAll(this.conversionGraph.findNodes(targetType));
-			}
-		}
-		else
-			nodes.addAll(this.conversionGraph.findNodes(type));
+			nodes = nodes.plus(DataTypes.getInstance().getSubTypesFor(type, false).flatMap(this.conversionGraph::findNodes));
 		
 		// May also add some supertypes
 		if (superTypesIncluded)
-		{
-			for (DataType targetType : DataTypes.getInstance().getSuperTypesFor(type, false))
-			{
-				nodes.addAll(this.conversionGraph.findNodes(targetType));
-			}
-		}
+			nodes = nodes.plus(DataTypes.getInstance().getSuperTypesFor(type, false).flatMap(this.conversionGraph::findNodes));
 		
 		return nodes;
 	}
 	
-	private static ConversionRoute parseRoute(List<GraphEdge<DataType, 
+	private static ConversionRoute parseRoute(Iterable<GraphEdge<DataType, 
 			Pair<ValueParser, ConversionReliability>>> route, DataType startType)
 	{
 		List<Pair<Conversion, ValueParser>> parsed = new ArrayList<>();
@@ -390,11 +328,11 @@ public class ConversionGraph
 			lastType = nextType;
 		}
 		
-		return new ConversionRoute(parsed);
+		return new ConversionRoute(ImmutableList.of(parsed));
 	}
 	
 	private static int calculateRouteCost(
-			List<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> route)
+			Iterable<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> route)
 	{
 		int cost = 0;
 		for (GraphEdge<DataType, Pair<ValueParser, ConversionReliability>> edge : route)
@@ -416,18 +354,20 @@ public class ConversionGraph
 	{
 		// ATTRIBUTES	-----------------
 		
-		private List<Pair<Conversion, ValueParser>> steps;
-		private int cost;
-		private ConversionReliability reliability;
+		public static final ConversionRoute EMPTY = new ConversionRoute(ImmutableList.empty());
+		
+		private final ImmutableList<Pair<Conversion, ValueParser>> steps;
+		private final Lazy<Integer> cost;
+		private final Lazy<ConversionReliability> reliability;
 		
 		
 		// CONSTRUCTOR	----------------
 		
-		public ConversionRoute(List<Pair<Conversion, ValueParser>> steps)
+		public ConversionRoute(ImmutableList<Pair<Conversion, ValueParser>> steps)
 		{
 			this.steps = steps;
-			this.cost = -1;
-			this.reliability = null;
+			this.cost = new Lazy<>(() -> calculateCostFrom(this.steps));
+			this.reliability = new Lazy<>(() -> calculateReliabilityFrom(this.steps));
 		}
 		
 		
@@ -435,36 +375,12 @@ public class ConversionGraph
 		
 		public int getCost()
 		{
-			if (this.cost < 0)
-			{
-				this.cost = 0;
-				for (Pair<Conversion, ValueParser> step : this.steps)
-				{
-					this.cost += step.getFirst().getReliability().getCost();
-				}
-			}
-			
-			return this.cost;
+			return this.cost.get();
 		}
 		
 		public ConversionReliability getReliability()
 		{
-			if (this.reliability == null)
-			{
-				this.reliability = ConversionReliability.NO_CONVERSION;
-				for (Pair<Conversion, ValueParser> step : this.steps)
-				{
-					ConversionReliability stepReliability = step.getFirst().getReliability();
-					if (this.reliability.isBetterThan(stepReliability))
-					{
-						this.reliability = stepReliability;
-						if (stepReliability == ConversionReliability.DANGEROUS)
-							break;
-					}
-				}
-			}
-			
-			return this.reliability;
+			return this.reliability.get();
 		}
 		
 		
@@ -479,6 +395,29 @@ public class ConversionGraph
 			}
 			
 			return castValue;
+		}
+		
+		private static ConversionReliability calculateReliabilityFrom(ImmutableList<Pair<Conversion, ValueParser>> steps)
+		{
+			ConversionReliability reliability = ConversionReliability.NO_CONVERSION;
+			for (Pair<Conversion, ValueParser> step : steps)
+			{
+				ConversionReliability stepReliability = step.getFirst().getReliability();
+				if (reliability.isBetterThan(stepReliability))
+				{
+					reliability = stepReliability;
+					if (stepReliability == ConversionReliability.DANGEROUS)
+						break;
+				}
+			}
+			
+			return reliability;
+		}
+		
+		private static int calculateCostFrom(ImmutableList<Pair<Conversion, ValueParser>> steps)
+		{
+			return steps.map(s -> s.getFirst().getReliability().getCost()).reduceOption(
+					(total, cost) -> total + cost).getOrElse(0);
 		}
 	}
 }

@@ -6,7 +6,9 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
+import utopia.flow.structure.ImmutableList;
 import utopia.flow.util.ExtraBoolean;
 
 /**
@@ -19,7 +21,7 @@ public class BasicValueParser implements ValueParser
 	// ATTRIBUTES	-------------------
 	
 	private static BasicValueParser instance = null;
-	private Collection<Conversion> conversions;
+	private ImmutableList<Conversion> conversions;
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -28,11 +30,11 @@ public class BasicValueParser implements ValueParser
 	private BasicValueParser()
 	{
 		// Initialises the possible conversions
-		this.conversions = new ArrayList<>();
+		List<Conversion> buffer = new ArrayList<>();
 		
 		// Can reliably cast from any basic data type to a string. All of the data may not 
 		// be present in the final form
-		addConversion(BasicDataType.OBJECT, BasicDataType.STRING, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.OBJECT, BasicDataType.STRING, ConversionReliability.DATA_LOSS);
 		
 		// Can perfectly cast from int, double and long to number, but the backwards conversion 
 		// is not perfect
@@ -43,76 +45,78 @@ public class BasicValueParser implements ValueParser
 		*/
 		
 		// TODO: Could tweak the number conversion reliabilities
-		addConversion(BasicDataType.NUMBER, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
-		addConversion(BasicDataType.NUMBER, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
-		addConversion(BasicDataType.NUMBER, BasicDataType.DOUBLE, ConversionReliability.DATA_LOSS);
-		addConversion(BasicDataType.NUMBER, BasicDataType.FLOAT, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.NUMBER, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.NUMBER, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.NUMBER, BasicDataType.DOUBLE, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.NUMBER, BasicDataType.FLOAT, ConversionReliability.DATA_LOSS);
 		
 		// Integers and long can be parsed from booleans and extra booleans reliably
-		addConversion(BasicDataType.BOOLEAN, BasicDataType.INTEGER, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
-		addConversion(BasicDataType.STRING, BasicDataType.INTEGER, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.BOOLEAN, BasicDataType.INTEGER, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.EXTRA_BOOLEAN, BasicDataType.INTEGER, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.STRING, BasicDataType.INTEGER, ConversionReliability.DANGEROUS);
 		// Integers can be parsed from time
-		addConversion(BasicDataType.TIME, BasicDataType.INTEGER, ConversionReliability.MEANING_LOSS);
+		addConversion(buffer, BasicDataType.TIME, BasicDataType.INTEGER, ConversionReliability.MEANING_LOSS);
 		
-		addConversion(BasicDataType.BOOLEAN, BasicDataType.LONG, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
-		addConversion(BasicDataType.STRING, BasicDataType.LONG, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.BOOLEAN, BasicDataType.LONG, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.EXTRA_BOOLEAN, BasicDataType.LONG, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.STRING, BasicDataType.LONG, ConversionReliability.DANGEROUS);
 		
 		// Doubles as well. Doubles can also be cast from Strings, although that is unreliable
-		addConversion(BasicDataType.BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.STRING, BasicDataType.DOUBLE, ConversionReliability.DANGEROUS);
-		addConversion(BasicDataType.INTEGER, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.EXTRA_BOOLEAN, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.STRING, BasicDataType.DOUBLE, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.INTEGER, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
 		
 		// Floats can be parsed from numbers and strings
-		addConversion(BasicDataType.STRING, BasicDataType.FLOAT, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.STRING, BasicDataType.FLOAT, ConversionReliability.DANGEROUS);
 		
 		// Boolean values can be cast from numbers and extra booleans
-		addConversion(BasicDataType.NUMBER, BasicDataType.BOOLEAN, ConversionReliability.MEANING_LOSS);
-		addConversion(BasicDataType.EXTRA_BOOLEAN, BasicDataType.BOOLEAN, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.NUMBER, BasicDataType.BOOLEAN, ConversionReliability.MEANING_LOSS);
+		addConversion(buffer, BasicDataType.EXTRA_BOOLEAN, BasicDataType.BOOLEAN, ConversionReliability.DATA_LOSS);
 		
 		// Extra booleans can be cast from booleans, doubles and strings
-		addConversion(BasicDataType.BOOLEAN, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.DOUBLE, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.MEANING_LOSS);
-		addConversion(BasicDataType.STRING, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.BOOLEAN, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.DOUBLE, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.MEANING_LOSS);
+		addConversion(buffer, BasicDataType.STRING, BasicDataType.EXTRA_BOOLEAN, ConversionReliability.DANGEROUS);
 		
 		// Dates can be cast from datetimes and string
-		addConversion(BasicDataType.DATETIME, BasicDataType.DATE, ConversionReliability.DATA_LOSS);
-		addConversion(BasicDataType.STRING, BasicDataType.DATE, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.DATETIME, BasicDataType.DATE, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.STRING, BasicDataType.DATE, ConversionReliability.DANGEROUS);
 		
 		// Datetimes can be cast from date and string
-		addConversion(BasicDataType.DATE, BasicDataType.DATETIME, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.STRING, BasicDataType.DATETIME, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.DATE, BasicDataType.DATETIME, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.STRING, BasicDataType.DATETIME, ConversionReliability.DANGEROUS);
 		
 		// Times can be cast from string, datetime and integer
-		addConversion(BasicDataType.INTEGER, BasicDataType.TIME, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.DATETIME, BasicDataType.TIME, ConversionReliability.DATA_LOSS);
-		addConversion(BasicDataType.STRING, BasicDataType.TIME, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.INTEGER, BasicDataType.TIME, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.DATETIME, BasicDataType.TIME, ConversionReliability.DATA_LOSS);
+		addConversion(buffer, BasicDataType.STRING, BasicDataType.TIME, ConversionReliability.DANGEROUS);
 		
 		// Variables can be cast to any other data type, but it is unreliable 
 		// whether the cast will succeed since the variable's data type is not known
-		addConversion(BasicDataType.VARIABLE, BasicDataType.MODEL, ConversionReliability.PERFECT);
-		addConversion(BasicDataType.VARIABLE, BasicDataType.VARIABLE_DECLARATION, 
+		addConversion(buffer, BasicDataType.VARIABLE, BasicDataType.MODEL, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.VARIABLE, BasicDataType.VARIABLE_DECLARATION, 
 				ConversionReliability.DATA_LOSS);
-		addConversion(BasicDataType.VARIABLE, BasicDataType.OBJECT, ConversionReliability.DANGEROUS);
+		addConversion(buffer, BasicDataType.VARIABLE, BasicDataType.OBJECT, ConversionReliability.DANGEROUS);
 		
 		// Variable declarations can be cast to variables and model 
 		// declarations perfectly
-		addConversion(BasicDataType.VARIABLE_DECLARATION, BasicDataType.VARIABLE, 
+		addConversion(buffer, BasicDataType.VARIABLE_DECLARATION, BasicDataType.VARIABLE, 
 				ConversionReliability.PERFECT);
-		addConversion(BasicDataType.VARIABLE_DECLARATION, BasicDataType.MODEL_DECLARATION, 
+		addConversion(buffer, BasicDataType.VARIABLE_DECLARATION, BasicDataType.MODEL_DECLARATION, 
 				ConversionReliability.PERFECT);
 		
 		// Model declarations can be cast to models perfectly, but model back to declarations 
 		// only reliably
-		addConversion(BasicDataType.MODEL_DECLARATION, BasicDataType.MODEL, 
+		addConversion(buffer, BasicDataType.MODEL_DECLARATION, BasicDataType.MODEL, 
 				ConversionReliability.PERFECT);
-		addConversion(BasicDataType.MODEL, BasicDataType.MODEL_DECLARATION, 
+		addConversion(buffer, BasicDataType.MODEL, BasicDataType.MODEL_DECLARATION, 
 				ConversionReliability.DATA_LOSS);
 		
 		// Lists can be parsed from any type
-		addConversion(BasicDataType.OBJECT, BasicDataType.LIST, ConversionReliability.PERFECT);
+		addConversion(buffer, BasicDataType.OBJECT, BasicDataType.LIST, ConversionReliability.PERFECT);
+		
+		this.conversions = ImmutableList.of(buffer);
 	}
 	
 	/**
@@ -156,7 +160,7 @@ public class BasicValueParser implements ValueParser
 	}
 	
 	@Override
-	public Collection<? extends Conversion> getConversions()
+	public ImmutableList<Conversion> getConversions()
 	{
 		return this.conversions;
 	}
@@ -241,9 +245,9 @@ public class BasicValueParser implements ValueParser
 		throw new ValueParseException(value, from, to);
 	}
 	
-	private void addConversion(DataType from, DataType to, ConversionReliability reliability)
+	private static void addConversion(Collection<Conversion> buffer, DataType from, DataType to, ConversionReliability reliability)
 	{
-		this.conversions.add(new Conversion(from, to, reliability));
+		buffer.add(new Conversion(from, to, reliability));
 	}
 	
 	/**

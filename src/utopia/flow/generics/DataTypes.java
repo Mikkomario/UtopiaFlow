@@ -1,16 +1,17 @@
 package utopia.flow.generics;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import utopia.flow.generics.ValueOperation.ValueOperationException;
 import utopia.flow.io.BasicElementValueParser;
 import utopia.flow.io.ElementValueParser;
+import utopia.flow.structure.ImmutableList;
+import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.Pair;
 import utopia.flow.structure.TreeNode;
+import utopia.flow.util.Lazy;
+import utopia.flow.util.Option;
 
 /**
  * This static interface keeps track of the different data type hierarchies, etc.
@@ -21,13 +22,13 @@ public class DataTypes implements ValueParser
 {
 	// ATTRIBUTES	------------------
 	
-	private static DataTypes instance = null;
+	private static final Lazy<DataTypes> INSTANCE = new Lazy<>(() -> new DataTypes());
 	
-	private List<DataTypeTreeNode> dataTypes;
-	private ConversionGraph graph;
+	private ImmutableList<DataTypeTreeNode> dataTypes = ImmutableList.empty();
+	private ConversionGraph graph = new ConversionGraph();
 	@SuppressWarnings("deprecation")
-	private List<ValueOperator> operators;
-	private Map<DataType, ElementValueParser> specialElementParsers = new HashMap<>();
+	private ImmutableList<ValueOperator> operators = ImmutableList.empty();
+	private ImmutableMap<DataType, ElementValueParser> specialElementParsers = ImmutableMap.empty();
 	
 	
 	// CONSTRUCTOR	------------------
@@ -35,20 +36,14 @@ public class DataTypes implements ValueParser
 	@SuppressWarnings("deprecation") // Operators added for backwards compatibility
 	private DataTypes()
 	{
-		this.dataTypes = new ArrayList<>();
-		this.graph = new ConversionGraph();
-		this.operators = new ArrayList<>();
-		
 		// Adds the object type
 		DataTypeTreeNode objectNode = new DataTypeTreeNode(BasicDataType.OBJECT);
 		add(objectNode);
 		
 		// Initialises the rest of the basic data types, and adds them under the object type
-		for (DataType type : BasicDataType.values())
-		{
-			if (!type.equals(BasicDataType.OBJECT))
-				add(new DataTypeTreeNode(type, objectNode));
-		}
+		this.dataTypes = this.dataTypes.plus(
+				BasicDataType.VALUES.minus(BasicDataType.OBJECT).map(type -> new DataTypeTreeNode(type, objectNode)));
+		
 		// Connects number types
 		DataTypeTreeNode number = get(BasicDataType.NUMBER);
 		get(BasicDataType.INTEGER).setParent(number);
@@ -77,10 +72,7 @@ public class DataTypes implements ValueParser
 	 */
 	public static DataTypes getInstance()
 	{
-		if (instance == null)
-			instance = new DataTypes();
-		
-		return instance;
+		return INSTANCE.get();
 	}
 	
 	
@@ -95,7 +87,7 @@ public class DataTypes implements ValueParser
 	}
 	
 	@Override
-	public Collection<? extends Conversion> getConversions()
+	public ImmutableList<Conversion> getConversions()
 	{
 		return this.graph.getPossibleConversions();
 	}
@@ -188,8 +180,7 @@ public class DataTypes implements ValueParser
 	 * @return Does the first data type belong to the second data type
 	 * @throws DataTypeNotIntroducedException If the first data type hasn't been introduced
 	 */
-	public static boolean dataTypeIsOfType(DataType type, DataType other) throws 
-		DataTypeNotIntroducedException
+	public static boolean dataTypeIsOfType(DataType type, DataType other) throws DataTypeNotIntroducedException
 	{
 		if (type.equals(other))
 			return true;
@@ -207,26 +198,15 @@ public class DataTypes implements ValueParser
 	 */
 	public DataTypeTreeNode get(DataType type) throws DataTypeNotIntroducedException
 	{
-		DataTypeTreeNode node = getNode(type);
-		
-		if (node == null)
-			throw new DataTypeNotIntroducedException(type);
-		else
-			return node;
+		return getNode(type).getOrFail(() -> new DataTypeNotIntroducedException(type));
 	}
 	
 	/**
 	 * @return Each data type that has been introduced at this point
 	 */
-	public List<DataType> getIntroducedDataTypes()
+	public ImmutableList<DataType> getIntroducedDataTypes()
 	{
-		List<DataType> types = new ArrayList<>();
-		for (DataTypeTreeNode node : this.dataTypes)
-		{
-			types.add(node.getContent());
-		}
-		
-		return types;
+		return this.dataTypes.map(n -> n.getContent());
 	}
 	
 	/**
@@ -237,19 +217,16 @@ public class DataTypes implements ValueParser
 	 * @param includeType Should the provided data type be included in the response
 	 * @return All data types that count as the provided data type
 	 */
-	public List<DataType> getSubTypesFor(DataType type, boolean includeType)
+	public ImmutableList<DataType> getSubTypesFor(DataType type, boolean includeType)
 	{
 		DataTypeTreeNode node = get(type);
-		List<DataType> types = new ArrayList<>();
+		// TODO: Refactor once treenode has been refactored
+		ImmutableList<DataType> lowerTypes = ImmutableList.of(node.getLowerNodes()).map(n -> n.getContent());
+		
 		if (includeType)
-			types.add(type);
-		
-		for (TreeNode<DataType> lower : node.getLowerNodes())
-		{
-			types.add(lower.getContent());
-		}
-		
-		return types;
+			return lowerTypes.prepend(type);
+		else
+			return lowerTypes;
 	}
 	
 	/**
@@ -259,19 +236,17 @@ public class DataTypes implements ValueParser
 	 * @param includeType Should the provided data type be included in the response
 	 * @return All super types of this data type
 	 */
-	public List<DataType> getSuperTypesFor(DataType type, boolean includeType)
+	public ImmutableList<DataType> getSuperTypesFor(DataType type, boolean includeType)
 	{
 		DataTypeTreeNode node = get(type);
-		List<DataType> types = new ArrayList<>();
+		
+		// TODO: Refactor after treenode refactored
+		ImmutableList<DataType> higherTypes = ImmutableList.of(node.getHigherNodes()).map(n -> n.getContent());
+		
 		if (includeType)
-			types.add(type);
-		
-		for (TreeNode<DataType> superType : node.getHigherNodes())
-		{
-			types.add(superType.getContent());
-		}
-		
-		return types;
+			return higherTypes.prepend(type);
+		else
+			return higherTypes;
 	}
 	
 	/**
@@ -281,7 +256,7 @@ public class DataTypes implements ValueParser
 	 */
 	public boolean contains(DataType type)
 	{
-		return getNode(type) != null;
+		return getNode(type).isDefined();
 	}
 	
 	/**
@@ -294,14 +269,7 @@ public class DataTypes implements ValueParser
 	public void add(DataTypeTreeNode dataTypeNode)
 	{
 		if (!this.dataTypes.contains(dataTypeNode))
-		{
-			// Removes a previous node of the same type, if there is one
-			DataTypeTreeNode previous = getNode(dataTypeNode.getContent());
-			if (previous != null)
-				this.dataTypes.remove(previous);
-			
-			this.dataTypes.add(dataTypeNode);
-		}
+			this.dataTypes = this.dataTypes.overwrite(dataTypeNode, (a, b) -> a.getContent().equals(b.getContent()));
 	}
 	
 	/**
@@ -333,19 +301,29 @@ public class DataTypes implements ValueParser
 	 */
 	public void addOperator(ValueOperator operator)
 	{
-		if (operator != null && !this.operators.contains(operator))
-			this.operators.add(operator);
+		this.operators = this.operators.plusDistinct(operator);
 	}
 	
 	/**
 	 * Calculates the reliability of a conversion between two data types
 	 * @param from The source data type
 	 * @param to The target data type
-	 * @return How reliable the conversion is. Null if the conversion is impossible.
+	 * @return How reliable the conversion is. None if the conversion is impossible.
 	 */
-	public ConversionReliability getConversionReliability(DataType from, DataType to)
+	public Option<ConversionReliability> getConversionReliability(DataType from, DataType to)
 	{
 		return this.graph.getConversionReliability(from, to);
+	}
+	
+	/**
+	 * Finds the data type represented by the string
+	 * @param s a string representing a data type
+	 * @return The data type represented by the string. None if the string doesn't represent a known data type
+	 */
+	public static Option<DataType> typeFor(String s)
+	{
+		return DataTypes.getInstance().dataTypes.find(n -> n.getContent().toString().equalsIgnoreCase(s)).map(
+				n -> n.getContent());
 	}
 	
 	/**
@@ -357,13 +335,7 @@ public class DataTypes implements ValueParser
 	 */
 	public static DataType parseType(String s) throws DataTypeNotIntroducedException
 	{
-		for (DataTypeTreeNode typeNode : DataTypes.getInstance().dataTypes)
-		{
-			if (typeNode.getContent().toString().equalsIgnoreCase(s))
-				return typeNode.getContent();
-		}
-		
-		throw new DataTypeNotIntroducedException(s + " doesn't represent a known data type");
+		return typeFor(s).getOrFail(() -> new DataTypeNotIntroducedException(s + " doesn't represent a known data type"));
 	}
 	
 	/**
@@ -374,10 +346,8 @@ public class DataTypes implements ValueParser
 	 */
 	public void introduceSpecialParser(ElementValueParser parser)
 	{
-		for (DataType type : parser.getParsedTypes())
-		{
-			this.specialElementParsers.put(type, parser);
-		}
+		this.specialElementParsers = this.specialElementParsers.plus(
+				ImmutableMap.of(parser.getParsedTypes().map(t -> new Pair<>(t, parser))));
 	}
 	
 	/**
@@ -401,15 +371,9 @@ public class DataTypes implements ValueParser
 		return this.specialElementParsers.get(type);
 	}
 	
-	private DataTypeTreeNode getNode(DataType type)
+	private Option<DataTypeTreeNode> getNode(DataType type)
 	{
-		for (DataTypeTreeNode node : this.dataTypes)
-		{
-			if (node.getContent().equals(type))
-				return node;
-		}
-		
-		return null;
+		return this.dataTypes.find(n -> n.getContent().equals(type));
 	}
 	
 	/**
@@ -419,7 +383,7 @@ public class DataTypes implements ValueParser
 			DataType secondType)
 	{
 		// An operator supports a data type also if it happens to support any of its supertypes
-		Pair<List<DataType>, List<DataType>> types = new Pair<>(
+		Pair<ImmutableList<DataType>, ImmutableList<DataType>> types = new Pair<>(
 				getSuperTypesFor(firstType, true), getSuperTypesFor(secondType, true));
 		for (Pair<DataType, DataType> parameterTypes : operator.getPossibleParameterTypes())
 		{
@@ -474,19 +438,20 @@ public class DataTypes implements ValueParser
 		}
 
 		@Override
-		public Collection<? extends Conversion> getConversions()
+		public ImmutableList<Conversion> getConversions()
 		{
 			// Finds all the superType relations and parses them to conversions
 			List<Conversion> conversions = new ArrayList<>();
 			for (DataTypeTreeNode node : DataTypes.this.dataTypes)
 			{
+				// TODO: Refactor once treeNode has been refactored
 				TreeNode<DataType> parentNode = node.getParent();
 				if (parentNode != null)
 					conversions.add(new Conversion(node.getContent(), parentNode.getContent(), 
 							ConversionReliability.NO_CONVERSION));
 			}
 			
-			return conversions;
+			return ImmutableList.of(conversions);
 		}
 	}
 }

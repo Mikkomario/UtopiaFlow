@@ -4,6 +4,7 @@ import utopia.flow.generics.DataType;
 import utopia.flow.generics.DataTypes;
 import utopia.flow.generics.Value;
 import utopia.flow.structure.Element;
+import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.TreeNode;
 
 /**
@@ -23,7 +24,7 @@ public interface ElementValueParser
 	 * {@link #writeValue(Value)} and {@link #readValue(TreeNode, DataType)} should only be called 
 	 * for these data types
 	 */
-	public DataType[] getParsedTypes();
+	public ImmutableList<DataType> getParsedTypes();
 	
 	/**
 	 * Writes a value into one or more elements of different data types

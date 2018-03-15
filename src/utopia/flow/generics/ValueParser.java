@@ -1,6 +1,6 @@
 package utopia.flow.generics;
 
-import java.util.Collection;
+import utopia.flow.structure.ImmutableList;
 
 /**
  * An instance of this class can parse a value into an object
@@ -21,7 +21,7 @@ public interface ValueParser
 	/**
 	 * @return The conversions the parser is able to make
 	 */
-	public Collection<? extends Conversion> getConversions();
+	public ImmutableList<Conversion> getConversions();
 	
 	
 	// SUBCLASSES	------------------

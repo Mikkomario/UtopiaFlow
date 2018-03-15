@@ -12,6 +12,7 @@ import java.util.Set;
  * @param <EdgeContent> The type of content stored in the edges
  * @since 22.11.2015
  */
+// TODO: Refactor to use the latest data structures
 public class Graph<NodeContent, EdgeContent>
 {
 	// ATTRIBUTES	----------------------
@@ -108,7 +109,7 @@ public class Graph<NodeContent, EdgeContent>
 	 * @param content The content of the searched nodes
 	 * @return All nodes in this graph that have the provided content
 	 */
-	public List<GraphNode<NodeContent, EdgeContent>> findNodes(NodeContent content)
+	public ImmutableList<GraphNode<NodeContent, EdgeContent>> findNodes(NodeContent content)
 	{
 		List<GraphNode<NodeContent, EdgeContent>> nodes = new ArrayList<>();
 		for (GraphNode<NodeContent, EdgeContent> node : getNodes())
@@ -122,7 +123,7 @@ public class Graph<NodeContent, EdgeContent>
 				nodes.add(node);
 		}
 		
-		return nodes;
+		return ImmutableList.of(nodes);
 	}
 	
 	/**

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import utopia.flow.structure.ImmutableList;
 import utopia.flow.util.ExtraBoolean;
 
 /**
@@ -93,6 +94,14 @@ public enum BasicDataType implements DataType
 	 * Specifically instances of ImmutableList<Value>. Other types are not allowed
 	 */
 	IMMUTABLE_LIST;
+	
+	
+	// ATTRIBUTES	---------------------
+	
+	/**
+	 * The possible basic data type values
+	 */
+	public static final ImmutableList<BasicDataType> VALUES = ImmutableList.of(values());
 	
 	
 	// IMPLEMENTED METHODS	-------------
