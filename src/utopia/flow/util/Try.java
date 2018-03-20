@@ -64,6 +64,30 @@ public class Try<T>
 		return new Try<>(Option.none(), Option.some(e));
 	}
 	
+	/**
+	 * Runs a value generating function and caches any exceptions
+	 * @param f The function that is ran
+	 * @return The results of the function wrapped in a Try
+	 */
+	public static <T> Try<T> run(ThrowingSupplier<? extends T> f)
+	{
+		return new Try<>(f);
+	}
+	
+	/**
+	 * Runs a void function and caches any excpetions
+	 * @param r A runnable
+	 * @return A try that contains the error on failure
+	 */
+	public static Try<Unit> run(ThrowingRunnable r)
+	{
+		return new Try<>(() -> 
+		{
+			r.run();
+			return Unit.getInstance();
+		});
+	}
+	
 	
 	// IMPLEMENTED METHODS	-------------
 	
