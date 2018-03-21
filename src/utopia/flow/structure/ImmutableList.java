@@ -724,7 +724,7 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	 */
 	public ImmutableList<T> sortedWith(ImmutableList<? extends Comparator<? super T>> comparators)
 	{
-		Comparator<T> comparator = new Comparator<>()
+		Comparator<T> comparator = new Comparator<T>()
 		{
 			@Override
 			public int compare(T a, T b)
