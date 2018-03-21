@@ -88,6 +88,29 @@ public class Try<T>
 		});
 	}
 	
+	/**
+	 * Runs a function that returns a try result but which may also throw. Flattens the result to a single level deep try.
+	 * @param f A function which returns a try
+	 * @return The function result or a failure
+	 */
+	public static <T> Try<T> runAndFlatten(ThrowingSupplier<? extends Try<T>> f)
+	{
+		return flatten(f.get());
+	}
+	
+	/**
+	 * Flattens a two level deep try element into a single level deep element
+	 * @param t A two level deep try element
+	 * @return A single level deep try element
+	 */
+	public static <T> Try<T> flatten(Try<? extends Try<T>> t)
+	{
+		if (t.isFailure())
+			return failure(t.getFailure().get());
+		else
+			return t.getSuccess().get();
+	}
+	
 	
 	// IMPLEMENTED METHODS	-------------
 	
