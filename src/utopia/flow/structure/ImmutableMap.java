@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import utopia.flow.util.Lazy;
@@ -293,6 +294,15 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	public Value getOrElse(Key key, Value defaultValue)
 	{
 		return getOption(key).getOrElse(defaultValue);
+	}
+	
+	/**
+	 * @param f A search function for keys
+	 * @return A value for the searched key
+	 */
+	public Option<Value> find(Predicate<? super Key> f)
+	{
+		return keys().find(f).map(this::get);
 	}
 	
 	/**
