@@ -213,4 +213,19 @@ public class Promise<T>
 			return asynchronous(() -> f.apply(waitFor()));
 		}
 	}
+	
+	/**
+	 * Creates a new promise that uses the value of this promise
+	 * @param f A function that maps the value of this promise into a new promise
+	 * @return A one level deep promise for the final value
+	 */
+	public synchronized <U> Promise<U> flatMap(Function<? super T, ? extends Promise<U>> f)
+	{
+		if (isFulfilled())
+			return f.apply(getCurrentItem().get());
+		else
+		{
+			return asynchronous(() -> f.apply(waitFor()).waitFor());
+		}
+	}
 }
