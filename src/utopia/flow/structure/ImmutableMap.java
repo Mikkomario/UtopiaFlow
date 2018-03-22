@@ -11,11 +11,10 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import utopia.flow.util.Lazy;
 import utopia.flow.util.Option;
+import utopia.flow.util.Streamable;
 
 /**
  * This map doesn't allow it's contents to be modified and also supports use of options
@@ -55,10 +54,10 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * Creates a new map with existing data
 	 * @param data The key value pairs stored in the map
 	 */
-	public ImmutableMap(Collection<? extends Pair<Key, Value>> data)
+	public ImmutableMap(ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
 	{
 		this.map = new HashMap<>(data.size());
-		for (Pair<Key, Value> pair : data)
+		for (Pair<? extends Key, ? extends Value> pair : data)
 		{
 			this.map.put(pair.getFirst(), pair.getSecond());
 		}
@@ -110,7 +109,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param map a map
 	 * @return an immutable copy of the mutable map
 	 */
-	public static <Key, Value> ImmutableMap<Key, Value> of(Map<Key, Value> map)
+	public static <Key, Value> ImmutableMap<Key, Value> of(Map<? extends Key, ? extends Value> map)
 	{
 		return new ImmutableMap<>(new HashMap<>(map));
 	}
@@ -119,9 +118,9 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param data key value pairs
 	 * @return A map of the key value pairs
 	 */
-	public static <Key, Value> ImmutableMap<Key, Value> of(ImmutableList<Pair<Key, Value>> data)
+	public static <Key, Value> ImmutableMap<Key, Value> of(ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
 	{
-		return new ImmutableMap<>(data.toMutableList());
+		return new ImmutableMap<>(data);
 	}
 	
 	
@@ -324,10 +323,10 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param data The data that is appended
 	 * @return A map containing both this map's key value pairs and the provided pairs
 	 */
-	public ImmutableMap<Key, Value> plus(Collection<? extends Pair<Key, Value>> data)
+	public ImmutableMap<Key, Value> plus(Collection<? extends Pair<? extends Key, ? extends Value>> data)
 	{
 		Map<Key, Value> map = toMutableMap(data.size());
-		for (Pair<Key, Value> pair : data)
+		for (Pair<? extends Key, ? extends Value> pair : data)
 		{
 			map.put(pair.getFirst(), pair.getSecond());
 		}
@@ -339,10 +338,10 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param data The data that is appended
 	 * @return A map containing both this map's key value pairs and the provided pairs
 	 */
-	public ImmutableMap<Key, Value> plus(ImmutableList<? extends Pair<Key, Value>> data)
+	public ImmutableMap<Key, Value> plus(ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
 	{
 		Map<Key, Value> map = toMutableMap(data.size());
-		for (Pair<Key, Value> pair : data)
+		for (Pair<? extends Key, ? extends Value> pair : data)
 		{
 			map.put(pair.getFirst(), pair.getSecond());
 		}
@@ -403,10 +402,9 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a function that maps key value pairs
 	 * @return A mapped map
 	 */
-	public <K, V> ImmutableMap<K, V> map(BiFunction<Key, Value, Pair<K, V>> f)
+	public <K, V> ImmutableMap<K, V> map(BiFunction<? super Key, ? super Value, ? extends Pair<? extends K, ? extends V>> f)
 	{
-		return new ImmutableMap<>(toSet().stream().map(
-				keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())).collect(Collectors.toSet()));
+		return new ImmutableMap<>(toList().map(keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())));
 	}
 	
 	/**
@@ -414,10 +412,10 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a function that maps key value pairs to collections
 	 * @return A mapped map
 	 */
-	public <K, V> ImmutableMap<K, V> flatMap(BiFunction<Key, Value, Stream<Pair<K, V>>> f)
+	public <K, V> ImmutableMap<K, V> flatMap(BiFunction<? super Key, ? super Value, 
+			? extends Streamable<? extends Pair<? extends K, ? extends V>>> f)
 	{
-		return new ImmutableMap<>(toSet().stream().flatMap(
-				keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())).collect(Collectors.toSet()));
+		return new ImmutableMap<>(toList().flatMap(keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())));
 	}
 	
 	/**
@@ -425,7 +423,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a function that maps keys
 	 * @return A mapped map
 	 */
-	public <K> ImmutableMap<K, Value> mapKeys(Function<? super Key, K> f)
+	public <K> ImmutableMap<K, Value> mapKeys(Function<? super Key, ? extends K> f)
 	{
 		return map((k, v) -> new Pair<>(f.apply(k), v));
 	}
@@ -435,7 +433,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a function that maps values
 	 * @return A mapped map
 	 */
-	public <V> ImmutableMap<Key, V> mapValues(Function<? super Value, V> f)
+	public <V> ImmutableMap<Key, V> mapValues(Function<? super Value, ? extends V> f)
 	{
 		return map((k, v) -> new Pair<>(k, f.apply(v)));
 	}
@@ -445,9 +443,9 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a function that maps values to a new value or empty
 	 * @return A mapped map
 	 */
-	public <V> ImmutableMap<Key, V> flatMapValues(Function<? super Value, Option<V>> f)
+	public <V> ImmutableMap<Key, V> flatMapValues(Function<? super Value, ? extends Option<? extends V>> f)
 	{
-		return flatMap((k, v) -> f.apply(v).map(newValue -> new Pair<>(k, newValue)).stream());
+		return flatMap((k, v) -> f.apply(v).map(newValue -> new Pair<>(k, newValue)));
 	}
 	
 	/**
@@ -455,22 +453,41 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f a predicate that determines whether a key value pair is kept in the map
 	 * @return A filtered map
 	 */
-	public ImmutableMap<Key, Value> filter(BiPredicate<Key, Value> f)
+	public ImmutableMap<Key, Value> filter(BiPredicate<? super Key, ? super Value> f)
 	{
-		return new ImmutableMap<>(toSet().stream().filter(keyValue -> 
-				f.test(keyValue.getFirst(), keyValue.getSecond())).collect(Collectors.toSet()));
+		return new ImmutableMap<>(toList().filter(keyValue -> f.test(keyValue.getFirst(), keyValue.getSecond())));
 	}
 	
 	/**
 	 * Performs a consumer for each key value pair in this map
 	 * @param f a consumer for key value pairs
 	 */
-	public void forEach(BiConsumer<Key, Value> f)
+	public void forEach(BiConsumer<? super Key, ? super Value> f)
 	{
 		for (Pair<Key, Value> keyValue : this)
 		{
 			f.accept(keyValue.getFirst(), keyValue.getSecond());
 		}
+	}
+	
+	/**
+	 * Checks if a predicate is true for all key value pairs in this map
+	 * @param f A predicate
+	 * @return Whether the predicate is true for all key value pairs in this map. True if this map is empty.
+	 */
+	public boolean forAll(BiPredicate<? super Key, ? super Value> f)
+	{
+		return toList().forAll(p -> f.test(p.getFirst(), p.getSecond()));
+	}
+	
+	/**
+	 * Checks if this map contains a key value pair that is accepted by the predicate
+	 * @param f a predicate
+	 * @return Whether this map contains a key value pair accepted by the predicate
+	 */
+	public boolean exists(BiPredicate<? super Key, ? super Value> f)
+	{
+		return toList().exists(p -> f.test(p.getFirst(), p.getSecond()));
 	}
 	
 	/**
