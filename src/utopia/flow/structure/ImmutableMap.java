@@ -491,6 +491,26 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	}
 	
 	/**
+	 * Maps the key value pairs in this map into list format
+	 * @param f A mapping function
+	 * @return A list of mapped items
+	 */
+	public <B> ImmutableList<B> mapToList(BiFunction<? super Key, ? super Value, ? extends B> f)
+	{
+		return toList().map(p -> f.apply(p.getFirst(), p.getSecond()));
+	}
+	
+	/**
+	 * Maps the key value pairs in this map into a one level deep list format
+	 * @param f A mapping function
+	 * @return A one level deep list of mapped items
+	 */
+	public <B> ImmutableList<B> flatMapToList(BiFunction<? super Key, ? super Value, ? extends Streamable<? extends B>> f)
+	{
+		return toList().flatMap(p -> f.apply(p.getFirst(), p.getSecond()));
+	}
+	
+	/**
 	 * @return A version of this map that has lists for values
 	 */
 	public ImmutableMap<Key, ImmutableList<Value>> toListMap()
