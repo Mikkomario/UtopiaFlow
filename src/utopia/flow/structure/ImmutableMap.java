@@ -1,9 +1,11 @@
 package utopia.flow.structure;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -118,10 +120,29 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	/**
 	 * @param data key value pairs
 	 * @return A map of the key value pairs
+	 * @see #listMap(ImmutableList)
 	 */
 	public static <Key, Value> ImmutableMap<Key, Value> of(ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
 	{
 		return new ImmutableMap<>(data);
+	}
+	
+	/**
+	 * Creates a new list map (a map with multiple values per key)
+	 * @param data The data used for creating the map
+	 * @return A list map containing the provided data
+	 */
+	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> listMap(ImmutableList<Pair<Key, Value>> data)
+	{
+		Map<Key, List<Value>> map = new HashMap<>(data.size());
+		data.forEach(p -> 
+		{
+			if (!map.containsKey(p.getFirst()))
+				map.put(p.getFirst(), new ArrayList<>());
+			map.get(p.getFirst()).add(p.getSecond());
+		});
+		
+		return new ImmutableMap<>(map).mapValues(ImmutableList::of);
 	}
 	
 	
