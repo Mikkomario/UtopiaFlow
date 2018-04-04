@@ -59,4 +59,33 @@ public class BasicVariableParser implements VariableParser<Variable>
 	{
 		return new Variable(variable);
 	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((this.defaultValue == null) ? 0 : this.defaultValue.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof BasicVariableParser))
+			return false;
+		BasicVariableParser other = (BasicVariableParser) obj;
+		if (this.defaultValue == null)
+		{
+			if (other.defaultValue != null)
+				return false;
+		}
+		else if (!this.defaultValue.equals(other.defaultValue))
+			return false;
+		return true;
+	}
 }

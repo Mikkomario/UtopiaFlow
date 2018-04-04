@@ -132,7 +132,8 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param data The data used for creating the map
 	 * @return A list map containing the provided data
 	 */
-	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> listMap(ImmutableList<Pair<Key, Value>> data)
+	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> listMap(
+			ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
 	{
 		Map<Key, List<Value>> map = new HashMap<>(data.size());
 		data.forEach(p -> 
