@@ -14,6 +14,7 @@ import utopia.flow.util.Filter;
  * @since 23.7.2014
  * @param <T> The data type the node contains
  */
+@SuppressWarnings("deprecation")
 public class TreeNode<T> implements Node<T>
 {
 	// ATTRIBUTES	------------------------------------------------------

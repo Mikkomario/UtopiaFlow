@@ -7,6 +7,7 @@ import java.util.Comparator;
  * @author Mikko Hilpinen
  * @since 30.4.2016
  * @param <T> The type of object filtered by this filter (must be comparable)
+ * @deprecated Please use Java 8 filters instead
  */
 public class InRangeFilter<T> implements Filter<T>
 {

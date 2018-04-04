@@ -9,8 +9,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Collection;
 
-import utopia.flow.util.Filter;
-
 /**
  * This is a static collection of methods that provide utility when dealing with files
  * @author Mikko Hilpinen
@@ -79,8 +77,9 @@ public class FileUtils
 	 * @param nameFilter the filter that is applied to the files to determine if they would get selected
 	 * @return All file names (no leading path included) that have the provided format 
 	 * under the provided directory. Null if no such directory exists or if an IO error occurred
+	 * @deprecated Please use Java 8 filters instead
 	 */
-	public static String[] findFileNamesIn(File directory, Filter<String> nameFilter)
+	public static String[] findFileNamesIn(File directory, utopia.flow.util.Filter<String> nameFilter)
 	{
 		FilenameFilter filter = new FilenameFilter()
 		{

@@ -28,6 +28,7 @@ import utopia.flow.util.StringFilter;
  * @author Mikko Hilpinen
  * @since 30.4.2016
  */
+@SuppressWarnings("deprecation")
 class XmlReadWriteTest
 {
 	// MAIN METHOD	--------------------

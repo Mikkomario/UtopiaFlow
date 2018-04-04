@@ -4,6 +4,7 @@ package utopia.flow.util;
  * This filter is able to filter strings from each other
  * @author Mikko Hilpinen
  * @since 27.4.2016
+ * @deprecated Please use Java 8 filters instead
  */
 public class StringFilter implements Filter<String>
 {

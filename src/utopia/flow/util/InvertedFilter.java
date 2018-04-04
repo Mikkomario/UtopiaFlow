@@ -5,6 +5,7 @@ package utopia.flow.util;
  * @author Mikko Hilpinen
  * @since 29.4.2016
  * @param <T> The type of object filtered by this filter
+ * @deprecated Please use Java 8 filters instead
  */
 public class InvertedFilter<T> implements Filter<T>
 {

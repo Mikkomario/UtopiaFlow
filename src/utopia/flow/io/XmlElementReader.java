@@ -28,6 +28,7 @@ import utopia.flow.util.Filter;
  * @author Mikko Hilpinen
  * @since 29.4.2016
  */
+@SuppressWarnings("deprecation")
 public class XmlElementReader implements AutoCloseable
 {
 	// TODO: Create a common interface that can be used in json reading as well

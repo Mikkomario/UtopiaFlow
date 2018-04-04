@@ -9,6 +9,7 @@ import java.util.List;
  * @author Mikko Hilpinen
  * @since 29.4.2016
  * @param <T> The type of object filtered by this filter
+ * @deprecated Please use Java 8 filters instead
  */
 public class CombinedFilter<T> implements Filter<T>
 {

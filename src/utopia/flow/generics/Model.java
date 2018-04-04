@@ -11,7 +11,6 @@ import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.Pair;
 import utopia.flow.util.ExtraBoolean;
-import utopia.flow.util.Filter;
 import utopia.flow.util.Option;
 
 /**
@@ -395,7 +394,7 @@ public class Model<VariableType extends Variable>
 	 * @return The attributes included by the filter
 	 * @deprecated Replaced with ImmutableList filter function
 	 */
-	public List<VariableType> findAttributesByName(Filter<String> nameFilter)
+	public List<VariableType> findAttributesByName(utopia.flow.util.Filter<String> nameFilter)
 	{
 		List<VariableType> attributes = new ArrayList<>();
 		for (VariableType attribute : getAttributes())
@@ -412,9 +411,9 @@ public class Model<VariableType extends Variable>
 	 * @return The attributes included by the filter
 	 * @deprecated Replaced with ImmutableList filter function
 	 */
-	public List<VariableType> findAttributesByValue(Filter<Value> valueFilter)
+	public List<VariableType> findAttributesByValue(utopia.flow.util.Filter<Value> valueFilter)
 	{
-		return Filter.filterNodes(getAttributes().toMutableList(), valueFilter);
+		return utopia.flow.util.Filter.filterNodes(getAttributes().toMutableList(), valueFilter);
 	}
 	
 	/**
@@ -423,9 +422,9 @@ public class Model<VariableType extends Variable>
 	 * @return The attributes included by the filter
 	 * @deprecated Replaced with ImmutableList filter function
 	 */
-	public List<VariableType> findAttributes(Filter<VariableType> attributeFilter)
+	public List<VariableType> findAttributes(utopia.flow.util.Filter<VariableType> attributeFilter)
 	{
-		return Filter.filter(getAttributes().toMutableList(), attributeFilter);
+		return utopia.flow.util.Filter.filter(getAttributes().toMutableList(), attributeFilter);
 	}
 	
 	/**

@@ -10,6 +10,7 @@ import utopia.flow.structure.Node;
  * @author Mikko Hilpinen
  * @since 27.4.2016
  * @param <T> The type of content filtered by this filter
+ * @deprecated Please use Java 8 filters instead
  */
 public interface Filter<T>
 {
