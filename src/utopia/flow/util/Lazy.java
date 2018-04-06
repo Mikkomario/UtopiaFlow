@@ -34,7 +34,7 @@ public class Lazy<T> implements Supplier<T>
 	 * @return The lazily initialized item
 	 */
 	@Override
-	public T get()
+	public synchronized T get()
 	{
 		if (this.item.isDefined())
 			return this.item.get();
