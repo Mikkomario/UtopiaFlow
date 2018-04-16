@@ -1,5 +1,6 @@
 package utopia.flow.util;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -144,10 +145,10 @@ public class Attempt<T> extends Promise<Try<T>>
 	/**
 	 * Maps this attempt contents
 	 * @param forceAsync Whether the contents should always be mapped asynchronously (use this for blocking operations)
-	 * @param f a mapping function
+	 * @param f a mapping function (returns a try)
 	 * @return A mapped attempt
 	 */
-	public <B> Attempt<B> mapAttempt(boolean forceAsync, Function<? super T, ? extends Try<B>> f)
+	public <B> Attempt<B> mapAttemptTry(boolean forceAsync, Function<? super T, ? extends Try<B>> f)
 	{
 		if (isFulfilled() && !forceAsync)
 			return Attempt.fulfilled(getCurrentItem().get().flatMap(f));
@@ -155,6 +156,17 @@ public class Attempt<T> extends Promise<Try<T>>
 		{
 			return tryAsynchronous(() -> waitFor().flatMap(f));
 		}
+	}
+	
+	/**
+	 * Maps this attempt contents
+	 * @param forceAsync Whether the contents should always be mapped asynchronously (use this for blocking operations)
+	 * @param f a mapping function
+	 * @return A mapped attempt
+	 */
+	public <B> Attempt<B> mapAttempt(boolean forceAsync, Function<? super T, ? extends B> f)
+	{
+		return mapAttemptTry(forceAsync, a -> Try.success(f.apply(a)));
 	}
 	
 	/**
@@ -168,6 +180,54 @@ public class Attempt<T> extends Promise<Try<T>>
 			return flatMapResult(getCurrentItem().get(), f);
 		else
 			return Attempt.tryAsynchronous(() -> flatMapResult(waitFor(), f).waitFor());
+	}
+	
+	/**
+	 * Creates a new attempt that uses the provided value on a failure case
+	 * @param f A function that produces a backup value (try)
+	 * @return A mapped attempt
+	 */
+	public Attempt<T> withBackUpTry(Supplier<? extends Try<T>> f)
+	{
+		if (isFulfilled())
+		{
+			if (isSuccess())
+				return this;
+			else
+				return Attempt.fulfilled(f.get());
+		}
+		else
+			return Attempt.tryAsynchronous(() -> waitFor().orElse(f));
+	}
+	
+	/**
+	 * Creates a new attempt that uses the provided value on a failure case
+	 * @param f A function that produces a backup value
+	 * @return A mapped attempt
+	 */
+	public Attempt<T> withBackUp(Supplier<? extends T> f)
+	{
+		return withBackUpTry(() -> Try.success(f.get()));
+	}
+	
+	/**
+	 * Handles the resulting data. This will force asynchronous handling
+	 * @param successHandler A function that will be called if this attempt succeeds
+	 * @param failureHandler A function that will be called if this attempt fails
+	 */
+	public void handleAsync(Consumer<? super T> successHandler, Consumer<? super Exception> failureHandler)
+	{
+		doAsync(result -> result.handle(successHandler, failureHandler));
+	}
+	
+	/**
+	 * Handles the resulting data
+	 * @param successHandler A function that will be called if this attempt succeeds
+	 * @param failureHandler A function that will be called if this attempt fails
+	 */
+	public void handleOnceFulfilled(Consumer<? super T> successHandler, Consumer<? super Exception> failureHandler)
+	{
+		doOnceFulfilled(result -> result.handle(successHandler, failureHandler));
 	}
 	
 	private static <T, B> Attempt<B> flatMapResult(Try<T> result, Function<? super T, ? extends Attempt<B>> f)

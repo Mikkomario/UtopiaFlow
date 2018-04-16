@@ -2,6 +2,7 @@ package utopia.flow.util;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A try is used for wrapping an exception into a returnable format without breaking the control flow
@@ -207,6 +208,19 @@ public class Try<T>
 			return this;
 		else
 			return defaultValue;
+	}
+	
+	/**
+	 * Gets the value from this try or uses the default value, which may also fail
+	 * @param defaultValue The default value that may fail
+	 * @return This try if success or the default value otherwise
+	 */
+	public Try<T> orElse(Supplier<? extends Try<T>> defaultValue)
+	{
+		if (isSuccess())
+			return this;
+		else
+			return defaultValue.get();
 	}
 	
 	/**
