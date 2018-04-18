@@ -249,17 +249,6 @@ public class Option<T> implements Streamable<T>
 	}
 	
 	/**
-	 * Performs a function over the value of this option, if there is one
-	 * @param c The consumer that uses the value
-	 * @throws Exception The consumer may throw
-	 */
-	public void forEachThrowing(ThrowingConsumer<? super T> c) throws Exception
-	{
-		if (isDefined())
-			c.accept(this.value);
-	}
-	
-	/**
 	 * Maps this option into a different type of option
 	 * @param f A function that transforms the value in this option
 	 * @return An option wrapping the transformed value or none if this option was empty

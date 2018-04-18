@@ -7,16 +7,17 @@ import java.util.function.Supplier;
  * @author Mikko Hilpinen
  * @since 5 Dec 2017
  * @param <T> The type of result supplied on success
+ * @param <E> The type of exception thrown by this supplier
  */
 @FunctionalInterface
-public interface ThrowingSupplier<T> extends Supplier<Try<T>>
+public interface ThrowingSupplier<T, E extends Exception> extends Supplier<Try<T>>
 {
 	/**
 	 * Supplies a new value. May fail.
 	 * @return The generated value
 	 * @throws Exception Throws an exception on failure
 	 */
-	public T throwingGet() throws Exception;
+	public T throwingGet() throws E;
 	
 	@Override
 	public default Try<T> get()

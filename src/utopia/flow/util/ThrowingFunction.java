@@ -9,9 +9,10 @@ import java.util.function.Function;
  * @since 5 Dec 2017
  * @param <T> The type of the input parameter
  * @param <R> The type of a successful output
+ * @param <E> The type of exception thrown by this function
  */
 @FunctionalInterface
-public interface ThrowingFunction<T, R> extends Function<T, Try<R>>
+public interface ThrowingFunction<T, R, E extends Exception> extends Function<T, Try<R>>
 {
 	/**
 	 * Processes a parameter. May fail.
@@ -19,7 +20,7 @@ public interface ThrowingFunction<T, R> extends Function<T, Try<R>>
 	 * @return The return value for the parameter
 	 * @throws Exception Throws an exception on failure
 	 */
-	public R throwingApply(T param) throws Exception;
+	public R throwingApply(T param) throws E;
 	
 	@Override
 	public default Try<R> apply(T param)

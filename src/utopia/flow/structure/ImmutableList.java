@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 import utopia.flow.util.Lazy;
 import utopia.flow.util.Option;
 import utopia.flow.util.Streamable;
-import utopia.flow.util.ThrowingConsumer;
 
 /**
  * This list cannot be modified after creation and is safe to pass around as a value
@@ -1075,19 +1074,6 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 		}
 		
 		return new ImmutableList<>(distinctValues);
-	}
-	
-	/**
-	 * Performs a throwing operation on each of the elements in this list. Stops iterating on the first exception.
-	 * @param f The function that is performed for each element in the list
-	 * @throws Exception The first exception thrown by the function
-	 */
-	public void forEachThrowing(ThrowingConsumer<? super T> f) throws Exception
-	{
-		for (T item : this)
-		{
-			f.accept(item);
-		}
 	}
 	
 	/**

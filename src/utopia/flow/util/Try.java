@@ -31,7 +31,7 @@ public class Try<T>
 	 * otherwise the resulting try will contain the function result
 	 * @param f A function that produces the tried result
 	 */
-	public Try(ThrowingSupplier<? extends T> f)
+	public Try(ThrowingSupplier<? extends T, ?> f)
 	{
 		try
 		{
@@ -70,7 +70,7 @@ public class Try<T>
 	 * @param f The function that is ran
 	 * @return The results of the function wrapped in a Try
 	 */
-	public static <T> Try<T> run(ThrowingSupplier<? extends T> f)
+	public static <T> Try<T> run(ThrowingSupplier<? extends T, ?> f)
 	{
 		return new Try<>(f);
 	}
@@ -80,7 +80,7 @@ public class Try<T>
 	 * @param r A runnable
 	 * @return A try that contains the error on failure
 	 */
-	public static Try<Unit> run(ThrowingRunnable r)
+	public static Try<Unit> run(ThrowingRunnable<?> r)
 	{
 		return new Try<>(() -> 
 		{
@@ -94,7 +94,7 @@ public class Try<T>
 	 * @param f A function which returns a try
 	 * @return The function result or a failure
 	 */
-	public static <T> Try<T> runAndFlatten(ThrowingSupplier<? extends Try<T>> f)
+	public static <T> Try<T> runAndFlatten(ThrowingSupplier<? extends Try<T>, ?> f)
 	{
 		return flatten(f.get());
 	}
@@ -149,9 +149,9 @@ public class Try<T>
 	/**
 	 * Unwraps the try, throwing the exception on failure
 	 * @return The success value on success
-	 * @throws Exception Throws on failure
+	 * @throws TryFailedException Throws on failure
 	 */
-	public T unwrap() throws Exception
+	public T unwrap() throws TryFailedException
 	{
 		throwIfFailure();
 		return getSuccess().get();
@@ -189,12 +189,12 @@ public class Try<T>
 	
 	/**
 	 * Throws an exception if this try is a failure
-	 * @throws Exception Throws on failure
+	 * @throws TryFailedException Throws on failure
 	 */
-	public void throwIfFailure() throws Exception
+	public void throwIfFailure() throws TryFailedException
 	{
 		if (isFailure())
-			throw getFailure().get();
+			throw new TryFailedException(getFailure().get());
 	}
 	
 	/**
@@ -288,11 +288,42 @@ public class Try<T>
 	/**
 	 * Performs an operation on the try's success value or fails
 	 * @param successHandler The function called on success
-	 * @throws Exception Throws on failure
+	 * @throws TryFailedException Throws on failure
 	 */
-	public void forEachThrowing(ThrowingConsumer<? super T> successHandler) throws Exception
+	public <E extends Exception> void forEachThrowing(ThrowingConsumer<? super T, ? extends E> successHandler) throws TryFailedException, E
 	{
 		throwIfFailure();
 		successHandler.accept(getSuccess().get());
+	}
+	
+	
+	// NESTED CLASSES	----------------------------
+	
+	/**
+	 * These exceptions are thrown by unhandled failing tries
+	 * @author Mikko Hilpinen
+	 * @since 18.4.2018
+	 */
+	public static class TryFailedException extends Exception
+	{
+		private static final long serialVersionUID = 8213827146452728954L;
+		
+		/**
+		 * Wraps another exception
+		 * @param cause The causing exception
+		 */
+		public TryFailedException(Throwable cause)
+		{
+			super(cause);
+		}
+		
+		/**
+		 * Throws the original causing exception
+		 * @throws Throwable The original exception
+		 */
+		public void throwCause() throws Throwable
+		{
+			throw getCause();
+		}
 	}
 }
