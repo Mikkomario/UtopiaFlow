@@ -277,9 +277,9 @@ public class Try<T>
 	/**
 	 * Performs an operation on the try's success value or fails
 	 * @param successHandler The function called on success
-	 * @throws Exception Throws on failure
+	 * @throws TryFailedException Throws on failure
 	 */
-	public void forEach(Consumer<? super T> successHandler) throws Exception
+	public void forEach(Consumer<? super T> successHandler) throws TryFailedException
 	{
 		throwIfFailure();
 		successHandler.accept(getSuccess().get());
