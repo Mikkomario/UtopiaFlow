@@ -312,9 +312,9 @@ public class Try<T>
 		 * Wraps another exception
 		 * @param cause The causing exception
 		 */
-		public TryFailedException(Throwable cause)
+		public TryFailedException(Exception cause)
 		{
-			super(cause);
+			super(cause.getMessage(), cause);
 		}
 		
 		/**
