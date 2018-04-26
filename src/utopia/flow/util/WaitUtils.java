@@ -1,6 +1,8 @@
 package utopia.flow.util;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -48,6 +50,16 @@ public class WaitUtils
 	}
 	
 	/**
+	 * Waits a certain amount of milliseconds
+	 * @param duration The duration of the wait
+	 * @param lock The object used as a lock
+	 */
+	public static void wait(Duration duration, Object lock)
+	{
+		wait(duration.toMillis(), lock);
+	}
+	
+	/**
 	 * Waits until a specified instant
 	 * @param target The target instant
 	 * @param lock The object used as a lock
@@ -55,6 +67,17 @@ public class WaitUtils
 	public static void waitUntil(Instant target, Object lock)
 	{
 		long waitMillis = ChronoUnit.MILLIS.between(Instant.now(), target);
+		wait(waitMillis, lock);
+	}
+	
+	/**
+	 * Waits until a specified local time
+	 * @param target The target instant
+	 * @param lock The object used as a lock
+	 */
+	public static void waitUntil(LocalDateTime target, Object lock)
+	{
+		long waitMillis = ChronoUnit.MILLIS.between(LocalDateTime.now(), target);
 		wait(waitMillis, lock);
 	}
 }
