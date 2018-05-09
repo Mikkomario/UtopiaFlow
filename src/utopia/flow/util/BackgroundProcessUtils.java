@@ -117,16 +117,20 @@ public class BackgroundProcessUtils
 		performAfter(r, duration.toMillis());
 	}
 	
-	private static void repeat(Runnable r, long intervalMillis, Option<Supplier<Boolean>> checkContinue)
-	{
-		runInBackground(new RepeatingRunnable(r, intervalMillis, checkContinue));
-	}
-	
-	private static void runInBackground(Runnable r)
+	/**
+	 * Runs a process on a background thread
+	 * @param r A process that will be run
+	 */
+	public static void runInBackground(Runnable r)
 	{
 		Thread t = new Thread(r);
 		t.setDaemon(true);
 		t.start();
+	}
+	
+	private static void repeat(Runnable r, long intervalMillis, Option<Supplier<Boolean>> checkContinue)
+	{
+		runInBackground(new RepeatingRunnable(r, intervalMillis, checkContinue));
 	}
 	
 	
