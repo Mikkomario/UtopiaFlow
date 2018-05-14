@@ -16,4 +16,14 @@ public interface ThrowingConsumer<T, E extends Exception>
 	 * @throws E Exceptions are thrown on failure
 	 */
 	public void accept(T o) throws E;
+	
+	/**
+	 * Handles the input value, caching any exceptions
+	 * @param o the input value
+	 * @return A try that contains the failure if there is one
+	 */
+	public default Try<Unit> tryAccept(T o)
+	{
+		return Try.run(() -> accept(o));
+	}
 }
