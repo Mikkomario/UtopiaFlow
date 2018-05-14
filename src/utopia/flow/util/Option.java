@@ -1,15 +1,14 @@
 package utopia.flow.util;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import utopia.flow.structure.ImmutableList;
+import utopia.flow.structure.RichIterable;
+import utopia.flow.structure.RichIterator;
 
 /**
  * Optionals can be used for more null-safe access of values
@@ -17,7 +16,7 @@ import utopia.flow.structure.ImmutableList;
  * @param <T> The type of the value handled by this option
  * @since 6.9.2017
  */
-public class Option<T> implements Streamable<T>
+public class Option<T> implements RichIterable<T>
 {
 	// ATTRIBUTES	---------------------
 	
@@ -136,11 +135,9 @@ public class Option<T> implements Streamable<T>
 	}
 	
 	@Override
-	public Stream<T> stream()
+	public RichIterator<T> iterator()
 	{
-		List<T> list = new ArrayList<>();
-		forEach(list::add);
-		return list.stream();
+		return new OptionIterator();
 	}
 	
 	
@@ -239,16 +236,6 @@ public class Option<T> implements Streamable<T>
 	}
 	
 	/**
-	 * Performs a function over the value of this option, if there is one
-	 * @param c The consumer that uses the value
-	 */
-	public void forEach(Consumer<? super T> c)
-	{
-		if (isDefined())
-			c.accept(this.value);
-	}
-	
-	/**
 	 * Maps this option into a different type of option
 	 * @param f A function that transforms the value in this option
 	 * @return An option wrapping the transformed value or none if this option was empty
@@ -273,32 +260,6 @@ public class Option<T> implements Streamable<T>
 			return result.get();
 		else
 			return Option.none();
-	}
-	
-	/**
-	 * Checks if there exists a value for which the function applies
-	 * @param f a function
-	 * @return false if this option is empty, the value of the function over the contents of this option otherwise
-	 */
-	public boolean exists(Predicate<? super T> f)
-	{
-		if (isDefined())
-			return f.test(this.value);
-		else
-			return false;
-	}
-	
-	/**
-	 * Checks if a function applies to the value in this option. If the option is empty, returns true.
-	 * @param f a function
-	 * @return The value of the function over the value in this option or true if this option is empty
-	 */
-	public boolean forAll(Predicate<? super T> f)
-	{
-		if (isDefined())
-			return f.test(this.value);
-		else
-			return true;
 	}
 	
 	/**
@@ -349,22 +310,7 @@ public class Option<T> implements Streamable<T>
 	 */
 	public boolean valueEquals(Object other)
 	{
-		if (this.value == null)
-			return other == null;
-		else if (other == null)
-			return false;
-		else
-			return this.value.equals(other);
-	}
-	
-	/**
-	 * Checks whether this option contains the specific value
-	 * @param value a value
-	 * @return Whether the value is contained within this option
-	 */
-	public boolean contains(Object value)
-	{
-		return valueEquals(value);
+		return contains(other);
 	}
 	
 	/**
@@ -401,5 +347,31 @@ public class Option<T> implements Streamable<T>
 			return ImmutableList.withValue(this.value);
 		else
 			return ImmutableList.empty();
+	}
+	
+	
+	// NESTED CLASSES	----------------------
+	
+	private class OptionIterator implements RichIterator<T>
+	{
+		// ATTRIBUTES	----------------------
+		
+		private boolean consumed = false;
+		
+		
+		// IMPLEMENTED METHODS	--------------
+		
+		@Override
+		public boolean hasNext()
+		{
+			return !this.consumed && isDefined();
+		}
+
+		@Override
+		public T next()
+		{
+			this.consumed = true;
+			return get();
+		}	
 	}
 }

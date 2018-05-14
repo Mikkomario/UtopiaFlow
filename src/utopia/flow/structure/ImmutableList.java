@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 
 import utopia.flow.util.Lazy;
 import utopia.flow.util.Option;
-import utopia.flow.util.Streamable;
 
 /**
  * This list cannot be modified after creation and is safe to pass around as a value
@@ -27,7 +26,7 @@ import utopia.flow.util.Streamable;
  * @param <T> The type of element stored within this list
  * @since 2.11.2017
  */
-public class ImmutableList<T> implements Iterable<T>, Streamable<T>
+public class ImmutableList<T> implements RichIterable<T>
 {
 	// ATTRIBUTES	-------------------
 	
@@ -39,7 +38,12 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	
 	// CONSTRUCTOR	-------------------
 	
-	private ImmutableList(List<T> list)
+	/**
+	 * Wraps a list into an immutable list.
+	 * NB: The list must not be modified after this method is called
+	 * @param list A list to be wrapped
+	 */
+	ImmutableList(List<T> list)
 	{
 		this.list = list;
 		this.size = new Lazy<>(() -> this.list.size());
@@ -135,11 +139,11 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	 * @param list a list of lists
 	 * @return a list containing all elements in the lists
 	 */
-	public static <T> ImmutableList<T> flatten(Streamable<? extends Streamable<? extends T>> list)
+	public static <T> ImmutableList<T> flatten(Iterable<? extends Iterable<? extends T>> list)
 	{
 		// int size = list.fold(0, (total, elem) -> total + elem.size());
 		List<T> mutable = new ArrayList<>();
-		list.stream().forEach(elem -> elem.stream().forEach(mutable::add));
+		list.forEach(elem -> elem.forEach(mutable::add));
 		
 		return new ImmutableList<>(mutable);
 	}
@@ -151,7 +155,7 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	 * @return A combination of the lists
 	 */
 	@SafeVarargs
-	public static <T> ImmutableList<T> flatten(Streamable<? extends T> first, Streamable<? extends T>... more)
+	public static <T> ImmutableList<T> flatten(Iterable<? extends T> first, Iterable<? extends T>... more)
 	{
 		return flatten(ImmutableList.of(more).prepend(first));
 	}
@@ -278,9 +282,9 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	}
 
 	@Override
-	public Iterator<T> iterator()
+	public RichIterator<T> iterator()
 	{
-		return this.list.iterator();
+		return RichIterator.wrap(this.list.iterator());
 	}
 	
 	@Override
@@ -331,16 +335,6 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	public T get(int index)
 	{
 		return this.list.get(index);
-	}
-	
-	/**
-	 * Checks whether this list contains the specified element
-	 * @param element an element
-	 * @return Whether this list contains the specified element
-	 */
-	public boolean contains(Object element)
-	{
-		return this.list.contains(element);
 	}
 	
 	/**
@@ -425,16 +419,15 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	 * @param elements multiple elements
 	 * @return a list with the elements appended
 	 */
-	public ImmutableList<T> plus(Collection<? extends T> elements)
+	public ImmutableList<T> plus(Iterable<? extends T> elements)
 	{
-		if (elements.isEmpty())
+		ArrayList<T> mutable = toMutableList();
+		elements.forEach(mutable::add);
+		
+		if (mutable.isEmpty())
 			return this;
 		else
-		{
-			ArrayList<T> mutable = toMutableList(elements.size());
-			mutable.addAll(elements);
 			return new ImmutableList<>(mutable);
-		}
 	}
 	
 	/**
@@ -442,9 +435,16 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	 * @param elements multiple elements
 	 * @return a list with the elements appended
 	 */
-	public ImmutableList<T> plus(Streamable<? extends T> elements)
+	public ImmutableList<T> plus(ImmutableList<? extends T> elements)
 	{
-		return plus(elements.stream().collect(Collectors.toList()));
+		if (elements.isEmpty())
+			return this;
+		else
+		{
+			ArrayList<T> mutable = toMutableList(elements.size());
+			mutable.addAll(elements.list);
+			return new ImmutableList<>(mutable);
+		}		
 	}
 	
 	/**
@@ -463,7 +463,7 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	 * @param equals method for checking equality
 	 * @return A combined list
 	 */
-	public ImmutableList<T> plusDistinct(Streamable<? extends T> elements, BiPredicate<? super T, ? super T> equals)
+	public ImmutableList<T> plusDistinct(RichIterable<? extends T> elements, BiPredicate<? super T, ? super T> equals)
 	{
 		return plus(elements.stream().filter(newElem -> !exists(oldElem -> equals.test(oldElem, newElem))).collect(Collectors.toList()));
 	}
@@ -473,7 +473,7 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	 * @param elements The new elements
 	 * @return A combined list
 	 */
-	public ImmutableList<T> plusDistinct(Streamable<? extends T> elements)
+	public ImmutableList<T> plusDistinct(RichIterable<? extends T> elements)
 	{
 		return plusDistinct(elements, SAFE_EQUALS);
 	}
@@ -804,41 +804,6 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	}
 	
 	/**
-	 * @param n a number of elements
-	 * @return The first n elements of this list
-	 */
-	public ImmutableList<T> first(int n)
-	{
-		if (n >= size())
-			return this;
-		else
-		{
-			ArrayList<T> result = new ArrayList<>(n);
-			for (int i = 0; i < n; i++) { result.add(get(i)); }
-			return new ImmutableList<>(result);
-		}
-	}
-	
-	/**
-	 * Takes elements from the list as long as they satisfy a certain predicate
-	 * @param f The predicate
-	 * @return The first n elements in this list which all satisfy the predicate
-	 */
-	public ImmutableList<T> takeWhile(Predicate<? super T> f)
-	{
-		List<T> buffer = new ArrayList<>(size());
-		for (T item : this)
-		{
-			if (f.test(item))
-				buffer.add(item);
-			else
-				break;
-		}
-		
-		return new ImmutableList<>(buffer);
-	}
-	
-	/**
 	 * @param n The number of elements to be dropped
 	 * @return A copy of this list without the last n elements
 	 */
@@ -912,46 +877,6 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	}
 	
 	/**
-	 * Finds the first element that satisfies the predicate
-	 * @param f A predicate
-	 * @return The first element that satisfies the predicate
-	 */
-	public Option<T> find(Predicate<? super T> f)
-	{
-		for (T element : this)
-		{
-			if (f.test(element))
-				return Option.some(element);
-		}
-		return Option.none();
-	}
-	
-	/**
-	 * Checks whether this list contains an element that satisfies the predicate
-	 * @param f a predicate
-	 * @return Is the predicate true for any of the elements in this list. False if empty.
-	 */
-	public boolean exists(Predicate<? super T> f)
-	{
-		for (T element : this)
-		{
-			if (f.test(element))
-				return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * Checks if a predicate is true for all elements in the list
-	 * @param f a predicate
-	 * @return Is the predicate true for all of the elements in this list. True if empty.
-	 */
-	public boolean forAll(Predicate<? super T> f)
-	{
-		return !exists(f.negate());
-	}
-	
-	/**
 	 * Creates a filtered copy of this list
 	 * @param f a filter function
 	 * @return a copy of this list with only elements accepted by the filter
@@ -976,7 +901,7 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 	 * @param f a mapping function
 	 * @return The mapped list
 	 */
-	public <B> ImmutableList<B> flatMap(Function<? super T, Streamable<? extends B>> f)
+	public <B> ImmutableList<B> flatMap(Function<? super T, RichIterable<? extends B>> f)
 	{
 		return new ImmutableList<>(stream().flatMap(i -> f.apply(i).stream()).collect(Collectors.toList()));
 	}
@@ -998,23 +923,6 @@ public class ImmutableList<T> implements Iterable<T>, Streamable<T>
 		}
 		
 		return Option.none();
-	}
-	
-	/**
-	 * Performs a fold operation over this list, going from left to right
-	 * @param start The starting value
-	 * @param f A function that folds items into the result value
-	 * @return The resulting value
-	 */
-	public <B> B fold(B start, BiFunction<? super B, ? super T, ? extends B> f)
-	{
-		B result = start;
-		for (T item : this)
-		{
-			result = f.apply(result, item);
-		}
-		
-		return result;
 	}
 	
 	/**

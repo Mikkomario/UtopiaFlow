@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +16,6 @@ import java.util.function.Supplier;
 
 import utopia.flow.util.Lazy;
 import utopia.flow.util.Option;
-import utopia.flow.util.Streamable;
 
 /**
  * This map doesn't allow it's contents to be modified and also supports use of options
@@ -26,7 +24,7 @@ import utopia.flow.util.Streamable;
  * @param <Value> The types of the values stored in the map
  * @since 1.11.2017
  */
-public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
+public class ImmutableMap<Key, Value> implements RichIterable<Pair<Key, Value>>
 {
 	// ATTRIBUTES	------------------
 	
@@ -199,9 +197,9 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	}
 	
 	@Override
-	public Iterator<Pair<Key, Value>> iterator()
+	public RichIterator<Pair<Key, Value>> iterator()
 	{
-		return toSet().iterator();
+		return RichIterator.wrap(toSet().iterator());
 	}
 	
 	
@@ -322,9 +320,19 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f A search function for keys
 	 * @return A value for the searched key
 	 */
-	public Option<Value> find(Predicate<? super Key> f)
+	public Option<Value> findWithKey(Predicate<? super Key> f)
 	{
 		return keys().find(f).map(this::get);
+	}
+	
+	/**
+	 * Finds a key value pair from this map
+	 * @param f The function that tests keys & values
+	 * @return the first matching key value pair in the map or none if there were no matches
+	 */
+	public Option<Pair<Key, Value>> find(BiPredicate<? super Key, ? super Value> f)
+	{
+		return find(p -> f.test(p.getFirst(), p.getSecond()));
 	}
 	
 	/**
@@ -420,16 +428,6 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	}
 	
 	/**
-	 * Finds a key value pair from this map
-	 * @param f The function that tests keys & values
-	 * @return the first matching key value pair in the map or none if there were no matches
-	 */
-	public Option<Pair<Key, Value>> find(BiPredicate<? super Key, ? super Value> f)
-	{
-		return toList().find(p -> f.test(p.getFirst(), p.getSecond()));
-	}
-	
-	/**
 	 * Maps this map
 	 * @param f a function that maps key value pairs
 	 * @return A mapped map
@@ -445,7 +443,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @return A mapped map
 	 */
 	public <K, V> ImmutableMap<K, V> flatMap(BiFunction<? super Key, ? super Value, 
-			? extends Streamable<? extends Pair<? extends K, ? extends V>>> f)
+			? extends RichIterable<? extends Pair<? extends K, ? extends V>>> f)
 	{
 		return new ImmutableMap<>(toList().flatMap(keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())));
 	}
@@ -537,7 +535,7 @@ public class ImmutableMap<Key, Value> implements Iterable<Pair<Key, Value>>
 	 * @param f A mapping function
 	 * @return A one level deep list of mapped items
 	 */
-	public <B> ImmutableList<B> flatMapToList(BiFunction<? super Key, ? super Value, ? extends Streamable<? extends B>> f)
+	public <B> ImmutableList<B> flatMapToList(BiFunction<? super Key, ? super Value, ? extends RichIterable<? extends B>> f)
 	{
 		return toList().flatMap(p -> f.apply(p.getFirst(), p.getSecond()));
 	}
