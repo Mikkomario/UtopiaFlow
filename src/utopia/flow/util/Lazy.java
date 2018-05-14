@@ -26,6 +26,21 @@ public class Lazy<T> implements Supplier<T>
 	{
 		this.generator = make;
 	}
+	
+	private Lazy(T item)
+	{
+		this.item = Option.some(item);
+	}
+	
+	/**
+	 * Wraps an object to look like a lazy instance
+	 * @param item An item
+	 * @return The wrapped item
+	 */
+	public static <T> Lazy<T> wrap(T item)
+	{
+		return new Lazy<>(item);
+	}
 
 	
 	// OTHER METHODS	------------
