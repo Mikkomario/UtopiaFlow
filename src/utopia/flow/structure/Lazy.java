@@ -1,4 +1,4 @@
-package utopia.flow.util;
+package utopia.flow.structure;
 
 import java.util.function.Supplier;
 

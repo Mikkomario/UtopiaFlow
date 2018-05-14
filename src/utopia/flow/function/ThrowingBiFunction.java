@@ -1,33 +1,36 @@
-package utopia.flow.util;
+package utopia.flow.function;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
+
+import utopia.flow.structure.Try;
 
 /**
  * Throwing functions allow use of functional interfaces for throwing operations. The function results are wrapped 
  * in a try instance
  * @author Mikko Hilpinen
  * @since 5 Dec 2017
- * @param <T> The type of the input parameter
+ * @param <T> The type of the first input parameter
+ * @param <U> The type of the second input parameter
  * @param <R> The type of a successful output
- * @param <E> The type of exception thrown by this function
  */
 @FunctionalInterface
-public interface ThrowingFunction<T, R, E extends Exception> extends Function<T, Try<R>>
+public interface ThrowingBiFunction<T, U, R> extends BiFunction<T, U, Try<R>>
 {
 	/**
 	 * Processes a parameter. May fail.
-	 * @param param The input parameter
+	 * @param p1 the first input parameter
+	 * @param p2 The second input parameter
 	 * @return The return value for the parameter
 	 * @throws Exception Throws an exception on failure
 	 */
-	public R throwingApply(T param) throws E;
+	public R throwingApply(T p1, U p2) throws Exception;
 	
 	@Override
-	public default Try<R> apply(T param)
+	public default Try<R> apply(T p1, U p2)
 	{
 		try
 		{
-			return Try.success(throwingApply(param));
+			return Try.success(throwingApply(p1, p2));
 		}
 		catch (Exception e)
 		{

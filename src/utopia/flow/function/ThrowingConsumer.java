@@ -1,4 +1,7 @@
-package utopia.flow.util;
+package utopia.flow.function;
+
+import utopia.flow.structure.Try;
+import utopia.flow.util.Unit;
 
 /**
  * This function can be used for error prone value handling

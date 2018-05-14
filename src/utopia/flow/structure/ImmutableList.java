@@ -17,9 +17,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import utopia.flow.util.Lazy;
-import utopia.flow.util.Option;
-
 /**
  * This list cannot be modified after creation and is safe to pass around as a value
  * @author Mikko Hilpinen

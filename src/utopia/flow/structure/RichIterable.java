@@ -6,8 +6,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import utopia.flow.util.Option;
-import utopia.flow.util.ThrowingConsumer;
+import utopia.flow.function.ThrowingConsumer;
 
 /**
  * Classes implementing this interface will have access to methods additional to normal iterables

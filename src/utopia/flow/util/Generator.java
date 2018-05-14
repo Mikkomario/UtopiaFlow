@@ -2,6 +2,8 @@ package utopia.flow.util;
 
 import java.util.function.Function;
 
+import utopia.flow.structure.Lazy;
+import utopia.flow.structure.Option;
 import utopia.flow.structure.RichIterator;
 
 /**
@@ -43,7 +45,7 @@ public class Generator<T> implements RichIterator<T>
 	}
 
 	@Override
-	public T next()
+	public synchronized T next()
 	{
 		T newItem = this.increase.apply(this.lastItem.getOrElse(this.firstItem::get)).getOrElse(this.firstItem::get);
 		this.lastItem = Option.some(newItem);

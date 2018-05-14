@@ -1,6 +1,8 @@
-package utopia.flow.util;
+package utopia.flow.function;
 
 import java.util.function.Supplier;
+
+import utopia.flow.structure.Try;
 
 /**
  * This interface allows a supplier to throw an exception, wrapping the results

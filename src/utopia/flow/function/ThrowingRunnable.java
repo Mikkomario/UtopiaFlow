@@ -1,4 +1,6 @@
-package utopia.flow.util;
+package utopia.flow.function;
+
+import utopia.flow.structure.Option;
 
 /**
  * Throwing runnables are used instead of runnables in environments that allow throwing of exceptions

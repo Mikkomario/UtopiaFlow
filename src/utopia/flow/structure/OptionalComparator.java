@@ -1,8 +1,6 @@
-package utopia.flow.util;
+package utopia.flow.structure;
 
 import java.util.Comparator;
-
-import utopia.flow.structure.ImmutableList;
 
 /**
  * This comparator provides an optional result which allows one to chain the comparators together

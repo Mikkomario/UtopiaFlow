@@ -1,10 +1,13 @@
-package utopia.flow.util;
+package utopia.flow.async;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.function.Supplier;
+
+import utopia.flow.structure.Option;
+import utopia.flow.util.WaitUtils;
 
 /**
  * This is a static collection of methods used for handling background operations

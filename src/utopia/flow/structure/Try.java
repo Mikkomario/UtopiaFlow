@@ -1,8 +1,13 @@
-package utopia.flow.util;
+package utopia.flow.structure;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import utopia.flow.function.ThrowingConsumer;
+import utopia.flow.function.ThrowingRunnable;
+import utopia.flow.function.ThrowingSupplier;
+import utopia.flow.util.Unit;
 
 /**
  * A try is used for wrapping an exception into a returnable format without breaking the control flow

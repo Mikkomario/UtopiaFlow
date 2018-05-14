@@ -3,7 +3,7 @@ package utopia.flow.generics;
 import java.util.Collection;
 
 import utopia.flow.structure.ImmutableList;
-import utopia.flow.util.Option;
+import utopia.flow.structure.Option;
 
 /**
  * A modelDeclaration works like a class, so that it declares which variables the model will 

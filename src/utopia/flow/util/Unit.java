@@ -1,5 +1,7 @@
 package utopia.flow.util;
 
+import utopia.flow.structure.Lazy;
+
 /**
  * Unit is a class that does nothing. Similar to the use of void, but can also be used as a generic type parameter
  * @author Mikko Hilpinen

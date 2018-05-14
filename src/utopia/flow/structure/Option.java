@@ -1,14 +1,10 @@
-package utopia.flow.util;
+package utopia.flow.structure;
 
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import utopia.flow.structure.ImmutableList;
-import utopia.flow.structure.RichIterable;
-import utopia.flow.structure.RichIterator;
 
 /**
  * Optionals can be used for more null-safe access of values

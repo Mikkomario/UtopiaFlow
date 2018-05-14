@@ -9,9 +9,9 @@ import utopia.flow.structure.GraphEdge;
 import utopia.flow.structure.GraphNode;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
+import utopia.flow.structure.Lazy;
+import utopia.flow.structure.Option;
 import utopia.flow.structure.Pair;
-import utopia.flow.util.Lazy;
-import utopia.flow.util.Option;
 
 /**
  * This class handles data type casting and finds the optimal ways to cast a value of a 

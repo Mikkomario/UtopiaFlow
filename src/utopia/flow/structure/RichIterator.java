@@ -5,8 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
-import utopia.flow.util.Option;
-
 /**
  * This interface offers some additional methods for all iterators
  * @author Mikko Hilpinen

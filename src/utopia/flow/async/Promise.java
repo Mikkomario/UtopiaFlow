@@ -1,8 +1,10 @@
-package utopia.flow.util;
+package utopia.flow.async;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import utopia.flow.structure.Option;
 
 /**
  * A promise is a container for a single element that will get filled at some point

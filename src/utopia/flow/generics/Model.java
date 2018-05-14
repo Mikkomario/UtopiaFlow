@@ -9,9 +9,9 @@ import java.util.function.BiPredicate;
 import utopia.flow.generics.VariableParser.VariableGenerationFailedException;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
+import utopia.flow.structure.Option;
 import utopia.flow.structure.Pair;
 import utopia.flow.util.ExtraBoolean;
-import utopia.flow.util.Option;
 
 /**
  * Model is a collection of variables that works much like a case-insensitive map would

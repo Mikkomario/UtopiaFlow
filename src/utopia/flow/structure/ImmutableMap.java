@@ -14,9 +14,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import utopia.flow.util.Lazy;
-import utopia.flow.util.Option;
-
 /**
  * This map doesn't allow it's contents to be modified and also supports use of options
  * @author Mikko Hilpinen

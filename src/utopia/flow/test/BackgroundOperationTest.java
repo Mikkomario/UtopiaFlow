@@ -2,7 +2,7 @@ package utopia.flow.test;
 
 import java.time.Duration;
 
-import utopia.flow.util.BackgroundProcessUtils;
+import utopia.flow.async.BackgroundProcessUtils;
 import utopia.flow.util.WaitUtils;
 
 /**

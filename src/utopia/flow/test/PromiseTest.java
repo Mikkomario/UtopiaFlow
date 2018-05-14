@@ -1,6 +1,6 @@
 package utopia.flow.test;
 
-import utopia.flow.util.Promise;
+import utopia.flow.async.Promise;
 
 /**
  * This class tests the promise class

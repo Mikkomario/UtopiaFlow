@@ -1,6 +1,6 @@
 package utopia.flow.generics;
 
-import utopia.flow.util.Option;
+import utopia.flow.structure.Option;
 
 /**
  * This variable parser uses an existing model declaration when generating new variables

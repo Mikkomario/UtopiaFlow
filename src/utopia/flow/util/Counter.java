@@ -1,5 +1,8 @@
 package utopia.flow.util;
 
+import utopia.flow.structure.Lazy;
+import utopia.flow.structure.Option;
+
 /**
  * A counter is used for counting numbers. The counter will count until integer maximum value
  * @author Mikko Hilpinen

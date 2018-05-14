@@ -1,6 +1,6 @@
 package utopia.flow.test;
 
-import utopia.flow.util.Option;
+import utopia.flow.structure.Option;
 
 class OptionTest
 {

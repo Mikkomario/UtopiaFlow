@@ -1,8 +1,11 @@
-package utopia.flow.util;
+package utopia.flow.async;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import utopia.flow.structure.Option;
+import utopia.flow.structure.Try;
 
 /**
  * An attempt is a promise that can fail

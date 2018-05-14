@@ -8,10 +8,10 @@ import utopia.flow.io.BasicElementValueParser;
 import utopia.flow.io.ElementValueParser;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
+import utopia.flow.structure.Lazy;
+import utopia.flow.structure.Option;
 import utopia.flow.structure.Pair;
 import utopia.flow.structure.TreeNode;
-import utopia.flow.util.Lazy;
-import utopia.flow.util.Option;
 
 /**
  * This static interface keeps track of the different data type hierarchies, etc.
