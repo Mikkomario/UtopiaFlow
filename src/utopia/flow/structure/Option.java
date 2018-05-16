@@ -6,6 +6,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import utopia.flow.function.ThrowingFunction;
+
 /**
  * Optionals can be used for more null-safe access of values
  * @author Mikko Hilpinen
@@ -208,6 +210,19 @@ public class Option<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Returns the value from this option or a failure if this option was empty
+	 * @param errorSuplier A function for producing the correct error
+	 * @return The result wrapped in a try
+	 */
+	public Try<T> toTry(Supplier<? extends Exception> errorSuplier)
+	{
+		if (isDefined())
+			return Try.success(this.value);
+		else
+			return Try.failure(errorSuplier.get());
+	}
+	
+	/**
 	 * @param defaultOption An option returned if this option is empty
 	 * @return this option, if defined, or another option if not defined
 	 */
@@ -245,6 +260,19 @@ public class Option<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Maps this option into a different type of option
+	 * @param f A function that transforms the value of this option but may fail
+	 * @return An option wrapping the transformed value or none if this option was empty or if transform failed
+	 */
+	public <B> Option<B> tryMap(ThrowingFunction<? super T, B, ?> f)
+	{
+		if (isDefined())
+			return f.apply(this.value).getSuccess();
+		else
+			return Option.none();
+	}
+	
+	/**
 	 * Maps this option into a different type of option, flattening the result
 	 * @param f A function that transforms the value in this option but may return None
 	 * @return An option wrapping the transformed value or none if this option was empty
@@ -252,6 +280,20 @@ public class Option<T> implements RichIterable<T>
 	public <B> Option<B> flatMap(Function<? super T, Option<B>> f)
 	{
 		Option<Option<B>> result = map(f);
+		if (result.isDefined())
+			return result.get();
+		else
+			return Option.none();
+	}
+	
+	/**
+	 * Maps this option into a different type of option, flattening the result
+	 * @param f A function that transforms the value in this option but may return None and may fail
+	 * @return An option wrapping the transformed value or none if this option was empty or if transform failed
+	 */
+	public <B> Option<B> tryFlatMap(ThrowingFunction<? super T, Option<B>, ?> f)
+	{
+		Option<Option<B>> result = tryMap(f);
 		if (result.isDefined())
 			return result.get();
 		else
