@@ -112,9 +112,9 @@ public class Try<T>
 	public static <T> Try<T> flatten(Try<? extends Try<T>> t)
 	{
 		if (t.isFailure())
-			return failure(t.getFailure().get());
+			return failure(t.getFailure());
 		else
-			return t.getSuccess().get();
+			return t.getSuccess();
 	}
 	
 	
@@ -124,28 +124,47 @@ public class Try<T>
 	public String toString()
 	{
 		if (isSuccess())
-			return "Success(" + getSuccess().get() + ")";
+			return "Success(" + getSuccess() + ")";
 		else
-			return "Failure(" + getFailure().get().getMessage() + ")";
+			return "Failure(" + getFailure().getMessage() + ")";
 	}
 	
 	
 	// ACCESSORS	---------------------
 	
 	/**
-	 * @return the success value, if the try is a success
+	 * @return the success value, if this try is a success
 	 */
-	public Option<T> getSuccess()
+	public Option<T> success()
 	{
 		return this.success;
 	}
 	
 	/**
-	 * @return The failure value, if the try is a failure
+	 * @return the success value. Similar to calling success().get()
+	 * @throws TryFailedRuntimeException If this try was a failure
 	 */
-	public Option<Exception> getFailure()
+	public T getSuccess() throws TryFailedRuntimeException
+	{
+		throwRuntimeIfFailure();
+		return this.success.get();
+	}
+	
+	/**
+	 * @return The failure value, if this try is a failure
+	 */
+	public Option<Exception> failure()
 	{
 		return this.exception;
+	}
+	
+	/**
+	 * @return The failure value
+	 * @throws NullPointerException If this try was a success
+	 */
+	public Exception getFailure() throws NullPointerException
+	{
+		return this.exception.get();
 	}
 	
 	
@@ -159,7 +178,17 @@ public class Try<T>
 	public T unwrap() throws TryFailedException
 	{
 		throwIfFailure();
-		return getSuccess().get();
+		return getSuccess();
+	}
+	
+	/**
+	 * Unwraps the try, throwing a runtime exception on failure
+	 * @return The success value on success
+	 * @throws TryFailedRuntimeException throws on failure
+	 */
+	public T unwrapRuntime() throws TryFailedRuntimeException
+	{
+		return getSuccess();
 	}
 	
 	/**
@@ -171,9 +200,9 @@ public class Try<T>
 	public <E extends Exception> T unwrapThrowing(Function<Exception, E> e) throws E
 	{
 		if (isFailure())
-			throw e.apply(getFailure().get());
+			throw e.apply(getFailure());
 		else
-			return getSuccess().get();
+			return getSuccess();
 	}
 	
 	/**
@@ -199,7 +228,17 @@ public class Try<T>
 	public void throwIfFailure() throws TryFailedException
 	{
 		if (isFailure())
-			throw new TryFailedException(getFailure().get());
+			throw new TryFailedException(getFailure());
+	}
+	
+	/**
+	 * Throws an exception if this try is a failure. The exception is a runtime exception
+	 * @throws TryFailedRuntimeException Throws on failure
+	 */
+	public void throwRuntimeIfFailure() throws TryFailedRuntimeException
+	{
+		if (isFailure())
+			throw new TryFailedRuntimeException(getFailure());
 	}
 	
 	/**
@@ -250,7 +289,7 @@ public class Try<T>
 	 */
 	public <B> Try<B> map(Function<? super T, B> f)
 	{
-		return new Try<>(getSuccess().map(f), getFailure());
+		return new Try<>(success().map(f), failure());
 	}
 	
 	/**
@@ -261,9 +300,9 @@ public class Try<T>
 	public <B> Try<B> flatMap(Function<? super T, ? extends Try<B>> f)
 	{
 		if (isSuccess())
-			return f.apply(getSuccess().get());
+			return f.apply(getSuccess());
 		else
-			return Try.failure(getFailure().get());
+			return Try.failure(getFailure());
 	}
 	
 	/**
@@ -274,9 +313,9 @@ public class Try<T>
 	public void handle(Consumer<? super T> successHandler, Consumer<? super Exception> errorHandler)
 	{
 		if (isSuccess())
-			successHandler.accept(getSuccess().get());
+			successHandler.accept(getSuccess());
 		else
-			errorHandler.accept(getFailure().get());
+			errorHandler.accept(getFailure());
 	}
 	
 	/**
@@ -286,8 +325,17 @@ public class Try<T>
 	 */
 	public void forEach(Consumer<? super T> successHandler) throws TryFailedException
 	{
-		throwIfFailure();
-		successHandler.accept(getSuccess().get());
+		successHandler.accept(unwrap());
+	}
+	
+	/**
+	 * Performs an operation on the try's success value or fails
+	 * @param successHandler The function called on success
+	 * @throws TryFailedRuntimeException Throws on failure
+	 */
+	public void forEachRuntime(Consumer<? super T> successHandler) throws TryFailedRuntimeException
+	{
+		successHandler.accept(unwrapRuntime());
 	}
 	
 	/**
@@ -297,8 +345,25 @@ public class Try<T>
 	 */
 	public <E extends Exception> void forEachThrowing(ThrowingConsumer<? super T, ? extends E> successHandler) throws TryFailedException, E
 	{
-		throwIfFailure();
-		successHandler.accept(getSuccess().get());
+		successHandler.accept(unwrap());
+	}
+	
+	/**
+	 * Performs an operation on the try's success value or fails
+	 * @param successHandler The function called on success
+	 * @throws TryFailedRuntimeException Throws on failure
+	 */
+	public void forEachThrowingRuntime(ThrowingConsumer<? super T, ?> successHandler) throws TryFailedRuntimeException
+	{
+		throwRuntimeIfFailure();
+		try
+		{
+			successHandler.accept(getSuccess());
+		}
+		catch (Exception e)
+		{
+			throw new TryFailedRuntimeException(e);
+		}
 	}
 	
 	
@@ -318,6 +383,35 @@ public class Try<T>
 		 * @param cause The causing exception
 		 */
 		public TryFailedException(Exception cause)
+		{
+			super(cause.getMessage(), cause);
+		}
+		
+		/**
+		 * Throws the original causing exception
+		 * @throws Throwable The original exception
+		 */
+		public void throwCause() throws Throwable
+		{
+			throw getCause();
+		}
+	}
+	
+	/**
+	 * These exceptions are thrown by failing tries. These are not meant to be cached, but should break the program 
+	 * flow instead
+	 * @author Mikko Hilpinen
+	 * @since 25.5.2018
+	 */
+	public static class TryFailedRuntimeException extends RuntimeException
+	{
+		private static final long serialVersionUID = -7433461448278614125L;
+
+		/**
+		 * Wraps another exception
+		 * @param cause The causing exception
+		 */
+		public TryFailedRuntimeException(Exception cause)
 		{
 			super(cause.getMessage(), cause);
 		}

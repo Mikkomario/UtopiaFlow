@@ -267,7 +267,7 @@ public class Option<T> implements RichIterable<T>
 	public <B> Option<B> tryMap(ThrowingFunction<? super T, B, ?> f)
 	{
 		if (isDefined())
-			return f.apply(this.value).getSuccess();
+			return f.apply(this.value).success();
 		else
 			return Option.none();
 	}

@@ -102,7 +102,7 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public Promise<Option<T>> getSuccess()
 	{
-		return map(false, result -> result.getSuccess());
+		return map(false, result -> result.success());
 	}
 	
 	/**
@@ -110,7 +110,7 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public Promise<Option<Exception>> getFailure()
 	{
-		return map(false, result -> result.getFailure());
+		return map(false, result -> result.failure());
 	}
 	
 	/**
@@ -134,7 +134,7 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public Option<T> getCurrentSuccess()
 	{
-		return getCurrentItem().flatMap(t -> t.getSuccess());
+		return getCurrentItem().flatMap(t -> t.success());
 	}
 	
 	/**
@@ -142,7 +142,7 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public Option<Exception> getCurrentFailure()
 	{
-		return getCurrentItem().flatMap(t -> t.getFailure());
+		return getCurrentItem().flatMap(t -> t.failure());
 	}
 	
 	/**
@@ -236,8 +236,8 @@ public class Attempt<T> extends Promise<Try<T>>
 	private static <T, B> Attempt<B> flatMapResult(Try<T> result, Function<? super T, ? extends Attempt<B>> f)
 	{
 		if (result.isSuccess())
-			return f.apply(result.getSuccess().get());
+			return f.apply(result.getSuccess());
 		else
-			return Attempt.failed(result.getFailure().get());
+			return Attempt.failed(result.getFailure());
 	}
 }
