@@ -201,12 +201,17 @@ public class ImmutableList<T> implements RichIterable<T>
 	 */
 	public static <T> ImmutableList<T> filledWith(int size, Supplier<? extends T> generator)
 	{
-		List<T> buffer = new ArrayList<>(size);
-		for (int i = 0; i < size; i++)
+		if (size <= 0)
+			return empty();
+		else
 		{
-			buffer.add(generator.get());
+			List<T> buffer = new ArrayList<>(size);
+			for (int i = 0; i < size; i++)
+			{
+				buffer.add(generator.get());
+			}
+			return new ImmutableList<>(buffer);
 		}
-		return new ImmutableList<>(buffer);
 	}
 	
 	/**
@@ -217,12 +222,17 @@ public class ImmutableList<T> implements RichIterable<T>
 	 */
 	public static <T> ImmutableList<T> filledWith(int size, T item)
 	{
-		List<T> buffer = new ArrayList<>(size);
-		for (int i = 0; i < size; i++)
+		if (size <= 0)
+			return empty();
+		else
 		{
-			buffer.add(item);
+			List<T> buffer = new ArrayList<>(size);
+			for (int i = 0; i < size; i++)
+			{
+				buffer.add(item);
+			}
+			return new ImmutableList<>(buffer);
 		}
-		return new ImmutableList<>(buffer);
 	}
 
 
