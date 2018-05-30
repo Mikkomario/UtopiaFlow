@@ -319,6 +319,21 @@ public class Try<T>
 	}
 	
 	/**
+	 * Handles either a success or a failure, creating a result value as well
+	 * @param successHandler A function for mapping success value
+	 * @param errorHandler A function for mapping error value
+	 * @return The mapped value
+	 */
+	public <B> B handleMap(Function<? super T, ? extends B> successHandler, 
+			Function<? super Exception, ? extends B> errorHandler)
+	{
+		if (isSuccess())
+			return successHandler.apply(getSuccess());
+		else
+			return errorHandler.apply(getFailure());
+	}
+	
+	/**
 	 * Performs an operation on the try's success value or fails
 	 * @param successHandler The function called on success
 	 * @throws TryFailedException Throws on failure
