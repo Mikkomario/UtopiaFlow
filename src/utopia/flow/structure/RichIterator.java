@@ -49,13 +49,12 @@ public interface RichIterator<T> extends Iterator<T>
 	{
 		List<T> buffer = new ArrayList<>();
 		
-		Option<T> next;
-		do
+		Option<T> next = nextOption();
+		while (next.exists(f))
 		{
-			next = nextOption();
 			next.forEach(buffer::add);
+			next = nextOption();
 		}
-		while (next.exists(f));
 		
 		return ImmutableList.of(buffer);
 	}
