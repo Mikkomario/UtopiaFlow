@@ -832,7 +832,9 @@ public class ImmutableList<T> implements RichIterable<T>
 	 */
 	public ImmutableList<T> last(int n)
 	{
-		if (n >= size())
+		if (n <= 0)
+			return empty();
+		else if (n >= size())
 			return this;
 		else
 		{
