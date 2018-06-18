@@ -896,6 +896,26 @@ public class ImmutableList<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Filters this list preferring items selected by the provided predicate. However, if there are no such items, 
+	 * returns this list instead
+	 * @param f A filter / preference predicate
+	 * @return A non-empty list of preferred items or this list
+	 */
+	public ImmutableList<T> prefer(Predicate<? super T> f)
+	{
+		if (isEmpty())
+			return this;
+		else
+		{
+			ImmutableList<T> filtered = filter(f);
+			if (filtered.isEmpty())
+				return this;
+			else
+				return filtered;
+		}
+	}
+	
+	/**
 	 * Maps this list
 	 * @param f a mapping function
 	 * @return The mapped list
