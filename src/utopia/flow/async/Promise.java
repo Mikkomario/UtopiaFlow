@@ -1,5 +1,6 @@
 package utopia.flow.async;
 
+import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -140,7 +141,7 @@ public class Promise<T>
 	 * @param timeOutMillis How many millisecods the promise can be waited for at maximum
 	 * @return The fulfilled promise results or None if the timeout was reached
 	 */
-	public synchronized Option<T> waitFor(int timeOutMillis)
+	public synchronized Option<T> waitFor(long timeOutMillis)
 	{
 		if (isFulfilled())
 			return getCurrentItem();
@@ -164,6 +165,17 @@ public class Promise<T>
 			
 			return getCurrentItem();
 		}
+	}
+	
+	/**
+	 * If the promise is still unfulfilled, waits until it is available. The wait is limited to a certain timeout, 
+	 * however.
+	 * @param timeout The maximum wait time
+	 * @return The fulfilled promise results or None if the timeout was reached
+	 */
+	public synchronized Option<T> waitFor(Duration timeout)
+	{
+		return waitFor(timeout.toMillis());
 	}
 	
 	/**
