@@ -233,6 +233,24 @@ public class Attempt<T> extends Promise<Try<T>>
 		doOnceFulfilled(result -> result.handle(successHandler, failureHandler));
 	}
 	
+	/**
+	 * Calls the provided function for the result once / if it has completed successfully
+	 * @param successHandler A function that will be called on success
+	 */
+	public void handleSuccess(Consumer<? super T> successHandler)
+	{
+		doOnceFulfilled(res -> res.success().forEach(successHandler));
+	}
+	
+	/**
+	 * Calls the provided function for the result once / if it has failed
+	 * @param failureHandler A function that will be called on failure
+	 */
+	public void handleFailure(Consumer<? super Exception> failureHandler)
+	{
+		doOnceFulfilled(res -> res.failure().forEach(failureHandler));
+	}
+	
 	private static <T, B> Attempt<B> flatMapResult(Try<T> result, Function<? super T, ? extends Attempt<B>> f)
 	{
 		if (result.isSuccess())

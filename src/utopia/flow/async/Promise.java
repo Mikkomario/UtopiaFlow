@@ -5,7 +5,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.Option;
+import utopia.flow.util.Unit;
 
 /**
  * A promise is a container for a single element that will get filled at some point
@@ -72,6 +74,19 @@ public class Promise<T>
 		Promise<T> promise = new Promise<>();
 		promise.fulfill(result);
 		return promise;
+	}
+	
+	/**
+	 * Combines a number of promises into a single promise
+	 * @param promises The promises that should be combined
+	 * @return A promise that contains the results of all of the promises
+	 */
+	public static <T> Promise<ImmutableList<T>> combine(ImmutableList<? extends Promise<T>> promises)
+	{
+		if (promises.forAll(p -> p.isFulfilled()))
+			return fulfilled(promises.map(p -> p.getCurrentItem().get()));
+		else
+			return asynchronous(() -> promises.map(p -> p.waitFor()));
 	}
 	
 	
@@ -241,5 +256,13 @@ public class Promise<T>
 		{
 			return asynchronous(() -> f.apply(waitFor()).waitFor());
 		}
+	}
+	
+	/**
+	 * @return A promise of the completion of this promise
+	 */
+	public Promise<Unit> completion()
+	{
+		return map(false, t -> Unit.getInstance());
 	}
 }
