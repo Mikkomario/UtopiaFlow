@@ -3,6 +3,7 @@ package utopia.flow.function;
 import java.util.function.Function;
 
 import utopia.flow.structure.Try;
+import utopia.flow.structure.Try.TryFailedException;
 
 /**
  * Throwing functions allow use of functional interfaces for throwing operations. The function results are wrapped 
@@ -35,5 +36,15 @@ public interface ThrowingFunction<T, R, E extends Exception> extends Function<T,
 		{
 			return Try.failure(e);
 		}
+	}
+	
+	/**
+	 * Combines this function with a back up recovery function
+	 * @param f an alternative recovery function
+	 * @return This function with a back up recovery function
+	 */
+	public default ThrowingFunction<T, R, TryFailedException> withBackup(ThrowingFunction<? super T, R, ?> f)
+	{
+		return t -> this.apply(t).orElse(() -> f.apply(t)).unwrap();
 	}
 }
