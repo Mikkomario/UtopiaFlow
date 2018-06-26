@@ -265,4 +265,14 @@ public class Promise<T>
 	{
 		return map(false, t -> Unit.getInstance());
 	}
+	
+	/**
+	 * Performs a runnable once the promise has been completed. If the promise is already completed, performs the 
+	 * runnable synchronously right away
+	 * @param r A runnable that will be run once this promise has completed
+	 */
+	public void onCompletion(Runnable r)
+	{
+		doOnceFulfilled(i -> r.run());
+	}
 }

@@ -199,6 +199,15 @@ public class ImmutableMap<Key, Value> implements RichIterable<Pair<Key, Value>>
 		return RichIterator.wrap(toSet().iterator());
 	}
 	
+	/**
+	 * @deprecated Please use {@link #containsKey(Object)} or {@link #contains(Object, Object)} instead
+	 */
+	@Override
+	public boolean contains(Object item)
+	{
+		return RichIterable.super.contains(item);
+	}
+	
 	
 	// OTHER METHODS	-----------
 
@@ -333,13 +342,24 @@ public class ImmutableMap<Key, Value> implements RichIterable<Pair<Key, Value>>
 	}
 	
 	/**
-	 * Checks whether the map contains a key
+	 * Checks whether this map contains a key
 	 * @param key A key
 	 * @return Whether this map contains the key
 	 */
 	public boolean containsKey(Key key)
 	{
 		return this.map.containsKey(key);
+	}
+	
+	/**
+	 * Checks whether this map contains a specified key value pair
+	 * @param key a key
+	 * @param value a value
+	 * @return Whether this map contains the key value pair
+	 */
+	public boolean contains(Key key, Value value)
+	{
+		return getOption(key).valueEquals(value);
 	}
 	
 	/**
