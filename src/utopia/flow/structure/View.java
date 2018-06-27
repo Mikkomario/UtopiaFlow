@@ -52,6 +52,16 @@ public class View<T> implements RichIterable<T>
 		return flatten(ImmutableList.withValues(first, more));
 	}
 	
+	/**
+	 * Creates a view of an iterable element
+	 * @param iterable An iterable element
+	 * @return A view for the element
+	 */
+	public static <T> View<T> of(Iterable<T> iterable)
+	{
+		return new View<T>(iterable::iterator);
+	}
+	
 	
 	// IMPLEMENTED METHODS	-----------
 
