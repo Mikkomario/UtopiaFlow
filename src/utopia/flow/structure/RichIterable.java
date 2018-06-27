@@ -1,11 +1,14 @@
 package utopia.flow.structure;
 
+import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import utopia.flow.function.FunctionUtils;
 import utopia.flow.function.ThrowingConsumer;
 
 /**
@@ -21,7 +24,7 @@ public interface RichIterable<T> extends Iterable<T>
 	/**
 	 * A check for whether two objects are equal. Null safe
 	 */
-	public static final BiPredicate<Object, Object> SAFE_EQUALS = (a, b) -> a == null ? b == null : a.equals(b);
+	public static final BiPredicate<Object, Object> SAFE_EQUALS = FunctionUtils.SAFE_EQUALS;
 	
 	
 	// ABSTRACT METHODS	--------------------
@@ -31,6 +34,36 @@ public interface RichIterable<T> extends Iterable<T>
 	
 	
 	// OTHER METHODS	--------------------
+	
+	/**
+	 * @return Whether this iterable is empty (contains no items)
+	 */
+	public default boolean isEmpty()
+	{
+		return !iterator().hasNext();
+	}
+	
+	/**
+	 * @return The first element in this iterable
+	 * @throws NoSuchElementException If the iterable is empty
+	 * @see #headOption()
+	 */
+	public default T head() throws NoSuchElementException
+	{
+		RichIterator<T> iterator = iterator();
+		if (iterator.hasNext())
+			return iterator.next();
+		else
+			throw new NoSuchElementException("This iterable is empty");
+	}
+	
+	/**
+	 * @return The first element in this iterable. None if this iterable is empty.
+	 */
+	public default Option<T> headOption()
+	{
+		return iterator().nextOption();
+	}
 	
 	/**
 	 * The first n items in this iterable
@@ -103,6 +136,25 @@ public interface RichIterable<T> extends Iterable<T>
 	}
 	
 	/**
+	 * Returns the first transformed item where the transformation is available. Similar to calling flatMap(f).first(), 
+	 * except that this function doesn't transform unnecessary items.
+	 * @param f The transformation function
+	 * @return The first transformation result where the transformation is defined. None if none of this list's items 
+	 * could be transformed.
+	 */
+	public default <B> Option<B> flatMapFirst(Function<? super T, Option<B>> f)
+	{
+		for (T item : this)
+		{
+			Option<B> result = f.apply(item);
+			if (result.isDefined())
+				return result;
+		}
+		
+		return Option.none();
+	}
+	
+	/**
 	 * Performs a fold operation over this list, going from left to right
 	 * @param start The starting value
 	 * @param f A function that folds items into the result value
@@ -138,5 +190,13 @@ public interface RichIterable<T> extends Iterable<T>
 	public default Stream<T> stream()
 	{
 		return StreamSupport.stream(spliterator(), false);
+	}
+	
+	/**
+	 * @return A view for this iterable
+	 */
+	public default View<T> view()
+	{
+		return new View<>(this::iterator);
 	}
 }

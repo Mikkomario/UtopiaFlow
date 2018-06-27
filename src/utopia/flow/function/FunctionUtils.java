@@ -1,5 +1,6 @@
 package utopia.flow.function;
 
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -25,6 +26,11 @@ public class FunctionUtils
 	 * A runnable that does nothing
 	 */
 	public static final Runnable NO_OPERATION = () -> {};
+	
+	/**
+	 * This function is used for checking equality between two objects in a null safe manner
+	 */
+	public static final BiPredicate<Object, Object> SAFE_EQUALS = (a, b) -> a == null ? b == null : a.equals(b);
 	
 	
 	// CONSTRUCTOR	-------------------------

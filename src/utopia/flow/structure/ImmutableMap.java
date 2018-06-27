@@ -265,14 +265,6 @@ public class ImmutableMap<Key, Value> implements RichIterable<Pair<Key, Value>>
 	}
 	
 	/**
-	 * @return Whether this map is empty
-	 */
-	public boolean isEmpty()
-	{
-		return this.map.isEmpty();
-	}
-	
-	/**
 	 * @return The size of this map
 	 */
 	public int size()

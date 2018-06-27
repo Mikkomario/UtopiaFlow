@@ -27,8 +27,6 @@ public class ImmutableList<T> implements RichIterable<T>
 {
 	// ATTRIBUTES	-------------------
 	
-	private static final BiPredicate<Object, Object> SAFE_EQUALS = (a, b) -> a == null ? b == null : a.equals(b);
-	
 	private final List<T> list;
 	private final Lazy<Integer> size;
 	
@@ -324,14 +322,6 @@ public class ImmutableList<T> implements RichIterable<T>
 	public int size()
 	{
 		return this.size.get();
-	}
-	
-	/**
-	 * @return Whether this list is empty
-	 */
-	public boolean isEmpty()
-	{
-		return this.list.isEmpty();
 	}
 	
 	/**
@@ -766,27 +756,6 @@ public class ImmutableList<T> implements RichIterable<T>
 	}
 	
 	/**
-	 * @return The first element in this list
-	 * @throws NoSuchElementException If the list is empty
-	 * @see #headOption()
-	 */
-	public T head() throws NoSuchElementException
-	{
-		return get(0);
-	}
-	
-	/**
-	 * @return The first element in this list. None if the list is empty or if the first element is null
-	 */
-	public Option<T> headOption()
-	{
-		if (isEmpty())
-			return Option.none();
-		else
-			return new Option<>(get(0));
-	}
-	
-	/**
 	 * @param n A number of elements to be dropped
 	 * @return A copy of this list without the first n elements
 	 */
@@ -933,25 +902,6 @@ public class ImmutableList<T> implements RichIterable<T>
 	public <B> ImmutableList<B> flatMap(Function<? super T, RichIterable<? extends B>> f)
 	{
 		return new ImmutableList<>(stream().flatMap(i -> f.apply(i).stream()).collect(Collectors.toList()));
-	}
-	
-	/**
-	 * Returns the first transformed item where the transformation is available. Similar to calling flatMap(f).first(), 
-	 * except that this function doesn't transform unnecessary items.
-	 * @param f The transformation function
-	 * @return The first transformation result where the transformation is defined. None if none of this list's items 
-	 * could be transformed.
-	 */
-	public <B> Option<B> flatMapFirst(Function<? super T, Option<B>> f)
-	{
-		for (T item : this)
-		{
-			Option<B> result = f.apply(item);
-			if (result.isDefined())
-				return result;
-		}
-		
-		return Option.none();
 	}
 	
 	/**

@@ -144,6 +144,7 @@ public class Option<T> implements RichIterable<T>
 	/**
 	 * @return If this option doesn't contain a specified value
 	 */
+	@Override
 	public boolean isEmpty()
 	{
 		return this.value == null;
