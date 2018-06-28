@@ -1,6 +1,7 @@
 package utopia.flow.structure;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -60,6 +61,23 @@ public class View<T> implements RichIterable<T>
 	public static <T> View<T> of(Iterable<T> iterable)
 	{
 		return new View<T>(iterable::iterator);
+	}
+	
+	/**
+	 * @return A new empty view
+	 */
+	public static <T> View<T> empty()
+	{
+		return new View<>(EmptyIterator::new);
+	}
+	
+	/**
+	 * @param item An item that will be viewed
+	 * @return A new view that only views the provided item
+	 */
+	public static <T> View<T> wrap(T item)
+	{
+		return new View<>(() -> new SingleItemIterator<>(item));
 	}
 	
 	
@@ -128,5 +146,55 @@ public class View<T> implements RichIterable<T>
 	public View<T> plus(Iterable<? extends T> items, @SuppressWarnings("unchecked") Iterable<? extends T>... more)
 	{
 		return flatten(ImmutableList.withValues(this, items).plus(more));
+	}
+	
+	
+	// NESTED CLASSES	-----------------
+	
+	private static class EmptyIterator<T> implements RichIterator<T>
+	{
+		@Override
+		public boolean hasNext()
+		{
+			return false;
+		}
+
+		@Override
+		public T next()
+		{
+			throw new NoSuchElementException("Trying to read value from an empty iterator");
+		}
+	}
+	
+	private static class SingleItemIterator<T> implements RichIterator<T>
+	{
+		// ATTRIBUTES	----------------
+		
+		private T item;
+		
+		
+		// CONSTRUCTOR	---------------
+		
+		public SingleItemIterator(T item)
+		{
+			this.item = item;
+		}
+
+		
+		// IMPLEMENTED	--------------
+
+		@Override
+		public boolean hasNext()
+		{
+			return this.item != null;
+		}
+
+		@Override
+		public T next()
+		{
+			T next = this.item;
+			this.item = null;
+			return next;
+		}
 	}
 }

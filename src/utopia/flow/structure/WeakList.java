@@ -24,6 +24,14 @@ public class WeakList<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * @return An empty list
+	 */
+	public static <T> WeakList<T> empty()
+	{
+		return new WeakList<>(ImmutableList.empty());
+	}
+	
+	/**
 	 * Creates a new weakly referenced list
 	 * @param items The items referenced by this list
 	 * @return A weakly referenced list
