@@ -18,13 +18,19 @@ public class WeakList<T> implements RichIterable<T>
 	
 	// CONSTRUCTOR	--------------------
 	
+	private WeakList(ImmutableList<WeakReference<T>> references)
+	{
+		this.references = references;
+	}
+	
 	/**
 	 * Creates a new weakly referenced list
 	 * @param items The items referenced by this list
+	 * @return A weakly referenced list
 	 */
-	public WeakList(ImmutableList<? extends T> items)
+	public static <T> WeakList<T> of(ImmutableList<? extends T> items)
 	{
-		this.references = items.map(WeakReference::new);
+		return new WeakList<>(items.map(WeakReference::new));
 	}
 
 	/**
@@ -34,7 +40,7 @@ public class WeakList<T> implements RichIterable<T>
 	 */
 	public static <T> WeakList<T> withValue(T item)
 	{
-		return new WeakList<>(ImmutableList.withValue(item));
+		return of(ImmutableList.withValue(item));
 	}
 	
 	/**
@@ -46,7 +52,7 @@ public class WeakList<T> implements RichIterable<T>
 	@SafeVarargs
 	public static <T> WeakList<T> withValues(T first, T... more)
 	{
-		return new WeakList<>(ImmutableList.withValues(first, more));
+		return of(ImmutableList.withValues(first, more));
 	}
 	
 	
@@ -76,7 +82,7 @@ public class WeakList<T> implements RichIterable<T>
 	 */
 	public WeakList<T> plus(T item)
 	{
-		return new WeakList<>(toStrongList().plus(item));
+		return new WeakList<>(clearMissingReferences().plus(new WeakReference<>(item)));
 	}
 	
 	/**
@@ -86,6 +92,12 @@ public class WeakList<T> implements RichIterable<T>
 	 */
 	public WeakList<T> plus(Iterable<? extends T> items)
 	{
-		return new WeakList<>(toStrongList().plus(items));
+		return WeakList.of(toStrongList().plus(items));
+	}
+	
+	private ImmutableList<WeakReference<T>> clearMissingReferences()
+	{
+		this.references = this.references.filter(ref -> ref.get() != null);
+		return this.references;
 	}
 }
