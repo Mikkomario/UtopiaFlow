@@ -417,11 +417,11 @@ public class ImmutableList<T> implements RichIterable<T>
 	 * @return a list with the elements appended
 	 */
 	public ImmutableList<T> plus(Iterable<? extends T> elements)
-	{
+	{	
 		ArrayList<T> mutable = toMutableList();
 		elements.forEach(mutable::add);
 		
-		if (mutable.isEmpty())
+		if (mutable.size() == size())
 			return this;
 		else
 			return new ImmutableList<>(mutable);

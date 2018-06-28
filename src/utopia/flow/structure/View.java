@@ -118,4 +118,15 @@ public class View<T> implements RichIterable<T>
 	{
 		return flatMap(t -> f.test(t) ? Option.some(t) : Option.none());
 	}
+	
+	/**
+	 * Creates a new extended view
+	 * @param items The first set of items to be added
+	 * @param more More item sets to be added
+	 * @return A view that spans all of the item sets
+	 */
+	public View<T> plus(Iterable<? extends T> items, @SuppressWarnings("unchecked") Iterable<? extends T>... more)
+	{
+		return flatten(ImmutableList.withValues(this, items).plus(more));
+	}
 }
