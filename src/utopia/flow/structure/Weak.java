@@ -65,6 +65,7 @@ public class Weak<T> implements RichIterable<T>
 		@Override
 		public T next()
 		{
+			this.consumed = true;
 			return this.next.get().get();
 		}
 	}
