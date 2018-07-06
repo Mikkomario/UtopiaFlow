@@ -899,7 +899,7 @@ public class ImmutableList<T> implements RichIterable<T>
 	 * @param f a mapping function
 	 * @return The mapped list
 	 */
-	public <B> ImmutableList<B> flatMap(Function<? super T, RichIterable<? extends B>> f)
+	public <B> ImmutableList<B> flatMap(Function<? super T, ? extends RichIterable<? extends B>> f)
 	{
 		return new ImmutableList<>(stream().flatMap(i -> f.apply(i).stream()).collect(Collectors.toList()));
 	}

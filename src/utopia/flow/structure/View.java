@@ -148,6 +148,25 @@ public class View<T> implements RichIterable<T>
 		return flatten(ImmutableList.withValues(this, items).plus(more));
 	}
 	
+	/**
+	 * Tries to collect items from this view into a list, but cancels the proces if the terminator function activates
+	 * @param terminator A function that will terminate / cancel the process when it returns true
+	 * @return A list of the items in this view or none if the process was terminated
+	 */
+	public Option<ImmutableList<T>> tryCollect(Predicate<? super T> terminator)
+	{
+		ListBuilder<T> buffer = new ListBuilder<>();
+		for (T item : this)
+		{
+			if (terminator.test(item))
+				return Option.none();
+			else
+				buffer.add(item);
+		}
+		
+		return Option.some(buffer.build());
+	}
+	
 	
 	// NESTED CLASSES	-----------------
 	
