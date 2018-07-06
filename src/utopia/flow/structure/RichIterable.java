@@ -136,6 +136,23 @@ public interface RichIterable<T> extends Iterable<T>
 	}
 	
 	/**
+	 * Counts the number of items that satisfy the provided predicate
+	 * @param f A predicate
+	 * @return The number of items that satisfy the provided predicate
+	 */
+	public default int count(Predicate<? super T> f)
+	{
+		int total = 0;
+		for (T element : this)
+		{
+			if (f.test(element))
+				total ++;
+		}
+		
+		return total;
+	}
+	
+	/**
 	 * Returns the first transformed item where the transformation is available. Similar to calling flatMap(f).first(), 
 	 * except that this function doesn't transform unnecessary items.
 	 * @param f The transformation function

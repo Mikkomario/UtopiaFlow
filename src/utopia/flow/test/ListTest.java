@@ -26,12 +26,14 @@ class ListTest
 		Test.checkEquals(groupedWords.size(), 4);
 		
 		// TODO: Change to use the test class
-		assert groupedWords.get(1).size() == 1;
-		assert groupedWords.get(3).size() == 2;
-		assert groupedWords.get(4).size() == 2;
-		assert groupedWords.get(5).size() == 3;
-		assert groupedWords.getOption(2).isEmpty();
-		assert groupedWords.get(3).equals(ImmutableList.withValues("asd", "moi"));
+		Test.checkEquals(groupedWords.get(1).size(), 1);
+		Test.checkEquals(groupedWords.get(3).size(), 2);
+		Test.checkEquals(groupedWords.get(4).size(), 2);
+		Test.checkEquals(groupedWords.get(5).size(), 3);
+		Test.check(groupedWords.getOption(2).isEmpty());
+		Test.checkEquals(groupedWords.get(3), ImmutableList.withValues("asd", "moi"));
+		
+		Test.checkEquals(groupedWords.get(5).size(), words.count(w -> w.length() == 5));
 		
 		// Tests list map functions as well
 		ImmutableList<String> words2 = ImmutableList.withValues("a", "c", "testi");
