@@ -86,9 +86,23 @@ public class Option<T> implements RichIterable<T>
 	public static <T> Option<T> flatten(Option<? extends Option<? extends T>> option)
 	{
 		if (option.exists(o -> o.isDefined()))
-			return Option.some(option.get().get());
+			return some(option.get().get());
 		else
-			return Option.none();
+			return none();
+	}
+	
+	/**
+	 * Wraps an item into an option, but only if a certain condition is fulfilled
+	 * @param item The wrapped item
+	 * @param condition A condition for wrapping
+	 * @return The item if the condition is true, none if the condition is false
+	 */
+	public static <T> Option<T> takeIf(T item, boolean condition)
+	{
+		if (condition)
+			return some(item);
+		else
+			return none();
 	}
 	
 	
