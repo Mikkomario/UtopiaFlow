@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.Option;
-import utopia.flow.util.Unit;
 
 /**
  * A promise is a container for a single element that will get filled at some point
@@ -261,9 +260,28 @@ public class Promise<T>
 	/**
 	 * @return A promise of the completion of this promise
 	 */
-	public Promise<Unit> completion()
+	public Completion completion()
 	{
-		return map(false, t -> Unit.getInstance());
+		if (isFulfilled())
+			return Completion.fulfilled();
+		else
+			return Completion.ofAsynchronous(this::waitFor);
+	}
+	
+	/**
+	 * Performs an operation once this promise has completed. Also provides a completion promise.
+	 * @param f An operation that will be performed on the completed value before completing
+	 * @return A completion of this promise
+	 */
+	public Completion completionWith(Consumer<? super T> f)
+	{
+		if (isFulfilled())
+		{
+			f.accept(getCurrentItem().get());
+			return Completion.fulfilled();
+		}
+		else
+			return Completion.ofAsynchronous(() -> f.accept(waitFor()));
 	}
 	
 	/**
