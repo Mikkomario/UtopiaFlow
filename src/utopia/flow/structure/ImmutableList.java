@@ -78,16 +78,30 @@ public class ImmutableList<T> implements RichIterable<T>
 	/**
 	 * Creates an immutable list with the specified values
 	 * @param first The first value
+	 * @param second The second value
 	 * @param more More values
 	 * @return A list with multiple values
 	 */
 	@SafeVarargs
-	public static <T> ImmutableList<T> withValues(T first, T... more)
+	public static <T> ImmutableList<T> withValues(T first, T second, T... more)
 	{
-		List<T> list = new ArrayList<>(more.length + 1);
+		List<T> list = new ArrayList<>(more.length + 2);
 		list.add(first);
+		list.add(second);
 		for (T element : more) { list.add(element); }
 		return new ImmutableList<>(list);
+	}
+	
+	/**
+	 * Creates a new list with a single value
+	 * @param first The first value
+	 * @return A list with the specified value
+	 * @deprecated Please use {@link #withValue(Object)} instead. This is just to provide support for old style 
+	 * {@link #withValues(Object, Object, Object...)}
+	 */
+	public static <T> ImmutableList<T> withValues(T first)
+	{
+		return withValue(first);
 	}
 	
 	/**

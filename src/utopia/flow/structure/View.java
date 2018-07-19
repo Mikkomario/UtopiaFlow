@@ -44,13 +44,15 @@ public class View<T> implements RichIterable<T>
 	/**
 	 * Combines multiple collections into a single flattened view
 	 * @param first The first collection
+	 * @param second The second collection
 	 * @param more more collections
 	 * @return A view of the flattened collection
 	 */
 	@SafeVarargs
-	public static <T> View<T> flatten(Iterable<? extends T> first, Iterable<? extends T>... more)
+	public static <T> View<T> flatten(Iterable<? extends T> first, Iterable<? extends T> second, 
+			Iterable<? extends T>... more)
 	{
-		return flatten(ImmutableList.withValues(first, more));
+		return flatten(ImmutableList.withValues(first, second, more));
 	}
 	
 	/**

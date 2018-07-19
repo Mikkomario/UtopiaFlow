@@ -117,6 +117,16 @@ public class Try<T>
 			return t.getSuccess();
 	}
 	
+	/**
+	 * Converts an either into a try
+	 * @param either A either with error or value
+	 * @return A try
+	 */
+	public static <T> Try<T> of(Either<? extends Exception, ? extends T> either)
+	{
+		return either.toValue(Try::failure, Try::success);
+	}
+	
 	
 	// IMPLEMENTED METHODS	-------------
 	
@@ -280,6 +290,18 @@ public class Try<T>
 			return Try.success(defaultValue.get());
 		else
 			return this;
+	}
+	
+	/**
+	 * Transforms this try into an either
+	 * @return This try as an either
+	 */
+	public Either<Exception, T> toEither()
+	{
+		if (isSuccess())
+			return Either.right(getSuccess());
+		else
+			return Either.left(getFailure());
 	}
 	
 	/**

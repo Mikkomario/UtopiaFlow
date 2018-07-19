@@ -54,13 +54,14 @@ public class WeakList<T> implements RichIterable<T>
 	/**
 	 * Creates a weakly referenced list with possible multiple items
 	 * @param first The first item referenced
+	 * @param second The second item referenced
 	 * @param more More referenced items
 	 * @return A list weakly referencing the provided items
 	 */
 	@SafeVarargs
-	public static <T> WeakList<T> withValues(T first, T... more)
+	public static <T> WeakList<T> withValues(T first, T second, T... more)
 	{
-		return of(ImmutableList.withValues(first, more));
+		return of(ImmutableList.withValues(first, second, more));
 	}
 	
 	
