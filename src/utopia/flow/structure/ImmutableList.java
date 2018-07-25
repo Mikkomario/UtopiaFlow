@@ -186,11 +186,11 @@ public class ImmutableList<T> implements RichIterable<T>
 	 */
 	public static ImmutableList<Integer> range(int minInclusive, int maxInclusive)
 	{
-		if (maxInclusive <= minInclusive)
+		if (maxInclusive < minInclusive)
 			return empty();
 		else
 		{
-			List<Integer> buffer = new ArrayList<>(maxInclusive - minInclusive);
+			List<Integer> buffer = new ArrayList<>(maxInclusive - minInclusive + 1);
 			for (int i = minInclusive; i <= maxInclusive; i++)
 			{
 				buffer.add(i);
