@@ -131,6 +131,15 @@ public class ImmutableList<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * @param s a string
+	 * @return A list of all the characters in the string
+	 */
+	public static ImmutableList<Character> of(String s)
+	{
+		return readWith(new StringCharIterator(s));
+	}
+	
+	/**
 	 * Copies another immutable list (changing the typing). Please note that as long as the type remains the same, an 
 	 * immutable list can freely be passed without copying.
 	 * @param other Another immutable list
@@ -339,6 +348,14 @@ public class ImmutableList<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * @return The range of the indices of this list
+	 */
+	public IntRange getRange()
+	{
+		return Range.fromUntil(0, size());
+	}
+	
+	/**
 	 * Retrieves a specific index from the list
 	 * @param index an index from the list
 	 * @return The element from the specified index
@@ -346,6 +363,42 @@ public class ImmutableList<T> implements RichIterable<T>
 	public T get(int index)
 	{
 		return this.list.get(index);
+	}
+	
+	/**
+	 * Retrieves a range of items from this list
+	 * @param from The minimum index (inclusive)
+	 * @param to The maximum index (inclusive)
+	 * @return Items within the specified range. The size of the list may be smaller than the 
+	 * length of the range if the range was (partially) outside this list's range
+	 */
+	public ImmutableList<T> getInRange(int from, int to)
+	{
+		int realStart = Math.max(from, 0);
+		int realEnd = Math.min(to, size() - 1);
+		
+		if (realEnd <= realStart)
+			return ImmutableList.empty();
+		else
+		{
+			ArrayList<T> buffer = new ArrayList<>(realEnd - realStart);
+			for (int i = realStart; i <= realEnd; i ++)
+			{
+				buffer.add(get(i));
+			}
+			return new ImmutableList<>(buffer);
+		}
+	}
+	
+	/**
+	 * Finds all items within a specified range
+	 * @param range a range
+	 * @return Items within the specified range. The size of the list may be smaller than the 
+	 * length of the range if the range was (partially) outside this list's range
+	 */
+	public ImmutableList<T> get(Range<? extends Integer> range)
+	{
+		return getInRange(range.getStart(), range.getEnd());
 	}
 	
 	/**

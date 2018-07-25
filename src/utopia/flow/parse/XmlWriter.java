@@ -16,6 +16,7 @@ import utopia.flow.function.ThrowingConsumer;
 import utopia.flow.function.ThrowingRunnable;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
+import utopia.flow.structure.IntRange;
 import utopia.flow.structure.Option;
 import utopia.flow.structure.Range;
 import utopia.flow.structure.Try;
@@ -37,7 +38,7 @@ public class XmlWriter implements AutoCloseable
 	 */
 	public static final Charset DEFAULT_CHARSET = XmlReader.DEFAULT_CHARSET;
 	
-	private static final ImmutableList<Range<Integer>> INVALID_CHAR_RANGES = 
+	private static final ImmutableList<IntRange> INVALID_CHAR_RANGES = 
 			ImmutableList.withValues(Range.fromTo(91, 94), Range.fromTo(123, 191), 
 			Range.fromTo(768, 879), Range.fromTo(8192, 8203), Range.fromTo(8206, 8303), 
 			Range.fromTo(8592, 11263), Range.fromTo(12272, 12288), Range.fromTo(55296, 63743), 

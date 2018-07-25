@@ -8,12 +8,11 @@ import java.util.function.Function;
  * @since 25.7.2018
  * @param <T> The type of the objects contained in this range
  */
-public class Range<T extends Comparable<? super T>> implements RichIterable<T>, RichComparable<Range<T>>
+public class Range<T extends Comparable<? super T>> implements RichComparable<Range<T>>
 {
 	// ATTRIBUTES	--------------------
 	
 	private T first, last;
-	private Function<? super T, ? extends T> next;
 	
 	
 	// CONSTRUCTOR	--------------------
@@ -24,11 +23,10 @@ public class Range<T extends Comparable<? super T>> implements RichIterable<T>, 
 	 * @param last The last value (inclusive)
 	 * @param next A function for incrementing the value
 	 */
-	public Range(T first, T last, Function<? super T, ? extends T> next)
+	public Range(T first, T last)
 	{
 		this.first = first;
 		this.last = last;
-		this.next = next;
 	}
 	
 	/**
@@ -37,9 +35,9 @@ public class Range<T extends Comparable<? super T>> implements RichIterable<T>, 
 	 * @param last The last value (inclusive)
 	 * @return A range of integers
 	 */
-	public static Range<Integer> fromTo(int first, int last)
+	public static IntRange fromTo(int first, int last)
 	{
-		return new Range<>(first, last, i -> i + 1);
+		return new IntRange(first, last);
 	}
 	
 	/**
@@ -48,7 +46,7 @@ public class Range<T extends Comparable<? super T>> implements RichIterable<T>, 
 	 * @param lastExclusive The last value (exclusive)
 	 * @return A range of integers
 	 */
-	public static Range<Integer> fromUntil(int first, int lastExclusive)
+	public static IntRange fromUntil(int first, int lastExclusive)
 	{
 		return fromTo(first, lastExclusive - 1);
 	}
@@ -60,12 +58,6 @@ public class Range<T extends Comparable<? super T>> implements RichIterable<T>, 
 	public String toString()
 	{
 		return this.first + "-" + this.last;
-	}
-	
-	@Override
-	public RichIterator<T> iterator()
-	{
-		return new RangeIterator();
 	}
 	
 	@Override
@@ -133,11 +125,19 @@ public class Range<T extends Comparable<? super T>> implements RichIterable<T>, 
 	}
 	
 	/**
-	 * @return The last value in this range (exclusive)
+	 * @return The first value in this range (inclusive)
 	 */
-	public T getLastExclusive()
+	public T getStart()
 	{
-		return this.next.apply(this.last);
+		return getFirst();
+	}
+	
+	/**
+	 * @return The last value in this range (inclusive)
+	 */
+	public T getEnd()
+	{
+		return getLast();
 	}
 	
 	
@@ -154,21 +154,44 @@ public class Range<T extends Comparable<? super T>> implements RichIterable<T>, 
 	}
 	
 	/**
-	 * @return A list containing each value in this range
+	 * Converts this range to a view of items in the range
+	 * @param increment A function used for incrementing the values (Must always return a larger value!)
+	 * @return A view of the items in this range
 	 */
-	public ImmutableList<T> toList()
+	public View<T> toView(Function<? super T, ? extends T> increment)
 	{
-		return view().force();
+		return new View<>(() -> new RangeIterator(increment));
 	}
 	
 	
 	// NESTED CLASSES	----------------
 	
-	private class RangeIterator implements RichIterator<T>
+	/**
+	 * These iterators are used for iterating through a range of items
+	 * @author Mikko Hilpinen
+	 * @since 25.7.2018
+	 */
+	protected class RangeIterator implements RichIterator<T>
 	{
 		// ATTRIBUTES	----------------
 		
+		private Function<? super T, ? extends T> increment;
 		private T nextItem = getFirst();
+		
+		
+		// CONSTRUCTOR	----------------
+		
+		/**
+		 * Creates a new iterator
+		 * @param increment The increment function
+		 */
+		public RangeIterator(Function<? super T, ? extends T> increment)
+		{
+			this.increment = increment;
+		}
+		
+		
+		// IMPLEMENTED	---------------
 		
 		@Override
 		public boolean hasNext()
@@ -180,7 +203,7 @@ public class Range<T extends Comparable<? super T>> implements RichIterable<T>, 
 		public T next()
 		{
 			T next = this.nextItem;
-			this.nextItem = Range.this.next.apply(next);
+			this.nextItem = this.increment.apply(next);
 			return next;
 		}
 	}
