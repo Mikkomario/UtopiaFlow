@@ -66,6 +66,16 @@ public class View<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Creates a view for a string's characters
+	 * @param string the viewed string
+	 * @return A view of the string's characters
+	 */
+	public static View<Character> of(String string)
+	{
+		return new View<>(() -> new StringCharIterator(string));
+	}
+	
+	/**
 	 * @return A new empty view
 	 */
 	public static <T> View<T> empty()

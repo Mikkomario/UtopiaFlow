@@ -8,7 +8,7 @@ import java.util.function.Function;
  * @since 25.7.2018
  * @param <T> The type of the objects contained in this range
  */
-public class Range<T extends Comparable<? super T>> implements RichIterable<T>
+public class Range<T extends Comparable<? super T>> implements RichIterable<T>, RichComparable<Range<T>>
 {
 	// ATTRIBUTES	--------------------
 	
@@ -101,6 +101,16 @@ public class Range<T extends Comparable<? super T>> implements RichIterable<T>
 		} else if (!this.last.equals(other.last))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public int compareTo(Range<T> other)
+	{
+		int firstCompare = this.first.compareTo(other.first);
+		if (firstCompare == 0)
+			return this.last.compareTo(other.last);
+		else
+			return firstCompare;
 	}
 	
 	

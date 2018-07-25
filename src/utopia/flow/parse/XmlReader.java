@@ -183,7 +183,7 @@ public class XmlReader implements AutoCloseable
 	// IMPLEMENTED	--------------------
 	
 	@Override
-	public void close() throws Exception
+	public void close() throws XMLStreamException
 	{
 		this.reader.close();
 	}
