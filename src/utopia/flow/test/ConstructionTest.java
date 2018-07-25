@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +66,7 @@ class ConstructionTest
 		return objects;
 	}
 	
-	private static List<TestConstructable> getConstructablesFromXML(ByteArrayInputStream stream)
+	private static List<TestConstructable> getConstructablesFromXML(ByteArrayInputStream stream) throws IOException
 	{
 		TestConstructor constructor = new TestConstructor();
 		XMLConstructorInstructor instructor = new XMLConstructorInstructor(constructor);
@@ -96,8 +97,9 @@ class ConstructionTest
 	/**
 	 * Tests
 	 * @param args not used
+	 * @throws IOException 
 	 */
-	public static void main(String[] args)
+	public static void main(String[] args) throws IOException
 	{
 		// Creates a bunch of testConstructables
 		List<TestConstructable> objects = new ArrayList<>();

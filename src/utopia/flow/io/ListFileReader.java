@@ -10,6 +10,7 @@ import java.util.List;
  * with overly large files.
  * @author Mikko Hilpinen
  * @since 21.11.2014
+ * @deprecated Please use {@link FileUtils} instead
  */
 public class ListFileReader extends AbstractFileReader
 {

@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import utopia.flow.generics.ValueOperation.ValueOperationException;
-import utopia.flow.io.BasicElementValueParser;
-import utopia.flow.io.ElementValueParser;
+import utopia.flow.parse.XmlElement;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.Lazy;
@@ -28,7 +27,8 @@ public class DataTypes implements ValueParser
 	private ConversionGraph graph = new ConversionGraph();
 	@SuppressWarnings("deprecation")
 	private ImmutableList<ValueOperator> operators = ImmutableList.empty();
-	private ImmutableMap<DataType, ElementValueParser> specialElementParsers = ImmutableMap.empty();
+	@SuppressWarnings("deprecation")
+	private ImmutableMap<DataType, utopia.flow.io.ElementValueParser> specialElementParsers = ImmutableMap.empty();
 	
 	
 	// CONSTRUCTOR	------------------
@@ -64,7 +64,7 @@ public class DataTypes implements ValueParser
 		addOperator(BasicDivideOperator.getInstance());
 		
 		// Introduces basic element parser
-		introduceSpecialParser(new BasicElementValueParser());
+		introduceSpecialParser(new utopia.flow.io.BasicElementValueParser());
 	}
 	
 	/**
@@ -343,8 +343,9 @@ public class DataTypes implements ValueParser
 	 * {@link BasicDataType} ({@link BasicElementValueParser}) will be included by default 
 	 * and need not be introduced separately.
 	 * @param parser The parser that handles some element parsing special cases
+	 * @deprecated {@link XmlElement} should be used when handling xml content
 	 */
-	public void introduceSpecialParser(ElementValueParser parser)
+	public void introduceSpecialParser(utopia.flow.io.ElementValueParser parser)
 	{
 		this.specialElementParsers = this.specialElementParsers.plus(
 				ImmutableMap.of(parser.getParsedTypes().map(t -> new Pair<>(t, parser))));
@@ -365,8 +366,9 @@ public class DataTypes implements ValueParser
 	 * @param type a data type
 	 * @return The element value parser used for the type. Null if the type doesn't need any 
 	 * special element parsing and default implementation should be used.
+	 * @deprecated {@link XmlElement} should be used when handling xml content
 	 */
-	public ElementValueParser getSpecialParserFor(DataType type)
+	public utopia.flow.io.ElementValueParser getSpecialParserFor(DataType type)
 	{
 		return this.specialElementParsers.get(type);
 	}

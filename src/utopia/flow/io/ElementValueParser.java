@@ -3,6 +3,7 @@ package utopia.flow.io;
 import utopia.flow.generics.DataType;
 import utopia.flow.generics.DataTypes;
 import utopia.flow.generics.Value;
+import utopia.flow.parse.XmlElement;
 import utopia.flow.structure.Element;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.TreeNode;
@@ -16,6 +17,7 @@ import utopia.flow.structure.TreeNode;
  * @author Mikko Hilpinen
  * @since 3.5.2016
  * @see DataTypes#introduceSpecialParser(ElementValueParser)
+ * @deprecated Xml handling has been moved to {@link XmlElement}
  */
 public interface ElementValueParser
 {

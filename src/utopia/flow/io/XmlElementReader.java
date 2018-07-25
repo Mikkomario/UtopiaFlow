@@ -18,6 +18,7 @@ import utopia.flow.generics.DataTypeException;
 import utopia.flow.generics.DataTypes;
 import utopia.flow.generics.Value;
 import utopia.flow.io.ElementValueParser.ElementValueParsingFailedException;
+import utopia.flow.parse.XmlReader;
 import utopia.flow.structure.Element;
 import utopia.flow.structure.TreeNode;
 import utopia.flow.util.Filter;
@@ -27,8 +28,8 @@ import utopia.flow.util.Filter;
  * read the contents one by one or multiple elements at once.
  * @author Mikko Hilpinen
  * @since 29.4.2016
+ * @deprecated Please use {@link XmlReader} instead
  */
-@SuppressWarnings("deprecation")
 public class XmlElementReader implements AutoCloseable
 {
 	// TODO: Create a common interface that can be used in json reading as well
@@ -51,8 +52,9 @@ public class XmlElementReader implements AutoCloseable
 	 * @param stream The xml stream the reader reads
 	 * @param decodeElementContents Should the element contents be decoded
 	 * @throws XMLStreamException If the reader couldn't be opened
+	 * @throws IOException 
 	 */
-	public XmlElementReader(InputStream stream, boolean decodeElementContents) throws XMLStreamException
+	public XmlElementReader(InputStream stream, boolean decodeElementContents) throws XMLStreamException, IOException
 	{
 		this.reader = XMLIOAccessor.createReader(stream);
 		this.decodeValues = decodeElementContents;
@@ -478,22 +480,18 @@ public class XmlElementReader implements AutoCloseable
 	 * @return The element structure of the stream
 	 * @throws XMLStreamException If read failed
 	 * @throws ElementParseException If element value parsing failed
+	 * @throws IOException 
 	 */
 	public static TreeNode<Element> parseStream(InputStream stream, 
-			boolean decodeElementContents) throws XMLStreamException, ElementParseException
+			boolean decodeElementContents) throws XMLStreamException, ElementParseException, IOException
 	{
-		XmlElementReader reader = new XmlElementReader(stream, decodeElementContents);
-		try
+		try (XmlElementReader reader = new XmlElementReader(stream, decodeElementContents))
 		{
 			return reader.parseCurrentElement();
 		}
 		catch (EndOfStreamReachedException e)
 		{
 			return null;
-		}
-		finally
-		{
-			reader.close();
 		}
 	}
 	
@@ -509,14 +507,9 @@ public class XmlElementReader implements AutoCloseable
 	public static TreeNode<Element> parseFile(File file, boolean decodeElementContents) throws 
 			IOException, XMLStreamException, ElementParseException
 	{
-		InputStream stream = new FileInputStream(file);
-		try
+		try (InputStream stream = new FileInputStream(file))
 		{
 			return parseStream(stream, decodeElementContents);
-		}
-		finally
-		{
-			stream.close();
 		}
 	}
 	

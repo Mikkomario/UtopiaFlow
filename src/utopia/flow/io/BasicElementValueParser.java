@@ -10,6 +10,7 @@ import utopia.flow.generics.ModelDeclaration;
 import utopia.flow.generics.Value;
 import utopia.flow.generics.Variable;
 import utopia.flow.generics.VariableDeclaration;
+import utopia.flow.parse.XmlElement;
 import utopia.flow.structure.Element;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.TreeNode;
@@ -20,12 +21,12 @@ import utopia.flow.structure.TreeNode;
  * @author Mikko Hilpinen
  * @since 3.5.2016
  * @see BasicDataType
+ * @deprecated Xml handling has been moved to {@link XmlElement}
  */
 public class BasicElementValueParser implements ElementValueParser
 {
 	// IMPLEMENTED METHODS	---------------
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public ImmutableList<DataType> getParsedTypes()
 	{
@@ -34,7 +35,6 @@ public class BasicElementValueParser implements ElementValueParser
 				BasicDataType.LIST);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public TreeNode<Element> writeValue(Value value)
 			throws ElementValueParsingFailedException
@@ -100,7 +100,6 @@ public class BasicElementValueParser implements ElementValueParser
 			throw new ElementValueParsingFailedException("Unsupported data type " + value.getType());
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public Value readValue(TreeNode<Element> element, DataType targetType) throws 
 			ElementValueParsingFailedException

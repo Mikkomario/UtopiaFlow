@@ -15,11 +15,15 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import utopia.flow.parse.XmlReader;
+import utopia.flow.parse.XmlWriter;
+
 /**
  * XMLIOAccessor is a class that provides static interfaces for creating and using 
  * xml writers and readers.
  * @author Mikko Hilpinen
  * @since 30.7.2014
+ * @deprecated Replaced with {@link XmlReader} and {@link XmlWriter}
  */
 public class XMLIOAccessor
 {
@@ -176,29 +180,16 @@ public class XMLIOAccessor
 	 * @param stream the xml data as a stream
 	 * @return An xmlReader prepared to read the given xml data.
 	 * @throws XMLStreamException if something goes wrong during the creation of the reader
+	 * @throws IOException 
 	 */
 	public static XMLStreamReader createReader(InputStream stream) 
-			throws XMLStreamException
+			throws XMLStreamException, IOException
 	{
 		XMLInputFactory factory = XMLInputFactory.newInstance();
-		InputStreamReader reader = null;
 		
-		try
+		try (InputStreamReader reader = new InputStreamReader(stream, "UTF-8"))
 		{
-			reader = new InputStreamReader(stream, "UTF-8");
 			return factory.createXMLStreamReader(reader);
-		}
-		catch (XMLStreamException e)
-		{
-			try
-			{
-				reader.close();
-			}
-			catch (IOException e1)
-			{
-				// Ignored
-			}
-			throw e;
 		}
 		catch (UnsupportedEncodingException e)
 		{

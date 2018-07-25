@@ -42,11 +42,8 @@ public abstract class AbstractFileReader
 	 */
 	public void readFile(File file, String commentIndicator) throws FileNotFoundException
 	{
-		Scanner scanner = null;
-		
 		// Tries to open the file
-		scanner = new Scanner(file);
-		try
+		try (Scanner scanner = new Scanner(file))
 		{
 			String line = null;
 			
@@ -66,11 +63,6 @@ public abstract class AbstractFileReader
 				
 				onLine(line);
 			}
-		}
-		finally
-		{
-			// Closes the file in the end
-			scanner.close();
 		}
 	}
 }

@@ -13,6 +13,7 @@ import javax.xml.stream.XMLStreamWriter;
 import utopia.flow.generics.BasicDataType;
 import utopia.flow.generics.DataType;
 import utopia.flow.generics.DataTypes;
+import utopia.flow.parse.XmlWriter;
 import utopia.flow.structure.Element;
 import utopia.flow.structure.TreeNode;
 
@@ -20,6 +21,7 @@ import utopia.flow.structure.TreeNode;
  * This writer is able to write elements in xml format
  * @author Mikko Hilpinen
  * @since 29.4.2016
+ * @deprecated Please use {@link XmlWriter} instead
  */
 public class XmlElementWriter implements AutoCloseable
 {
@@ -207,14 +209,9 @@ public class XmlElementWriter implements AutoCloseable
 	public static void writeElementIntoStream(TreeNode<Element> element, OutputStream stream, 
 			boolean encodeElementContent) throws XMLStreamException
 	{
-		XmlElementWriter writer = new XmlElementWriter(stream, encodeElementContent);
-		try
+		try (XmlElementWriter writer = new XmlElementWriter(stream, encodeElementContent))
 		{
 			writer.writeElement(element);
-		}
-		finally
-		{
-			writer.close();
 		}
 	}
 	
@@ -229,14 +226,9 @@ public class XmlElementWriter implements AutoCloseable
 	public static void writeElementIntoFile(TreeNode<Element> element, File file, 
 			boolean encodeElementContent) throws IOException, XMLStreamException
 	{
-		OutputStream stream = new FileOutputStream(file);
-		try
+		try (OutputStream stream = new FileOutputStream(file))
 		{
 			writeElementIntoStream(element, stream, encodeElementContent);
-		}
-		finally
-		{
-			stream.close();
 		}
 	}
 }

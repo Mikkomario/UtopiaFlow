@@ -1,124 +1,113 @@
 package utopia.flow.io;
 
 import java.io.File;
-import java.io.FilenameFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+import utopia.flow.structure.ImmutableList;
+import utopia.flow.structure.Option;
+import utopia.flow.structure.Try;
 
 /**
- * This is a static collection of methods that provide utility when dealing with files
+ * This is a static collection of utility methods for file handling
  * @author Mikko Hilpinen
- * @since 14.5.2016
+ * @since 20.3.2018
  */
 public class FileUtils
 {
-	// CONSTRUCTOR	------------
-	
-	private FileUtils()
-	{
-		// The interface is static
-	}
+	// CONSTRUCTOR	-----------------------
+
+	private FileUtils() { }
 
 	
-	// OTHER METHODS	--------
+	// OTHER METHODS	-------------------
 	
 	/**
-	 * Deletes a directory and all of its contents
-	 * @param directory A directory
+	 * Finds all files under a directory that have the provided file type
+	 * @param directoryPath a path leading to a directory
+	 * @param searchedFileType The accepted file type. Eg ".xml"
+	 * @return A list of paths for the searched files. Failure (IOException) if file reading failed
 	 */
-	public static void deleteDirectory(File directory)
+	public static Try<ImmutableList<Path>> filesInDirectory(Path directoryPath, String searchedFileType)
 	{
-		if (!directory.isDirectory())
-			return;
+		String acceptedTypeString = searchedFileType.startsWith(".") ? searchedFileType : "." + searchedFileType;
+		ImmutableList<String> acceptedTypes = ImmutableList.withValues(acceptedTypeString.toLowerCase(), 
+				acceptedTypeString.toUpperCase());
 		
-		for (File file : directory.listFiles())
+		try (DirectoryStream<Path> paths = 
+				Files.newDirectoryStream(directoryPath, path -> acceptedTypes.exists(path.getFileName().toString()::endsWith)))
 		{
-			if (file.isDirectory())
-				deleteDirectory(file);
-			else
-				file.delete();
+			return Try.success(ImmutableList.readWith(paths.iterator()));
 		}
-		
-		directory.delete();
-	}
-	
-	/**
-	 * Finds all of the names of the files under the provided directory path that are written 
-	 * in a certain format
-	 * @param directory The directory that is checked
-	 * @param format The format the files should have in order to be selected
-	 * @return All file names (no leading path included) that have the provided format 
-	 * under the provided directory. Null if no such directory exists or if an IO error occurred
-	 */
-	public static String[] findFileNamesIn(File directory, String format)
-	{
-		FilenameFilter filter = new FilenameFilter()
+		catch (IOException e)
 		{
-			@Override
-			public boolean accept(File dir, String name)
-			{
-				return name.endsWith("." + format) || 
-						name.endsWith("." + format.toLowerCase()) || 
-						name.endsWith("." + format.toUpperCase());
-			}
-		};
-		
-		return directory.list(filter);
+			return Try.failure(e);
+		}
 	}
 	
 	/**
-	 * Finds all of the names of the files under the provided directory path that are written 
-	 * in a certain format
-	 * @param directory The directory that is checked
-	 * @param nameFilter the filter that is applied to the files to determine if they would get selected
-	 * @return All file names (no leading path included) that have the provided format 
-	 * under the provided directory. Null if no such directory exists or if an IO error occurred
-	 * @deprecated Please use Java 8 filters instead
+	 * Reads the first non-empty line of a file
+	 * @param file The target file
+	 * @return The first line of the file
 	 */
-	public static String[] findFileNamesIn(File directory, utopia.flow.util.Filter<String> nameFilter)
+	public static Option<String> readFirstFileLine(File file)
 	{
-		FilenameFilter filter = new FilenameFilter()
+		try (Scanner scanner = new Scanner(file))
 		{
-			@Override
-			public boolean accept(File dir, String name)
+			while (scanner.hasNext())
 			{
-				return nameFilter.includes(name);
+				String line = scanner.next();
+				if (!line.isEmpty())
+					return Option.some(line);
 			}
-		};
-		
-		return directory.list(filter);
+			
+			return Option.none();
+		}
+		catch (FileNotFoundException e)
+		{
+			return Option.none();
+		}
 	}
 	
 	/**
-	 * Changes the hidden attribute of a file denoted by a path
+	 * Reads all non-empty lines from a file
+	 * @param file The target file
+	 * @return The lines from the file. Failure if the file didn't exist
+	 */
+	public static Try<ImmutableList<String>> linesFromFile(File file)
+	{
+		try (Scanner reader = new Scanner(file))
+		{
+			List<String> buffer = new ArrayList<>();
+			while (reader.hasNext())
+			{
+				buffer.add(reader.nextLine());
+			}
+			
+			return Try.success(ImmutableList.of(buffer).filter(line -> !line.isEmpty()));
+		}
+		catch (FileNotFoundException e)
+		{
+			return Try.failure(e);
+		}
+	}
+	
+	/**
+	 * Hides a file denoted by a path
 	 * @param path A path leading to an existing file
-	 * @param hidden Should the file be a hidden file. One may not be able to write into a 
-	 * hidden file.
 	 * @throws IOException If the operation failed
 	 */
-	public static void setHidden(Path path, boolean hidden) throws IOException
+	public static void hideFile(Path path) throws IOException
 	{
-		Files.setAttribute(path, "dos:hidden", Boolean.valueOf(hidden), LinkOption.NOFOLLOW_LINKS);
-	}
-	
-	/**
-	 * Checks whether a file is hidden
-	 * @param path A path leading to a file
-	 * @return Is the file a hidden file
-	 * @throws IOException If an io error occurs
-	 */
-	public static boolean isHidden(Path path) throws IOException
-	{
-		// if the file doesn't exist, it can't be hidden
-		if (path.toFile().exists())
-			return Files.getAttribute(path, "dos:hidden", 
-					LinkOption.NOFOLLOW_LINKS).equals(Boolean.TRUE);
-		else
-			return false;
+		Files.setAttribute(path, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
 	}
 	
 	/**
@@ -128,32 +117,24 @@ public class FileUtils
 	 * @param hidden Whether the file should be hidden afterwards
 	 * @throws IOException If the operation failed
 	 */
-	public static void printFile(Path path, Collection<? extends String> lines, 
-			boolean hidden) throws IOException
+	public static void printFile(Path path, Iterable<? extends String> lines, boolean hidden) throws IOException
 	{
-		// If the file is hidden, removes that attribute for the duration of the write
+		// If the file is hidden, removes the old version first
 		File file = path.toFile();
-		if (isHidden(path))
-			setHidden(path, false);
+		if (hidden)
+			file.delete();
 		
-		PrintWriter writer = null;
-		try
+		try (PrintWriter writer = new PrintWriter(file))
 		{
-			writer = new PrintWriter(file);
-			for (String line : lines)
-			{
-				writer.println(line);
-			}
+			lines.forEach(writer::println);
+			
+			// Sets the file permissions for other users as well
+			file.setReadable(true, false);
+			file.setWritable(true, false);
 			
 			// May hide the file afterwards
-			//Object hiddenStatus = Files.getAttribute(path, "dos:hidden", LinkOption.NOFOLLOW_LINKS);
 			if (hidden)
-				setHidden(path, true);
-		}
-		finally
-		{
-			if (writer != null)
-				writer.close();
+				hideFile(path);
 		}
 	}
 	
@@ -164,12 +145,8 @@ public class FileUtils
 	 * @param hidden Whether the file should be hidden afterwards
 	 * @throws IOException If the operation failed
 	 */
-	/*
 	public static void printFile(Path path, String line, boolean hidden) throws IOException
 	{
-		Collection<String> lines = new ArrayList<>();
-		lines.add(line);
-		printFile(path, lines, hidden);
+		printFile(path, ImmutableList.withValue(line), hidden);
 	}
-	*/
 }

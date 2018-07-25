@@ -1,5 +1,6 @@
 package utopia.flow.recording;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import javax.xml.stream.XMLStreamException;
@@ -40,8 +41,9 @@ public class XMLConstructorInstructor
 	 * 
 	 * @param stream The xml stream the constructables are read from
 	 * @throws XMLStreamException If the xml stream couldn't be read correctly
+	 * @throws IOException 
 	 */
-	public void constructFrom(InputStream stream) throws XMLStreamException
+	public void constructFrom(InputStream stream) throws XMLStreamException, IOException
 	{
 		String attributeElementName = null;
 		int depth = 0;
