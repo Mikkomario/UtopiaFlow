@@ -21,7 +21,6 @@ public class Range<T extends Comparable<? super T>> implements RichComparable<Ra
 	 * Creates a new range
 	 * @param first The first value (inclusive)
 	 * @param last The last value (inclusive)
-	 * @param next A function for incrementing the value
 	 */
 	public Range(T first, T last)
 	{

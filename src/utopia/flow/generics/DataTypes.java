@@ -340,7 +340,7 @@ public class DataTypes implements ValueParser
 	
 	/**
 	 * Introduces a new special case to element value parsing. The special cases of 
-	 * {@link BasicDataType} ({@link BasicElementValueParser}) will be included by default 
+	 * {@link BasicDataType} BasicElementValueParser will be included by default 
 	 * and need not be introduced separately.
 	 * @param parser The parser that handles some element parsing special cases
 	 * @deprecated {@link XmlElement} should be used when handling xml content
