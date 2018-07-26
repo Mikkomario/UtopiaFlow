@@ -149,4 +149,25 @@ public class FileUtils
 	{
 		printFile(path, ImmutableList.withValue(line), hidden);
 	}
+	
+	/**
+	 * Deletes a directory and all of its contents
+	 * @param directory A directory
+	 * @return Whether the directory was deleted
+	 */
+	public static boolean deleteDirectory(File directory)
+	{
+		if (!directory.isDirectory())
+			return false;
+		
+		for (File file : directory.listFiles())
+		{
+			if (file.isDirectory())
+				deleteDirectory(file);
+			else
+				file.delete();
+		}
+		
+		return directory.delete();
+	}
 }
