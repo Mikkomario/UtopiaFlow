@@ -259,6 +259,28 @@ public class XmlReader implements AutoCloseable
 	}
 	
 	/**
+	 * Checks whether this reader is currently at an element with an acceptable name
+	 * @param nameFilter A function used for testing element names
+	 * @return Whether the reader is currently at an acceptable element
+	 * @throws XMLStreamException
+	 */
+	public boolean isAtElementWithName(Predicate<? super String> nameFilter) throws XMLStreamException
+	{
+		return currentElementName().exists(nameFilter);
+	}
+	
+	/**
+	 * Checks whether this reader is currently at an element with the specified name (case-insensitive)
+	 * @param name A name
+	 * @return Whether this reader is at an element with the specified name
+	 * @throws XMLStreamException
+	 */
+	public boolean isAtElementWithName(String name) throws XMLStreamException
+	{
+		return isAtElementWithName(name::equalsIgnoreCase);
+	}
+	
+	/**
      * Moves this reader to the next element (child, sibling, etc.)
      * @return how much the 'depth' of this reader changed in the process (1 for child, 
      * 0 for sibling, -1 for parent level and so on)
@@ -282,7 +304,7 @@ public class XmlReader implements AutoCloseable
 	public int toNextElementWithName(Predicate<? super String> nameFilter, 
 			boolean checkCurrentElement) throws XMLStreamException
 	{
-		if (checkCurrentElement && currentElementName().exists(nameFilter))
+		if (checkCurrentElement && isAtElementWithName(nameFilter))
 			return 0;
 		else
 			return toNextWithName(nameFilter, i -> true);
@@ -359,12 +381,44 @@ public class XmlReader implements AutoCloseable
      * Moves this reader to the next sibling element that has a name that is accepted by the provided 
      * filter. If no such sibling is found, stops at the next parent level element or higher.
      * @param nameFilter the filter that determines whether an element name is accepted
+	 * @param checkCurrentElement Whether the current element should be checked. If the current element name is 
+	 * acceptable, keeps the reader at the same location and returns true.
+     * @return Whether such a sibling was found (if true, this reader is now at the searched element)
+	 * @throws XMLStreamException 
+     */
+	public boolean toNextSiblingWithName(Predicate<? super String> nameFilter, boolean checkCurrentElement) 
+			throws XMLStreamException
+	{
+		if (checkCurrentElement && isAtElementWithName(nameFilter))
+			return true;
+		else
+			return toNextWithName(nameFilter, depth -> depth == 0, this::skipElement) == 0;
+	}
+	
+	/**
+     * Moves this reader to the next sibling element that has a name that is accepted by the provided 
+     * filter. If no such sibling is found, stops at the next parent level element or higher.
+     * @param nameFilter the filter that determines whether an element name is accepted
      * @return Whether such a sibling was found (if true, this reader is now at the searched element)
 	 * @throws XMLStreamException 
      */
 	public boolean toNextSiblingWithName(Predicate<? super String> nameFilter) throws XMLStreamException
 	{
-		return toNextWithName(nameFilter, depth -> depth == 0, this::skipElement) == 0;
+		return toNextSiblingWithName(nameFilter, false);
+	}
+	
+	/**
+     * Moves this reader to the next sibling element that has the specified name. If no such 
+     * sibling is found, stops at the next parent level element or higher.
+     * @param searchedName the name of the searched element (case-insensitive)
+     * @param checkCurrentElement Whether the current element should be checked. If the current element name is 
+	 * acceptable, keeps the reader at the same location and returns true.
+     * @return Whether such a sibling was found (if true, this reader is now at the searched element)
+	 * @throws XMLStreamException 
+     */
+	public boolean toNextSiblingWithName(String searchedName, boolean checkCurrentElement) throws XMLStreamException
+	{
+		return toNextSiblingWithName(searchedName::equalsIgnoreCase, checkCurrentElement);
 	}
 	
 	/**
@@ -376,7 +430,7 @@ public class XmlReader implements AutoCloseable
      */
 	public boolean toNextSiblingWithName(String searchedName) throws XMLStreamException
 	{
-		return toNextSiblingWithName(searchedName::equalsIgnoreCase);
+		return toNextSiblingWithName(searchedName, false);
 	}
 	
 	/**
