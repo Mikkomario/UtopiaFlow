@@ -225,7 +225,7 @@ public class XmlReader implements AutoCloseable
 	/**
      * Parses the contents of a single xml element, including all its children. this reader is then 
      * moved to the next sibling element or higher
-     * @return the parsed element
+     * @return the parsed element. None if (and only if) the reader was at document end already
 	 * @throws XMLStreamException 
      */
 	public Option<XmlElement> readElement() throws XMLStreamException
@@ -273,13 +273,46 @@ public class XmlReader implements AutoCloseable
      * Moves this reader to the next element (child, sibling, etc.) with a name that is accepted 
      * by the provided filter
      * @param nameFilter a filter that determines whether the name is accepted or not
+	 * @param checkCurrentElement Whether the current element should be checked as well. If true and the current element 
+	 * name is accepted, doesn't move the reader
+     * @return how much the 'depth' of this reader changed in the process (1 for child, 
+     * 0 for sibling, -1 for parent level and so on)
+	 * @throws XMLStreamException 
+     */
+	public int toNextElementWithName(Predicate<? super String> nameFilter, 
+			boolean checkCurrentElement) throws XMLStreamException
+	{
+		if (checkCurrentElement && currentElementName().exists(nameFilter))
+			return 0;
+		else
+			return toNextWithName(nameFilter, i -> true);
+	}
+	
+	/**
+     * Moves this reader to the next element (child, sibling, etc.) with a name that is accepted 
+     * by the provided filter
+     * @param nameFilter a filter that determines whether the name is accepted or not
      * @return how much the 'depth' of this reader changed in the process (1 for child, 
      * 0 for sibling, -1 for parent level and so on)
 	 * @throws XMLStreamException 
      */
 	public int toNextElementWithName(Predicate<? super String> nameFilter) throws XMLStreamException
 	{
-		return toNextWithName(nameFilter, i -> true);
+		return toNextElementWithName(nameFilter, false);
+	}
+	
+	/**
+     * Moves this reader to the next element (child, sibling, etc.) with the specified name
+     * @param searchedName the name the targeted element must have (case-insensitive)
+	 * @param checkCurrentElement Whether the current element should be checked as well. If true and the current element 
+	 * has the provided name, doesn't move the reader
+     * @return how much the 'depth' of this reader changed in the process (1 for child, 
+     * 0 for sibling, -1 for parent level and so on)
+	 * @throws XMLStreamException 
+     */
+	public int toNextElementWithName(String searchedName, boolean checkCurrentElement) throws XMLStreamException
+	{
+		return toNextElementWithName(searchedName::equalsIgnoreCase, checkCurrentElement);
 	}
 	
 	/**
@@ -291,7 +324,7 @@ public class XmlReader implements AutoCloseable
      */
 	public int toNextElementWithName(String searchedName) throws XMLStreamException
 	{
-		return toNextElementWithName(searchedName::equalsIgnoreCase);
+		return toNextElementWithName(searchedName, false);
 	}
 	
 	/**
