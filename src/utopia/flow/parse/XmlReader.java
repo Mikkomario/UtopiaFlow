@@ -360,7 +360,7 @@ public class XmlReader implements AutoCloseable
      */
 	public boolean toNextChildWithName(Predicate<? super String> nameFilter) throws XMLStreamException
 	{
-		return toNextWithName(nameFilter, depth -> depth > 0) > 0;
+		return toNextWithName(nameFilter, depth -> depth > 0) > 0 && !isAtDocumentEnd();
 	}
 	
 	/**
@@ -392,7 +392,7 @@ public class XmlReader implements AutoCloseable
 		if (checkCurrentElement && isAtElementWithName(nameFilter))
 			return true;
 		else
-			return toNextWithName(nameFilter, depth -> depth == 0, this::skipElement) == 0;
+			return toNextWithName(nameFilter, depth -> depth == 0, this::skipElement) == 0 && !isAtDocumentEnd();
 	}
 	
 	/**

@@ -42,7 +42,7 @@ public class XmlElement
 			ImmutableMap<String, String> attributes)
 	{
 		this.name = name;
-		this.text = text.filter(s -> !s.isEmpty());
+		this.text = text.map(s -> s.trim()).filter(s -> !s.isEmpty());
 		this.children = children;
 		this.attributes = attributes;
 	}
@@ -55,7 +55,7 @@ public class XmlElement
 	public XmlElement(String name, String text)
 	{
 		this.name = name;
-		this.text = Option.some(text).filter(s -> !s.isEmpty());
+		this.text = Option.some(text.trim()).filter(s -> !s.isEmpty());
 		this.children = ImmutableList.empty();
 		this.attributes = ImmutableMap.empty();
 	}
@@ -68,7 +68,7 @@ public class XmlElement
 	public XmlElement(String name, Option<String> text)
 	{
 		this.name = name;
-		this.text = text.filter(s -> !s.isEmpty());
+		this.text = text.map(s -> s.trim()).filter(s -> !s.isEmpty());
 		this.children = ImmutableList.empty();
 		this.attributes = ImmutableMap.empty();
 	}
@@ -81,7 +81,7 @@ public class XmlElement
 	public XmlElement(String name, Value value)
 	{
 		this.name = name;
-		this.text = value.toStringOption().filter(s -> !s.isEmpty());
+		this.text = value.toStringOption().map(s -> s.trim()).filter(s -> !s.isEmpty());
 		this.children = ImmutableList.empty();
 		this.attributes = ImmutableMap.empty();
 	}
