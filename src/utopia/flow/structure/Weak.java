@@ -9,7 +9,7 @@ import java.lang.ref.WeakReference;
  * @param <T> The type of item in this container
  * @since 3.7.2018
  */
-public class Weak<T> implements RichIterable<T>
+public class Weak<T> implements RichIterable<T>, Wrapper<Option<T>>
 {
 	// ATTRIBUTES	--------------------
 	
@@ -43,6 +43,7 @@ public class Weak<T> implements RichIterable<T>
 	 * @return A strong reference to the item in this container. 
 	 * None if the item was already taken by the garbage collector
 	 */
+	@Override
 	public Option<T> get()
 	{
 		return new Option<>(this.ref.get());

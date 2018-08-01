@@ -7,11 +7,13 @@ import java.util.Set;
 import utopia.flow.generics.BasicDataType;
 import utopia.flow.generics.DataType;
 import utopia.flow.generics.Value;
+import utopia.flow.parse.XmlElement;
 
 /**
  * Element is a simple data struct used for storing xml element contents
  * @author Mikko Hilpinen
  * @since 27.4.2016
+ * @deprecated Replaced with {@link XmlElement}
  */
 public class Element implements Node<Value>
 {

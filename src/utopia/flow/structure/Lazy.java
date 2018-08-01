@@ -8,7 +8,7 @@ import java.util.function.Supplier;
  * @param <T> The type of object accessed through this class
  * @since 16.1.2018
  */
-public class Lazy<T> implements Supplier<T>
+public class Lazy<T> implements Wrapper<T>
 {
 	// ATTRIBUTES	------------------
 	

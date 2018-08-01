@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  * @param <T> The type of item stored in this lazy container
  * @since 22.1.2018
  */
-public class MutableLazy<T>
+public class MutableLazy<T> implements Wrapper<T>
 {
 	// ATTRIBUTES	-------------------
 	
@@ -35,6 +35,7 @@ public class MutableLazy<T>
 	/**
 	 * @return The lazily initialised value
 	 */
+	@Override
 	public T get()
 	{
 		if (this.item.isDefined())
