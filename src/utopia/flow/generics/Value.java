@@ -388,6 +388,22 @@ public class Value
 	}
 	
 	/**
+	 * @return Whether this value is null / empty
+	 */
+	public boolean isEmpty()
+	{
+		return isNull();
+	}
+	
+	/**
+	 * @return Whether this value has a real value associated with it
+	 */
+	public boolean isDefined()
+	{
+		return !isEmpty();
+	}
+	
+	/**
 	 * Casts the value to a string like when casting it to any other data type
 	 * @return The value casted to a string
 	 */
