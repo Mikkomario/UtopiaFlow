@@ -1,91 +1,52 @@
 package utopia.flow.structure;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * This class can be used for building immutable lists in a mutable fashion
+ * This class can be used for building immutable lists in a mutable fashion. List buffers are not thread safe.
  * @author Mikko Hilpinen
  * @param <T> The type of items in the final list
  * @since 14.5.2018
  */
-public class ListBuilder<T> implements RichIterable<T>
+public class ListBuilder<T> extends Builder<ImmutableList<T>, ArrayList<T>, T>
 {
-	// ATTRIBUTES	-----------------
-	
-	private final List<T> buffer;
-	
-	
-	// CONSTRUCTOR	-----------------
+	// CONSTRUCTOR	----------------
 	
 	/**
 	 * Creates a new builder
 	 */
 	public ListBuilder()
 	{
-		this.buffer = new ArrayList<>();
+		super(new ArrayList<>());
 	}
 	
 	/**
-	 * Creates a new builder with initial capacity
-	 * @param capacity The estimated size of the final list
+	 * Creates a new builder
+	 * @param initialCapacity The intial capacity of the buffer
 	 */
-	public ListBuilder(int capacity)
+	public ListBuilder(int initialCapacity)
 	{
-		this.buffer = new ArrayList<>(capacity);
+		super(new ArrayList<>(initialCapacity));
 	}
 	
 	
 	// IMPLEMENTED METHODS	--------
-	
+
 	@Override
-	public RichIterator<T> iterator()
+	protected ImmutableList<T> newResultFrom(ArrayList<T> buffer)
 	{
-		return RichIterator.wrap(this.buffer.iterator());
+		return new ImmutableList<>(buffer);
 	}
 
-	
-	// OTHER METHODS	------------
-	
-	/**
-	 * @return An immutable list based on this builder contents
-	 */
-	public ImmutableList<T> build()
+	@Override
+	protected ArrayList<T> copyBuffer(ArrayList<T> old)
 	{
-		return ImmutableList.of(this.buffer);
+		return new ArrayList<>(old);
 	}
-	
-	/**
-	 * Adds an item to this builder
-	 * @param item An item
-	 */
-	public void add(T item)
+
+	@Override
+	protected void append(ArrayList<T> buffer, T newItem)
 	{
-		this.buffer.add(item);
-	}
-	
-	/**
-	 * Adds multiple items to this builder
-	 * @param first The first item
-	 * @param second The second item
-	 * @param more More items
-	 */
-	public void add(T first, T second, @SuppressWarnings("unchecked") T... more)
-	{
-		this.buffer.add(first);
-		this.buffer.add(second);
-		for (T item : more)
-		{
-			this.buffer.add(item);
-		}
-	}
-	
-	/**
-	 * Adds multiple items to this builder
-	 * @param items The items to be added
-	 */
-	public void add(ImmutableList<T> items)
-	{
-		this.buffer.addAll(items.toMutableList());
+		buffer.add(newItem);
 	}
 }

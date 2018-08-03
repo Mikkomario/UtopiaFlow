@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  * @param <Value> The types of the values stored in the map
  * @since 1.11.2017
  */
-public class ImmutableMap<Key, Value> implements RichIterable<Pair<Key, Value>>
+public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>
 {
 	// ATTRIBUTES	------------------
 	
@@ -141,6 +141,18 @@ public class ImmutableMap<Key, Value> implements RichIterable<Pair<Key, Value>>
 		return new ImmutableMap<>(map).mapValues(ImmutableList::of);
 	}
 	
+	/**
+	 * Builds a new map using a function to fill its contents
+	 * @param fill A fill function
+	 * @return A filled map
+	 */
+	public static <Key, Value> ImmutableMap<Key, Value> build(Consumer<? super MapBuilder<Key, Value>> fill)
+	{
+		MapBuilder<Key, Value> buffer = new MapBuilder<>();
+		fill.accept(buffer);
+		return buffer.build();
+	}
+	
 	
 	// IMPLEMENTED METHODS	-------
 	
@@ -205,7 +217,7 @@ public class ImmutableMap<Key, Value> implements RichIterable<Pair<Key, Value>>
 	@Override
 	public boolean contains(Object item)
 	{
-		return RichIterable.super.contains(item);
+		return BiIterable.super.contains(item);
 	}
 	
 	
@@ -495,38 +507,6 @@ public class ImmutableMap<Key, Value> implements RichIterable<Pair<Key, Value>>
 	public ImmutableMap<Key, Value> filter(BiPredicate<? super Key, ? super Value> f)
 	{
 		return new ImmutableMap<>(toList().filter(keyValue -> f.test(keyValue.getFirst(), keyValue.getSecond())));
-	}
-	
-	/**
-	 * Performs a consumer for each key value pair in this map
-	 * @param f a consumer for key value pairs
-	 */
-	public void forEach(BiConsumer<? super Key, ? super Value> f)
-	{
-		for (Pair<Key, Value> keyValue : this)
-		{
-			f.accept(keyValue.getFirst(), keyValue.getSecond());
-		}
-	}
-	
-	/**
-	 * Checks if a predicate is true for all key value pairs in this map
-	 * @param f A predicate
-	 * @return Whether the predicate is true for all key value pairs in this map. True if this map is empty.
-	 */
-	public boolean forAll(BiPredicate<? super Key, ? super Value> f)
-	{
-		return toList().forAll(p -> f.test(p.getFirst(), p.getSecond()));
-	}
-	
-	/**
-	 * Checks if this map contains a key value pair that is accepted by the predicate
-	 * @param f a predicate
-	 * @return Whether this map contains a key value pair accepted by the predicate
-	 */
-	public boolean exists(BiPredicate<? super Key, ? super Value> f)
-	{
-		return toList().exists(p -> f.test(p.getFirst(), p.getSecond()));
 	}
 	
 	/**

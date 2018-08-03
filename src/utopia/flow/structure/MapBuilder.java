@@ -1,28 +1,26 @@
 package utopia.flow.structure;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
- * This class can be used for building an immutable map with buffered data
+ * This class can be used for building an immutable map with buffered data. Map builders are not thread safe.
  * @author Mikko Hilpinen
  * @param <Key> The type of key in this builder
  * @param <Value> The type of value in this builder
  * @since 16.4.2018
  */
-public class MapBuilder<Key, Value>
+public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>, 
+		IterableMapWrapper<Key, Value>, Pair<Key, Value>> implements BiIterable<Key, Value>
 {
-	// ATTRIBUTES	-------------------
-	
-	private Map<Key, Value> map = new HashMap<>();
-	
-	
 	// CONSTRUCTOR	-------------------
 	
 	/**
 	 * Creates an empty buffer
 	 */
-	public MapBuilder() { }
+	public MapBuilder()
+	{
+		super(new IterableMapWrapper<>(new HashMap<>()));
+	}
 
 	/**
 	 * Creates a buffer with an initial value
@@ -31,19 +29,42 @@ public class MapBuilder<Key, Value>
 	 */
 	public MapBuilder(Key key, Value value)
 	{
-		this.map.put(key, value);
+		super(new IterableMapWrapper<>(new HashMap<>()));
+		put(key, value);
+	}
+	
+	
+	// IMPLEMENTED	--------------------
+	
+	@Override
+	protected ImmutableMap<Key, Value> newResultFrom(IterableMapWrapper<Key, Value> buffer)
+	{
+		return new ImmutableMap<>(buffer.get());
+	}
+
+	@Override
+	protected IterableMapWrapper<Key, Value> copyBuffer(IterableMapWrapper<Key, Value> old)
+	{
+		return new IterableMapWrapper<>(new HashMap<>(old.get()));
+	}
+
+	@Override
+	protected void append(IterableMapWrapper<Key, Value> buffer, Pair<Key, Value> newItem)
+	{
+		buffer.get().put(newItem.getFirst(), newItem.getSecond());
 	}
 	
 	
 	// OTHER METHODS	----------------
 	
 	/**
-	 * Builds the map
-	 * @return An immutable map based on builder state
+	 * Adds a key value pair to this builder
+	 * @param key The key to be added
+	 * @param value The value to be added
 	 */
-	public ImmutableMap<Key, Value> build()
+	public void put(Key key, Value value)
 	{
-		return ImmutableMap.of(this.map);
+		add(new Pair<>(key, value));
 	}
 	
 	/**
@@ -51,6 +72,7 @@ public class MapBuilder<Key, Value>
 	 * @param key The new key
 	 * @param value The new value
 	 * @return This map
+	 * @deprecated Please move to using {@link #put(Object, Object)} instead
 	 */
 	public MapBuilder<Key, Value> plus(Key key, Value value)
 	{
@@ -62,9 +84,10 @@ public class MapBuilder<Key, Value>
 	 * Adds a new item to this map
 	 * @param key The new key
 	 * @param value The new value
+	 * @deprecated Please move to using {@link #put(Object, Object)} instead
 	 */
 	public void add(Key key, Value value)
 	{
-		this.map.put(key, value);
+		put(key, value);
 	}
 }

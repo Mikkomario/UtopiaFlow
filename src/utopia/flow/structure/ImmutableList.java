@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -254,6 +255,17 @@ public class ImmutableList<T> implements RichIterable<T>
 			}
 			return new ImmutableList<>(buffer);
 		}
+	}
+	
+	/**
+	 * @param fill A function for filling list contents
+	 * @return A filled list
+	 */
+	public static <T> ImmutableList<T> build(Consumer<? super ListBuilder<T>> fill)
+	{
+		ListBuilder<T> buffer = new ListBuilder<>();
+		fill.accept(buffer);
+		return buffer.build();
 	}
 
 
