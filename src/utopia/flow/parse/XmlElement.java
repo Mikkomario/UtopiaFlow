@@ -1,5 +1,7 @@
 package utopia.flow.parse;
 
+import java.util.function.Consumer;
+
 import utopia.flow.generics.Model;
 import utopia.flow.generics.Value;
 import utopia.flow.generics.Variable;
@@ -128,6 +130,41 @@ public class XmlElement
 	}
 	
 	/**
+	 * Creates a multiple levels deep xml element. The last part is read as element text while earlier parts are 
+	 * considered element names
+	 * @param name The name of the element
+	 * @param firstPart The first part (element name)
+	 * @param secondPart The second part (element name or text)
+	 * @param moreParts More parts (element names or text)
+	 */
+	public XmlElement(String name, String firstPart, String secondPart, String... moreParts)
+	{
+		this.name = name;
+		this.text = Option.none();
+		this.attributes = ImmutableMap.empty();
+		
+		ImmutableList<String> parts = ImmutableList.withValues(firstPart, secondPart, moreParts);
+		
+		if (parts.size() == 2)
+			this.children = ImmutableList.withValue(new XmlElement(parts.get(0), parts.get(1)));
+		else
+		{
+			// Adds child elements from bottom to top until all parts have been used
+			// The last 2 parts represent element name + text while earlier parts represent element names
+			XmlElement lastElement = new XmlElement(parts.get(parts.size() - 2), parts.last().get());
+			ImmutableList<String> remainingParts = parts.dropLast(2);
+			
+			while (!remainingParts.isEmpty())
+			{
+				lastElement = new XmlElement(remainingParts.last().get(), lastElement);
+				remainingParts = remainingParts.dropLast(1);
+			}
+			
+			this.children = ImmutableList.withValue(lastElement);
+		}
+	}
+	
+	/**
 	 * Creates an empty element with the specified name
 	 * @param name The name of the element
 	 * @return A new empty element
@@ -135,6 +172,19 @@ public class XmlElement
 	public static XmlElement empty(String name)
 	{
 		return new XmlElement(name, Option.none(), ImmutableList.empty(), ImmutableMap.empty());
+	}
+	
+	/**
+	 * Creates a new xml element by building the child elements with a mutable buffer
+	 * @param name The name of the element
+	 * @param fill A function that fills the child element buffer
+	 * @return The new xml element
+	 */
+	public static XmlElement build(String name, Consumer<? super XmlListBuilder> fill)
+	{
+		XmlListBuilder buffer = new XmlListBuilder();
+		fill.accept(buffer);
+		return new XmlElement(name, buffer.build());
 	}
 	
 	/*
