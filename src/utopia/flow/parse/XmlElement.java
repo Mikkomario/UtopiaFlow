@@ -100,6 +100,19 @@ public class XmlElement
 	}
 	
 	/**
+	 * Creates a new xml element with a single child
+	 * @param name The name of the element
+	 * @param child The child element
+	 */
+	public XmlElement(String name, XmlElement child)
+	{
+		this.name = name;
+		this.text = Option.none();
+		this.children = ImmutableList.withValue(child);
+		this.attributes = ImmutableMap.empty();
+	}
+	
+	/**
 	 * Creates a new element with child content
 	 * @param name The name of the element
 	 * @param firstChild The first child element
