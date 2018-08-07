@@ -1,10 +1,14 @@
 package utopia.flow.async;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
+
+import utopia.flow.structure.Pair;
 
 /**
  * This class is used as a wrapper for a value that may be changed from multiple threads. This class should 
- * only be used with immutable instances that optimally also have value semantics. This class is, by nature, mutable.
+ * only be used with immutable instances that optimally also have value semantics. This class is, by nature, mutable. 
+ * Please note that, to avoid deadlocks, you should not use volatile values inside other volatile values.
  * @author Mikko Hilpinen
  * @param <T> The type of the value held in this object
  * @since 7.8.2018
@@ -57,5 +61,40 @@ public class Volatile<T>
 	public synchronized void update(Function<? super T, ? extends T> modifier)
 	{
 		this.value = modifier.apply(value);
+	}
+	
+	/**
+	 * This method reads a value from the held value, then mutates the held value and finally returns the read value.
+	 * @param taker A function for taking / reading a value from the currently held value
+	 * @param modifier A function for updating the value afterwards
+	 * @return The value that was read before the update
+	 */
+	public synchronized <B> B pop(Function<? super T, ? extends B> taker, Function<? super T, ? extends T> modifier)
+	{
+		B result = taker.apply(value);
+		update(modifier);
+		return result;
+	}
+	
+	/**
+	 * This method reads a value and mutates the current value at the same time
+	 * @param update A function for reading and updating the value. The first result should be the read value while 
+	 * the second result should be the new modified value for this container
+	 * @return The value read by the function
+	 */
+	public synchronized <B> B pop(Function<? super T, ? extends Pair<B, T>> update)
+	{
+		Pair<B, T> result = update.apply(value);
+		value = result.getSecond();
+		return result.getFirst();
+	}
+	
+	/**
+	 * Locks the value in this container for the current thread only for the duration of the action
+	 * @param action An action
+	 */
+	public synchronized void lockWhile(Consumer<? super T> action)
+	{
+		action.accept(value);
 	}
 }

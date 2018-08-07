@@ -21,6 +21,40 @@ public class WaitUtils
 	// OTHER METHODS	---------------
 	
 	/**
+	 * Waits until the lock is notified
+	 * @param lock The locking object
+	 * @see #notify(Object)
+	 */
+	public static void waitUntilNotified(Object lock)
+	{
+		synchronized (lock)
+		{
+			boolean waiting = true;
+			while (waiting)
+			{
+				try
+				{
+					lock.wait();
+					waiting = false;
+				}
+				catch (InterruptedException e) { }
+			}
+		}
+	}
+	
+	/**
+	 * Notifies a lock object and releases any thread waiting on the said object. Used with {@link #waitUntilNotified(Object)}
+	 * @param lock A locking object
+	 */
+	public static void notify(Object lock)
+	{
+		synchronized (lock)
+		{
+			lock.notifyAll();
+		}
+	}
+	
+	/**
 	 * Waits a certain amount of milliseconds
 	 * @param millis The amount of milliseconds waited
 	 * @param lock The object used as a lock

@@ -432,6 +432,36 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>
 	}
 	
 	/**
+	 * Creates a new map with a modified value
+	 * @param key The key for which the value is modified
+	 * @param modifier A function for modifying a single value
+	 * @return A modified version of this map. This map if this map didn't contain the provided value.
+	 */
+	public ImmutableMap<Key, Value> withModifiedValue(Key key, Function<? super Value, ? extends Value> modifier)
+	{
+		if (containsKey(key))
+			return plus(key, modifier.apply(get(key)));
+		else
+			return this;
+	}
+	
+	/**
+	 * Creates a new map with a modified value
+	 * @param key The key for which the value is modified
+	 * @param modifier A function for modifying a single value
+	 * @param makeNewValue A function that will produce a back up value if there was no original value to modify
+	 * @return A modified version of this map
+	 */
+	public ImmutableMap<Key, Value> withModifiedValue(Key key, Function<? super Value, ? extends Value> modifier, 
+			Supplier<? extends Value> makeNewValue)
+	{
+		if (containsKey(key))
+			return plus(key, modifier.apply(get(key)));
+		else
+			return plus(key, makeNewValue.get());
+	}
+	
+	/**
 	 * Creates a new map with the specified key removed
 	 * @param key A key that is removed
 	 * @return A map without the specified key
