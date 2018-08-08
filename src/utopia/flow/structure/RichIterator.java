@@ -3,6 +3,7 @@ package utopia.flow.structure;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -39,6 +40,26 @@ public interface RichIterator<T> extends Iterator<T>
 		}
 		
 		return ImmutableList.of(buffer);
+	}
+	
+	/**
+	 * Creates a new matching iterator with mapped values. Please note that the iterators affect each other.
+	 * @param transform A transform function
+	 * @return A mapped version of this iterator
+	 */
+	public default <B> MapIterator<T, B> map(Function<? super T, ? extends B> transform)
+	{
+		return new MapIterator<>(this, transform);
+	}
+	
+	/**
+	 * Creates a new matching iterator with flat mapped values. Please note that the iterators affect each other
+	 * @param transform A transform function
+	 * @return A flat mapped version of this iterator
+	 */
+	public default <B> FlatIterator<B> flatMap(Function<? super T, ? extends Iterable<B>> transform)
+	{
+		return new FlatIterator<>(map(transform));
 	}
 	
 	/**
