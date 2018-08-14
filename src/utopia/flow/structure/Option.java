@@ -106,6 +106,35 @@ public class Option<T> implements RichIterable<T>
 	}
 	
 	
+	// STATIC	-------------------------------
+	
+	/**
+	 * Finds a maximum value from a number of optional values
+	 * @param first The first value
+	 * @param second The second value
+	 * @param more More values
+	 * @return The maximum value, if there is one
+	 */
+	@SafeVarargs
+	public static <T extends Comparable<? super T>> Option<T> max(Option<T> first, Option<T> second, Option<T>... more)
+	{
+		return ImmutableList.maxFrom(ImmutableList.flatten(first, second, ImmutableList.flatten(ImmutableList.of(more))));
+	}
+	
+	/**
+	 * Finds a minimum value from a number of optional values
+	 * @param first The first value
+	 * @param second The second value
+	 * @param more More values
+	 * @return The minimum value, if there is one
+	 */
+	@SafeVarargs
+	public static <T extends Comparable<? super T>> Option<T> min(Option<T> first, Option<T> second, Option<T>... more)
+	{
+		return ImmutableList.minFrom(ImmutableList.flatten(first, second, ImmutableList.flatten(ImmutableList.of(more))));
+	}
+	
+	
 	// IMPLEMENTED METHODS	-------------------
 	
 	@Override
