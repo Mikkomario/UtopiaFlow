@@ -13,10 +13,15 @@ public class Weak<T> implements RichIterable<T>, Wrapper<Option<T>>
 {
 	// ATTRIBUTES	--------------------
 	
-	private WeakReference<T> ref;
+	private Option<WeakReference<T>> ref;
 	
 	
 	// CONSTRUCTOR	--------------------
+	
+	private Weak()
+	{
+		this.ref = Option.none();
+	}
 	
 	/**
 	 * Creates a new weak container
@@ -24,7 +29,15 @@ public class Weak<T> implements RichIterable<T>, Wrapper<Option<T>>
 	 */
 	public Weak(T item)
 	{
-		this.ref = new WeakReference<>(item);
+		this.ref = Option.some(new WeakReference<>(item));
+	}
+	
+	/**
+	 * @return A new weak element with no referenced item
+	 */
+	public static <T> Weak<T> empty()
+	{
+		return new Weak<>();
 	}
 	
 	
@@ -46,7 +59,7 @@ public class Weak<T> implements RichIterable<T>, Wrapper<Option<T>>
 	@Override
 	public Option<T> get()
 	{
-		return new Option<>(this.ref.get());
+		return ref.flatMap(r -> new Option<>(r.get()));
 	}
 	
 	
@@ -60,14 +73,14 @@ public class Weak<T> implements RichIterable<T>, Wrapper<Option<T>>
 		@Override
 		public boolean hasNext()
 		{
-			return !this.consumed && this.next.get().isDefined();
+			return !consumed && next.get().isDefined();
 		}
 
 		@Override
 		public T next()
 		{
-			this.consumed = true;
-			return this.next.get().get();
+			consumed = true;
+			return next.get().get();
 		}
 	}
 }

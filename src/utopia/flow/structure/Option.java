@@ -105,6 +105,34 @@ public class Option<T> implements RichIterable<T>
 			return none();
 	}
 	
+	/**
+	 * This method can be used instead of orElse when typing requires it
+	 * @param first The first optional value
+	 * @param second A function for retrieving backup value
+	 * @return The first value if defined, otherwise gives the backup value
+	 */
+	public static <T> Option<? extends T> either(Option<? extends T> first, Supplier<? extends Option<? extends T>> second)
+	{
+		if (first.isDefined())
+			return first;
+		else
+			return second.get();
+	}
+	
+	/**
+	 * This method can be used instead of getOrElse when typing requires it
+	 * @param option The optional value
+	 * @param backup A function for producing a back up value
+	 * @return The option's value or the backup value
+	 */
+	public static <T> T getWithBackUp(Option<? extends T> option, Supplier<? extends T> backup)
+	{
+		if (option.isDefined())
+			return option.get();
+		else
+			return backup.get();
+	}
+	
 	
 	// STATIC	-------------------------------
 	
