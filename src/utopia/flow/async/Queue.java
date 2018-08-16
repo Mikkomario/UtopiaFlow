@@ -15,7 +15,7 @@ public class Queue
 	
 	private int maxWidth;
 	private int currentWidth = 0;
-	private ImmutableList<Delayed<?>> queue = ImmutableList.empty();
+	private volatile ImmutableList<Delayed<?>> queue = ImmutableList.empty();
 	
 	
 	// CONSTRUCTOR	---------------------

@@ -584,7 +584,7 @@ public class ImmutableList<T> implements RichIterable<T>
 	 * @param equals method for checking equality
 	 * @return A combined list
 	 */
-	public ImmutableList<T> overwrite(ImmutableList<? extends T> elements, BiPredicate<? super T, ? super T> equals)
+	public ImmutableList<T> overwrite(RichIterable<? extends T> elements, BiPredicate<? super T, ? super T> equals)
 	{
 		return filter(oldElem -> !elements.exists(newElem -> equals.test(oldElem, newElem))).plus(elements);
 	}
@@ -594,7 +594,7 @@ public class ImmutableList<T> implements RichIterable<T>
 	 * @param elements The new elements
 	 * @return A combined list
 	 */
-	public ImmutableList<T> overwrite(ImmutableList<? extends T> elements)
+	public ImmutableList<T> overwrite(RichIterable<? extends T> elements)
 	{
 		return overwrite(elements, SAFE_EQUALS);
 	}
