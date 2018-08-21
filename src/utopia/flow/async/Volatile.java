@@ -64,6 +64,19 @@ public class Volatile<T>
 	}
 	
 	/**
+	 * Updates the value of this container based on the previous value. The value will be updated to the return value 
+	 * of the function. The current value of this container is passed to the function. This container is locked during 
+	 * the operation.
+	 * @param modifier A function that is used for modifying the value
+	 * @return The new value in this container
+	 */
+	public synchronized T updateAndGet(Function<? super T, ? extends T> modifier)
+	{
+		this.value = modifier.apply(value);
+		return this.value;
+	}
+	
+	/**
 	 * This method reads a value from the held value, then mutates the held value and finally returns the read value.
 	 * @param taker A function for taking / reading a value from the currently held value
 	 * @param modifier A function for updating the value afterwards
