@@ -193,6 +193,20 @@ public class Either<Left, Right>
 	}
 	
 	/**
+	 * Maps the value in this either
+	 * @param leftMap The mapping function used if this either is left
+	 * @param rightMap The mapping function used if this either is right
+	 * @return The mapped value
+	 */
+	public <B> B handleMap(Function<? super Left, ? extends B> leftMap, Function<? super Right, ? extends B> rightMap)
+	{
+		if (isRight())
+			return rightMap.apply(right.get());
+		else
+			return leftMap.apply(left.get());
+	}
+	
+	/**
 	 * Transforms the left side value of this either
 	 * @param f A mapping function for the left side value
 	 * @return A new either with transformed value

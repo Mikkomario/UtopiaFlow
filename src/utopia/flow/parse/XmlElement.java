@@ -549,6 +549,22 @@ public class XmlElement
 	}
 	
 	/**
+	 * Searches for the first element with the specified name. The search is not limited to direct children.
+	 * @param childName The name of the searched child
+	 * @return An element under this element with the specified name. None if no such element could be found.
+	 */
+	public Option<XmlElement> searchFor(String childName)
+	{
+		return children.flatMapFirst(e -> 
+		{
+			if (e.getName().equalsIgnoreCase(childName))
+				return Option.some(e);
+			else
+				return e.searchFor(childName);
+		});
+	}
+	
+	/**
 	 * @param name The name of the new element
 	 * @return A copy of this element with the specified name
 	 */
