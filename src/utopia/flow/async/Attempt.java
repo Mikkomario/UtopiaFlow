@@ -1,5 +1,6 @@
 package utopia.flow.async;
 
+import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -249,6 +250,20 @@ public class Attempt<T> extends Promise<Try<T>>
 	public void handleFailure(Consumer<? super Exception> failureHandler)
 	{
 		doOnceFulfilled(res -> res.failure().forEach(failureHandler));
+	}
+	
+	/**
+	 * Sets a maximum timeout duration for this attempt
+	 * @param timeoutDuration The maximum timeout duration
+	 * @return An attempt that fails automatically if it takes too long
+	 */
+	public Attempt<T> withTimeoutTry(Duration timeoutDuration)
+	{
+		if (isFulfilled())
+			return this;
+		else
+			return Attempt.tryAsynchronous(
+					() -> waitFor(timeoutDuration).getOrElse(() -> Try.failure(new TimeoutException())));
 	}
 	
 	private static <T, B> Attempt<B> flatMapResult(Try<T> result, Function<? super T, ? extends Attempt<B>> f)

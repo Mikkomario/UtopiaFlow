@@ -18,7 +18,7 @@ public class Promise<T>
 {
 	// ATTRIBUTES	-------------------
 	
-	private Option<T> item = Option.none();
+	private final Volatile<Option<T>> item = new Volatile<>(Option.none());
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -105,7 +105,7 @@ public class Promise<T>
 	 */
 	public Option<T> getCurrentItem()
 	{
-		return this.item;
+		return this.item.get();
 	}
 	
 	
@@ -116,7 +116,7 @@ public class Promise<T>
 	 */
 	public boolean isEmpty()
 	{
-		return this.item.isEmpty();
+		return this.item.get().isEmpty();
 	}
 	
 	/**
@@ -124,7 +124,7 @@ public class Promise<T>
 	 */
 	public boolean isFulfilled()
 	{
-		return this.item.isDefined();
+		return this.item.get().isDefined();
 	}
 	
 	/**
@@ -146,7 +146,7 @@ public class Promise<T>
 			}
 		}
 		
-		return this.item.get();
+		return this.item.get().get();
 	}
 	
 	/**
@@ -198,7 +198,7 @@ public class Promise<T>
 	 */
 	public synchronized void fulfill(T result)
 	{
-		this.item = Option.some(result);
+		this.item.set(Option.some(result));
 		notifyAll();
 	}
 	
@@ -292,5 +292,46 @@ public class Promise<T>
 	public void onCompletion(Runnable r)
 	{
 		doOnceFulfilled(i -> r.run());
+	}
+	
+	/**
+	 * Creates a new promise based on this promise, but with a failure timeout
+	 * @param timeoutDuration The maximum duration for the completion of this promise
+	 * @return An attempt for the results of this promise. Will be a failure if timeout is reached before the completion 
+	 * of this promise.
+	 */
+	public Attempt<T> withTimeout(Duration timeoutDuration)
+	{
+		if (isFulfilled())
+			return Attempt.success(getCurrentItem().get());
+		else
+			return Attempt.tryAsynchronous(() -> waitFor(timeoutDuration).toTry(() -> new TimeoutException()));
+	}
+	
+	
+	// NESTED CLASSES	-----------------------
+	
+	/**
+	 * These exceptions may be thrown on promise timeouts
+	 * @author Mikko Hilpinen
+	 * @since 29.8.2018
+	 */
+	public static class TimeoutException extends Exception
+	{
+		private static final long serialVersionUID = -8775087013009213871L;
+
+		/**
+		 * Creates a new exception
+		 */
+		public TimeoutException() { }
+		
+		/**
+		 * Creates a new exception
+		 * @param message The exception message
+		 */
+		public TimeoutException(String message)
+		{
+			super(message);
+		}
 	}
 }
