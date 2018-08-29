@@ -1,6 +1,8 @@
 package utopia.flow.parse;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import utopia.flow.generics.Model;
 import utopia.flow.generics.Value;
@@ -671,5 +673,27 @@ public class XmlElement
 	public XmlElement minus(String childName)
 	{
 		return withChildren(getChildren().filter(c -> !c.getName().equalsIgnoreCase(childName)));
+	}
+	
+	/**
+	 * Finds specific children from anywhere under this element and transforms them
+	 * @param childName The name of the child / children that will be transformed
+	 * @param map A map function for transforming the found children
+	 * @return A transformed version of this element
+	 */
+	public XmlElement findAndMap(String childName, Function<? super XmlElement, ? extends XmlElement> map)
+	{
+		return findAndMap(e -> e.getName().equalsIgnoreCase(childName), map);
+	}
+	
+	/**
+	 * Finds specific children from anywhere under this element and transforms them
+	 * @param find A search function for finding target children
+	 * @param map A map function for transforming the found children
+	 * @return A transformed version of this element
+	 */
+	public XmlElement findAndMap(Predicate<? super XmlElement> find, Function<? super XmlElement, ? extends XmlElement> map)
+	{
+		return withChildren(children.map(c -> find.test(c) ? map.apply(c) : c.findAndMap(find, map)));
 	}
 }
