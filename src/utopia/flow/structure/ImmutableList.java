@@ -968,9 +968,24 @@ public class ImmutableList<T> implements RichIterable<T>
 	 * @param f a mapping function
 	 * @return The mapped list
 	 */
-	public <B> ImmutableList<B> map(Function<? super T, B> f)
+	public <B> ImmutableList<B> map(Function<? super T, ? extends B> f)
 	{
 		return new ImmutableList<>(stream().map(f).collect(Collectors.toList()));
+	}
+	
+	/**
+	 * Maps this list, using item indices in the mapping operation
+	 * @param f The mapping function
+	 * @return A list with mapped values
+	 */
+	public <B> ImmutableList<B> mapWithIndex(BiFunction<? super T, ? super Integer, ? extends B> f)
+	{
+		ArrayList<B> buffer = new ArrayList<>(size());
+		for (int i = 0; i < size(); i++)
+		{
+			buffer.add(f.apply(get(i), i));
+		}
+		return new ImmutableList<>(buffer);
 	}
 	
 	/**
