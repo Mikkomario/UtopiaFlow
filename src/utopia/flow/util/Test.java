@@ -43,6 +43,15 @@ public class Test
 			throw new TestFailedException("Test Failed: " + a + " == " + b);
 	}
 	
+	/**
+	 * Fails the test
+	 * @param message The message sent with the failure
+	 */
+	public static void fail(String message)
+	{
+		throw new TestFailedException(message);
+	}
+	
 	
 	// NESTED CLASSES	----------------
 	
