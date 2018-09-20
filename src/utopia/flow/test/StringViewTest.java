@@ -2,6 +2,7 @@ package utopia.flow.test;
 
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.View;
+import utopia.flow.util.RichString;
 import utopia.flow.util.Test;
 
 /**
@@ -21,6 +22,11 @@ public class StringViewTest
 		Test.check(list.size() == s.length());
 		Test.checkEquals(list, ImmutableList.withValues('k', 'o', 'i', 'r', 'a'));
 		Test.checkEquals(view.count(c -> c.equals('i')), 1);
+		
+		RichString rich = RichString.of(list);
+		Test.checkEquals(rich.capitalized(), "Koira");
+		Test.checkEquals(rich.tail(), "oira");
+		Test.checkEquals(rich.head(), 'k');
 		
 		System.out.println("Done");
 	}

@@ -43,7 +43,7 @@ public class Lazy<T> implements Wrapper<T>
 	}
 
 	
-	// OTHER METHODS	------------
+	// IMPLEMENTED	------------
 	
 	/**
 	 * @return The lazily initialized item
@@ -62,5 +62,16 @@ public class Lazy<T> implements Wrapper<T>
 			
 			return newItem;
 		}
+	}
+	
+	
+	// ACCESSORS	-------------
+	
+	/**
+	 * @return The item in this lazy container. None if the item hasn't been initialized yet.
+	 */
+	public Option<T> current()
+	{
+		return item;
 	}
 }

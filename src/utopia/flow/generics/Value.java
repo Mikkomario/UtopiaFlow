@@ -175,7 +175,11 @@ public class Value
 	 */
 	public static Value String(String string)
 	{
-		return new Value(string, BasicDataType.STRING);
+		// Empty strings count as no value
+		if (string == null || string.isEmpty())
+			return NullValue(BasicDataType.STRING);
+		else
+			return new Value(string, BasicDataType.STRING);
 	}
 	
 	/**
