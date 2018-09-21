@@ -36,6 +36,7 @@ public class ThreadPoolUtils
 	public static ThreadPoolExecutor makeThreadPool(String name, int baseSize, int maxSize)
 	{
 		int cpus = numberOfCPUs();
+		System.out.println("Number of CPUs for thread pool: " + cpus);
 		ThreadPoolExecutor exec = new ThreadPoolExecutor(baseSize * cpus, maxSize * cpus, 60, TimeUnit.SECONDS, 
 				new SynchronousQueue<>(), new DaemonThreadFactory(name));
 		exec.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
@@ -76,12 +77,12 @@ public class ThreadPoolUtils
 		@Override
 		public Thread newThread(Runnable r)
 		{
-			Thread t = new Thread(r);
-			
 			StringBuilder nameBuilder = new StringBuilder();
 			nameBuilder.append(name);
 			nameBuilder.append("-");
 			nameBuilder.append(counter.next());
+			
+			Thread t = new Thread(r);
 			
 			t.setName(nameBuilder.toString());
 			t.setDaemon(true);

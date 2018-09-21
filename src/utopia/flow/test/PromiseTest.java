@@ -22,7 +22,9 @@ public class PromiseTest
 			{
 				try
 				{
+					System.out.println("Staring wait");
 					lock.wait(1000);
+					System.out.println("Finished wait");
 				}
 				catch (InterruptedException e)
 				{

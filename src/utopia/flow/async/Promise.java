@@ -19,7 +19,7 @@ public class Promise<T>
 {
 	// ATTRIBUTES	-------------------
 	
-	private static ThreadPoolExecutor pool = ThreadPoolUtils.makeThreadPool("Promise", 10, 100);
+	private static ThreadPoolExecutor pool = ThreadPoolUtils.makeThreadPool("Promise", 20, 200);
 	
 	private final Volatile<Option<T>> item = new Volatile<>(Option.none());
 	

@@ -19,7 +19,7 @@ public class BackgroundProcessUtils
 {
 	// ATTRIBUTES	-----------------------
 	
-	private static ThreadPoolExecutor repeatPool = ThreadPoolUtils.makeThreadPool("Background-Repeating", 5, 500);
+	private static ThreadPoolExecutor repeatPool = ThreadPoolUtils.makeThreadPool("Background-Repeating", 5, 1000);
 	private static ThreadPoolExecutor pool = ThreadPoolUtils.makeThreadPool("Background", 10, 100);
 	
 	
