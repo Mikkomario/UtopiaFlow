@@ -1,6 +1,7 @@
 package utopia.flow.async;
 
 import java.time.Duration;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -17,6 +18,8 @@ import utopia.flow.structure.Option;
 public class Promise<T>
 {
 	// ATTRIBUTES	-------------------
+	
+	private static ThreadPoolExecutor pool = ThreadPoolUtils.makeThreadPool("Promise", 10, 100);
 	
 	private final Volatile<Option<T>> item = new Volatile<>(Option.none());
 	
@@ -58,7 +61,7 @@ public class Promise<T>
 			}
 		};
 		
-		new Thread(r).start();
+		pool.execute(r);
 		return promise;
 	}
 	
@@ -86,6 +89,27 @@ public class Promise<T>
 			return fulfilled(promises.map(p -> p.getCurrentItem().get()));
 		else
 			return asynchronous(() -> promises.map(p -> p.waitFor()));
+	}
+	
+	
+	// STATIC	-----------------------
+	
+	/**
+	 * @return The thread pool used by promises and classes extending promise
+	 */
+	protected static ThreadPoolExecutor getThreadPool()
+	{
+		return pool;
+	}
+	
+	/**
+	 * Changes the thread pool executor that is used
+	 * @param newPool The new thread executor pool
+	 */
+	public static void setThreadPoolExecutor(ThreadPoolExecutor newPool)
+	{
+		pool.shutdown();
+		pool = newPool;
 	}
 	
 	
@@ -208,7 +232,7 @@ public class Promise<T>
 	 */
 	public synchronized void doAsync(Consumer<? super T> f)
 	{
-		new Thread(() -> f.accept(waitFor())).start();
+		pool.execute(() -> f.accept(waitFor()));
 	}
 	
 	/**

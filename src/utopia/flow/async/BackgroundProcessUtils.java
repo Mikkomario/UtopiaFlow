@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Supplier;
 
 import utopia.flow.structure.Option;
@@ -16,6 +17,12 @@ import utopia.flow.util.WaitUtils;
  */
 public class BackgroundProcessUtils
 {
+	// ATTRIBUTES	-----------------------
+	
+	private static ThreadPoolExecutor repeatPool = ThreadPoolUtils.makeThreadPool("Background-Repeating", 5, 500);
+	private static ThreadPoolExecutor pool = ThreadPoolUtils.makeThreadPool("Background", 10, 100);
+	
+	
 	// CONSTRUCTOR	-----------------------
 	
 	private BackgroundProcessUtils() { }
@@ -51,7 +58,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeatForever(Runnable r, Duration interval, Duration delay)
 	{
-		performAfter(new RepeatingRunnable(r, interval.toMillis(), Option.none()), delay);
+		repeatAfter(new RepeatingRunnable(r, interval.toMillis(), Option.none()), delay);
 	}
 	
 	/**
@@ -85,7 +92,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeat(Runnable r, Duration interval, Duration delay, Supplier<Boolean> checkContinue)
 	{
-		performAfter(new RepeatingRunnable(r, interval.toMillis(), Option.some(checkContinue)), delay);
+		repeatAfter(new RepeatingRunnable(r, interval.toMillis(), Option.some(checkContinue)), delay);
 	}
 	
 	/**
@@ -110,6 +117,11 @@ public class BackgroundProcessUtils
 		runInBackground(new DelayedRunnable(r, durationMillis));
 	}
 	
+	private static void repeatAfter(Runnable r, Duration delay)
+	{
+		repeatPool.execute(new DelayedRunnable(r, delay.toMillis()));
+	}
+	
 	/**
 	 * Performs a certain operation after a certain period of time
 	 * @param r The operation that will be run
@@ -126,9 +138,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void runInBackground(Runnable r)
 	{
-		Thread t = new Thread(r);
-		t.setDaemon(true);
-		t.start();
+		pool.execute(r);
 	}
 	
 	private static void repeat(Runnable r, long intervalMillis, Option<Supplier<Boolean>> checkContinue)

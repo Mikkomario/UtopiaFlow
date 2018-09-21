@@ -41,7 +41,7 @@ public class Attempt<T> extends Promise<Try<T>>
 			}
 		};
 		
-		new Thread(r).start();
+		getThreadPool().execute(r);
 		return attempt;
 	}
 	

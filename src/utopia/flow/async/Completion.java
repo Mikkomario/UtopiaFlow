@@ -24,11 +24,11 @@ public class Completion extends Promise<Unit>
 	public static Completion ofAsynchronous(Runnable operation)
 	{
 		Completion completion = new Completion();
-		new Thread(() -> 
+		getThreadPool().execute(() -> 
 		{
 			operation.run();
 			completion.fulfill();
-		}).start(); 
+		}); 
 		return completion;
 	}
 	
