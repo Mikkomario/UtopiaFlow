@@ -840,7 +840,9 @@ public class ImmutableList<T> implements RichIterable<T>
 	 */
 	public ImmutableList<T> dropFirst(int n)
 	{
-		if (n <= 0)
+		if (isEmpty())
+			return this;
+		else if (n <= 0)
 			return this;
 		else
 		{
@@ -864,7 +866,9 @@ public class ImmutableList<T> implements RichIterable<T>
 	 */
 	public ImmutableList<T> dropLast(int n)
 	{
-		if (n <= 0)
+		if (isEmpty())
+			return this;
+		else if (n <= 0)
 			return this;
 		else
 		{

@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import utopia.flow.structure.Option;
@@ -19,8 +19,16 @@ public class BackgroundProcessUtils
 {
 	// ATTRIBUTES	-----------------------
 	
-	private static ThreadPoolExecutor repeatPool = ThreadPoolUtils.makeThreadPool("Background-Repeating", 5, 1000);
-	private static ThreadPoolExecutor pool = ThreadPoolUtils.makeThreadPool("Background", 10, 100);
+	private static Executor repeatPool = new ThreadPool("Background-Repeating", 10, 100, Duration.ofSeconds(30), e -> 
+	{
+		System.err.println("Error in repeating background process");
+		e.printStackTrace();
+	});
+	private static Executor pool = new ThreadPool("Background", 10, 100, Duration.ofSeconds(30), e -> 
+	{
+		System.err.println("Error in background process");
+		e.printStackTrace();
+	});
 	
 	
 	// CONSTRUCTOR	-----------------------

@@ -1,7 +1,7 @@
 package utopia.flow.async;
 
 import java.time.Duration;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -19,7 +19,11 @@ public class Promise<T>
 {
 	// ATTRIBUTES	-------------------
 	
-	private static ThreadPoolExecutor pool = ThreadPoolUtils.makeThreadPool("Promise", 20, 200);
+	private static Executor pool = new ThreadPool("Promise", 20, 200, Duration.ofSeconds(30), e -> 
+	{
+		System.err.println("Error while handling promise");
+		e.printStackTrace();
+	});
 	
 	private final Volatile<Option<T>> item = new Volatile<>(Option.none());
 	
@@ -97,7 +101,7 @@ public class Promise<T>
 	/**
 	 * @return The thread pool used by promises and classes extending promise
 	 */
-	protected static ThreadPoolExecutor getThreadPool()
+	protected static Executor getThreadPool()
 	{
 		return pool;
 	}
@@ -106,9 +110,8 @@ public class Promise<T>
 	 * Changes the thread pool executor that is used
 	 * @param newPool The new thread executor pool
 	 */
-	public static void setThreadPoolExecutor(ThreadPoolExecutor newPool)
+	public static void setThreadPoolExecutor(Executor newPool)
 	{
-		pool.shutdown();
 		pool = newPool;
 	}
 	
