@@ -76,8 +76,12 @@ public class ThreadPool implements Executor
 				}
 				else
 				{
+					// Testing queue max size
+					if (queue.get().size() > 50000)
+						throw new StackOverflowError("Thread pool queue over 50 000 tasks");
+					
 					// If max thread limit reached, pushes the task to queue
-					queue.update(q -> q.plus(command));
+					queue.update(q -> q.prepend(command));
 					return filtered;
 				}
 			}

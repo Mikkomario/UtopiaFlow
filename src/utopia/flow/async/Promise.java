@@ -19,7 +19,9 @@ public class Promise<T>
 {
 	// ATTRIBUTES	-------------------
 	
-	private static Executor pool = new ThreadPool("Promise", 20, 200, Duration.ofSeconds(30), e -> 
+	private String name = "Promise - " + Thread.currentThread().getName();
+	
+	private static Executor pool = new ThreadPool("Promise", 20, 500, Duration.ofSeconds(30), e -> 
 	{
 		System.err.println("Error while handling promise");
 		e.printStackTrace();
@@ -33,7 +35,10 @@ public class Promise<T>
 	/**
 	 * Creates a new promise waiting to be filled
 	 */
-	public Promise() { }
+	public Promise()
+	{
+		System.out.println(name + " - created");
+	}
 
 	/**
 	 * @return A promise that must be fulfilled separately. Shouldn't be waited for in the same thread it is fulfilled
@@ -226,6 +231,7 @@ public class Promise<T>
 	public synchronized void fulfill(T result)
 	{
 		this.item.set(Option.some(result));
+		System.out.println(name + " - fulfilled");
 		notifyAll();
 	}
 	

@@ -1,6 +1,10 @@
 package utopia.flow.test;
 
+import java.time.Duration;
+
 import utopia.flow.async.Promise;
+import utopia.flow.structure.ImmutableList;
+import utopia.flow.util.WaitUtils;
 
 /**
  * This class tests the promise class
@@ -34,6 +38,18 @@ public class PromiseTest
 			}
 		});
 		
-		System.out.println(promise.map(false, s -> "The test is " + s).waitFor());
+		Promise<String> map1 = promise.map(false, s -> "The test is " + s);
+		map1.doOnceFulfilled(System.out::println);
+		
+		Promise<String> flatMap1 = promise.flatMap(s -> Promise.asynchronous(() -> 
+		{
+			WaitUtils.wait(Duration.ofSeconds(2), new String());
+			return s + " again";
+			
+		}));
+		flatMap1.doOnceFulfilled(System.out::println);
+		
+		Promise.combine(ImmutableList.withValues(promise, map1, flatMap1)).waitFor();
+		System.out.println("ENDING");
 	}
 }
