@@ -19,7 +19,7 @@ public class Promise<T>
 {
 	// ATTRIBUTES	-------------------
 	
-	private String name = "Promise - " + Thread.currentThread().getName();
+	// private String name = "Promise - " + Thread.currentThread().getName();
 	
 	private static Executor pool = new ThreadPool("Promise", 20, 500, Duration.ofSeconds(30), e -> 
 	{
@@ -37,7 +37,7 @@ public class Promise<T>
 	 */
 	public Promise()
 	{
-		System.out.println(name + " - created");
+		// System.out.println(name + " - created");
 	}
 
 	/**
@@ -231,7 +231,7 @@ public class Promise<T>
 	public synchronized void fulfill(T result)
 	{
 		this.item.set(Option.some(result));
-		System.out.println(name + " - fulfilled");
+		// System.out.println(name + " - fulfilled");
 		notifyAll();
 	}
 	

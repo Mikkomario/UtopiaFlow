@@ -19,12 +19,12 @@ public class BackgroundProcessUtils
 {
 	// ATTRIBUTES	-----------------------
 	
-	private static Executor repeatPool = new ThreadPool("Background-Repeating", 10, 100, Duration.ofSeconds(30), e -> 
+	private static Executor repeatPool = new ThreadPool("Background-Repeating", 20, 500, Duration.ofSeconds(30), e -> 
 	{
 		System.err.println("Error in repeating background process");
 		e.printStackTrace();
 	});
-	private static Executor pool = new ThreadPool("Background", 10, 100, Duration.ofSeconds(30), e -> 
+	private static Executor pool = new ThreadPool("Background", 20, 500, Duration.ofSeconds(30), e -> 
 	{
 		System.err.println("Error in background process");
 		e.printStackTrace();
