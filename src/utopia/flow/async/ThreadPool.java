@@ -91,6 +91,32 @@ public class ThreadPool implements Executor
 	
 	// OTHER	-------------------------
 	
+	/**
+	 * Prints the debug status of this pool to system.out
+	 */
+	public void printDebugStatus()
+	{
+		System.out.println(getStatusString());
+	}
+	
+	/**
+	 * @return A text describing the current status of this thread pool. Used for debugging.
+	 */
+	public String getStatusString()
+	{
+		StringBuilder s = new StringBuilder();
+		s.append(name);
+		s.append(" status:\n");
+		s.append("- threads: ");
+		s.append(threads.get().size());
+		s.append("\n- of which busy: ");
+		s.append(threads.get().count(t -> t.nextTask.get().isDefined()));
+		s.append("\n- waiting: ");
+		s.append(queue.get().size());
+		
+		return s.toString();
+	}
+	
 	private String nextCoreName()
 	{
 		StringBuilder s = new StringBuilder();

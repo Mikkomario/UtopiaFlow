@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import utopia.flow.structure.Option;
@@ -19,12 +18,12 @@ public class BackgroundProcessUtils
 {
 	// ATTRIBUTES	-----------------------
 	
-	private static Executor repeatPool = new ThreadPool("Background-Repeating", 20, 500, Duration.ofSeconds(30), e -> 
+	private static ThreadPool repeatPool = new ThreadPool("Background-Repeating", 20, 500, Duration.ofSeconds(30), e -> 
 	{
 		System.err.println("Error in repeating background process");
 		e.printStackTrace();
 	});
-	private static Executor pool = new ThreadPool("Background", 20, 500, Duration.ofSeconds(30), e -> 
+	private static ThreadPool pool = new ThreadPool("Background", 20, 500, Duration.ofSeconds(30), e -> 
 	{
 		System.err.println("Error in background process");
 		e.printStackTrace();
@@ -37,6 +36,21 @@ public class BackgroundProcessUtils
 
 	
 	// OTHER METHODS	-------------------
+	
+	/**
+	 * Starts printing thread pool status in the background
+	 * @param printInterval The interval between prints
+	 */
+	public static void startThreadDebugPrints(Duration printInterval)
+	{
+		repeatForever(() -> 
+		{
+			repeatPool.printDebugStatus();
+			pool.printDebugStatus();
+			Promise.getThreadPool().printDebugStatus();
+			
+		}, printInterval);
+	}
 	
 	/**
 	 * Repeats a certain process in the background as long as the jvm is active

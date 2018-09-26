@@ -1,7 +1,6 @@
 package utopia.flow.async;
 
 import java.time.Duration;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -21,7 +20,7 @@ public class Promise<T>
 	
 	// private String name = "Promise - " + Thread.currentThread().getName();
 	
-	private static Executor pool = new ThreadPool("Promise", 20, 500, Duration.ofSeconds(30), e -> 
+	private static ThreadPool pool = new ThreadPool("Promise", 20, 1000, Duration.ofSeconds(30), e -> 
 	{
 		System.err.println("Error while handling promise");
 		e.printStackTrace();
@@ -106,7 +105,7 @@ public class Promise<T>
 	/**
 	 * @return The thread pool used by promises and classes extending promise
 	 */
-	protected static Executor getThreadPool()
+	static ThreadPool getThreadPool()
 	{
 		return pool;
 	}
@@ -115,7 +114,7 @@ public class Promise<T>
 	 * Changes the thread pool executor that is used
 	 * @param newPool The new thread executor pool
 	 */
-	public static void setThreadPoolExecutor(Executor newPool)
+	public static void setThreadPoolExecutor(ThreadPool newPool)
 	{
 		pool = newPool;
 	}
