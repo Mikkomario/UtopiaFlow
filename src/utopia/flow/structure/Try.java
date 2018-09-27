@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import utopia.flow.function.ThrowingConsumer;
+import utopia.flow.function.ThrowingFunction;
 import utopia.flow.function.ThrowingRunnable;
 import utopia.flow.function.ThrowingSupplier;
 import utopia.flow.util.Unit;
@@ -312,6 +313,16 @@ public class Try<T>
 	public <B> Try<B> map(Function<? super T, B> f)
 	{
 		return new Try<>(success().map(f), failure());
+	}
+	
+	/**
+	 * Maps the success value of this try, caching possible errors
+	 * @param f A mapping function that may fail
+	 * @return The results of the map
+	 */
+	public <B> Try<B> tryMap(ThrowingFunction<? super T, B, ?> f)
+	{
+		return flatMap(f);
 	}
 	
 	/**
