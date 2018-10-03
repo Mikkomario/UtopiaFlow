@@ -1,5 +1,7 @@
 package utopia.flow.async;
 
+import utopia.flow.function.ThrowingRunnable;
+
 /**
  * Volatile flags are used for marking singular events (flags) in a multi-threaded environment
  * @author Mikko Hilpinen
@@ -65,6 +67,26 @@ public class VolatileFlag extends Volatile<Boolean>
 	public void runAndSet(Runnable action)
 	{
 		update(status -> 
+		{
+			if (status)
+				return status;
+			else
+			{
+				action.run();
+				return true;
+			}
+		});
+	}
+	
+	/**
+	 * Perfoms an action if this flag is not set yet. Otherwise does nothing. The flag will be set after the action 
+	 * has been completed.
+	 * @param action The action that will be run if this flag is not set yet
+	 * @throws E If the operation fails (in which case the flag will not be set)
+	 */
+	public <E extends Exception> void tryAndSet(ThrowingRunnable<? extends E> action) throws E
+	{
+		tryUpdate(status -> 
 		{
 			if (status)
 				return status;

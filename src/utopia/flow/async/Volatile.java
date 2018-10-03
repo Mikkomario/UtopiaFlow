@@ -3,6 +3,8 @@ package utopia.flow.async;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import utopia.flow.function.ThrowingConsumer;
+import utopia.flow.function.ThrowingFunction;
 import utopia.flow.structure.Pair;
 
 /**
@@ -66,6 +68,19 @@ public class Volatile<T>
 	/**
 	 * Updates the value of this container based on the previous value. The value will be updated to the return value 
 	 * of the function. The current value of this container is passed to the function. This container is locked during 
+	 * the operation. May throw.
+	 * @param modifier A function that is used for modifying the value
+	 * @throws E Error if the updating function throws
+	 */
+	public synchronized <E extends Exception> void tryUpdate(ThrowingFunction<? super T, ? extends T, 
+			? extends E> modifier) throws E
+	{
+		this.value = modifier.throwingApply(value);
+	}
+	
+	/**
+	 * Updates the value of this container based on the previous value. The value will be updated to the return value 
+	 * of the function. The current value of this container is passed to the function. This container is locked during 
 	 * the operation.
 	 * @param modifier A function that is used for modifying the value
 	 * @return The new value in this container
@@ -107,6 +122,16 @@ public class Volatile<T>
 	 * @param action An action
 	 */
 	public synchronized void lockWhile(Consumer<? super T> action)
+	{
+		action.accept(value);
+	}
+	
+	/**
+	 * Locks the value in this container for the current thread only for the duration of the action. The action may throw.
+	 * @param action An action
+	 * @throws E If the action fails
+	 */
+	public synchronized <E extends Exception> void tryLockWhile(ThrowingConsumer<? super T, ? extends E> action) throws E
 	{
 		action.accept(value);
 	}
