@@ -446,6 +446,29 @@ public class ImmutableList<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Checks whether the contents of this list can be considered equal with another list's contents
+	 * @param other Another list
+	 * @param equalityCheck A function used for checking equality between items
+	 * @return Whether the contents of this list are considered equal with the other list's contents 
+	 * (using specified function)
+	 */
+	public <B> boolean equals(ImmutableList<? extends B> other, BiPredicate<? super T, ? super B> equalityCheck)
+	{
+		if (size() != other.size())
+			return false;
+		else
+		{
+			for (int i = 0; i < size(); i++)
+			{
+				if (!equalityCheck.test(get(i), other.get(i)))
+					return false;
+			}
+			
+			return true;
+		}
+	}
+	
+	/**
 	 * Creates a new list with the element appended
 	 * @param element an element
 	 * @return a list with the element appended
