@@ -28,6 +28,17 @@ public class MutableLazy<T> implements Wrapper<T>
 	{
 		this.generator = generator;
 	}
+	
+	
+	// ACCESSORS	------------------
+	
+	/**
+	 * @return The current item in this lazy container. None if not initialized yet.
+	 */
+	public Option<T> current()
+	{
+		return item;
+	}
 
 	
 	// OTHER METHODS	--------------
