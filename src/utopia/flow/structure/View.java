@@ -66,6 +66,16 @@ public class View<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Creates a view of an array
+	 * @param array An array
+	 * @return A view of the specified array
+	 */
+	public static <T> View<T> of(T[] array)
+	{
+		return new View<>(() -> new ArrayIterator<>(array));
+	}
+	
+	/**
 	 * Creates a view for a string's characters
 	 * @param string the viewed string
 	 * @return A view of the string's characters
@@ -225,6 +235,39 @@ public class View<T> implements RichIterable<T>
 		{
 			T next = this.item;
 			this.item = null;
+			return next;
+		}
+	}
+	
+	private static class ArrayIterator<T> implements RichIterator<T>
+	{
+		// ATTRIBUTES	-------------
+		
+		private T[] array;
+		private int nextIndex = 0;
+		
+		
+		// CONSTRUCTOR	-------------
+		
+		public ArrayIterator(T[] array)
+		{
+			this.array = array;
+		}
+		
+		
+		// IMPLEMENTED	------------
+		
+		@Override
+		public boolean hasNext()
+		{
+			return nextIndex < array.length;
+		}
+
+		@Override
+		public T next()
+		{
+			T next = array[nextIndex];
+			nextIndex ++;
 			return next;
 		}
 	}

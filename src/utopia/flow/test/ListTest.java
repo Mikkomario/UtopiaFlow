@@ -64,6 +64,8 @@ class ListTest
 		assert sortedByLength.last().valueEquals("aakkonen");
 		assert sortedByLengthAndLetters.equals(ImmutableList.withValues("y", "abc", "ant", "aakkonen"));
 		
+		Test.checkEquals(words3.dropWhile(s -> s.length() == 3).size(), 2);
+		
 		System.out.println(words);
 		System.out.println(words.first(3));
 		System.out.println(words.dropFirst(3));

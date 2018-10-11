@@ -902,6 +902,32 @@ public class ImmutableList<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Drops items as long as the specified predicate is fulfilled and returns the rest of this list
+	 * @param f A predicate for dropping items from the beginning of this list
+	 * @return A list without the first n items that satisfy the predicate
+	 */
+	public ImmutableList<T> dropWhile(Predicate<? super T> f)
+	{
+		Predicate<? super T> negated = f.negate();
+		
+		if (isEmpty())
+			return this;
+		else
+		{
+			Option<Integer> firstIncludedIndex = indexWhere(negated);
+			if (firstIncludedIndex.isDefined())
+			{
+				if (firstIncludedIndex.get().intValue() == 0)
+					return this;
+				else
+					return dropFirst(firstIncludedIndex.get());
+			}
+			else
+				return empty();
+		}
+	}
+	
+	/**
 	 * @param n The number of elements to be included
 	 * @return The last n elements of this list
 	 */
