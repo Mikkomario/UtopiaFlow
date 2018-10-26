@@ -707,13 +707,18 @@ public class ImmutableList<T> implements RichIterable<T>
 	 * the results are stored in the merged list)
 	 * @return The merged list
 	 */
-	public <U, R> ImmutableList<R> mergedWith(ImmutableList<U> other, BiFunction<? super T, ? super U, ? extends R> merge)
+	public <U, R> ImmutableList<R> mergedWith(Iterable<? extends U> other, 
+			BiFunction<? super T, ? super U, ? extends R> merge)
 	{
-		List<R> buffer = new ArrayList<>();
-		for (int i = 0; i < size() && i < other.size(); i++)
+		List<R> buffer = new ArrayList<>(size());
+		RichIterator<T> myIter = iterator();
+		Iterator<? extends U> otherIter = other.iterator();
+		
+		while (myIter.hasNext() && otherIter.hasNext())
 		{
-			buffer.add(merge.apply(get(i), other.get(i)));
+			buffer.add(merge.apply(myIter.next(), otherIter.next()));
 		}
+		
 		return new ImmutableList<>(buffer);
 	}
 	
@@ -724,7 +729,7 @@ public class ImmutableList<T> implements RichIterable<T>
 	 * @return The merged list consisting of value pairs (left side value from this list, right side value from the 
 	 * other list)
 	 */
-	public <U> ImmutableList<Pair<T, U>> mergedWith(ImmutableList<U> other)
+	public <U> ImmutableList<Pair<T, U>> mergedWith(Iterable<? extends U> other)
 	{
 		return mergedWith(other, (a, b) -> new Pair<>(a, b));
 	}
