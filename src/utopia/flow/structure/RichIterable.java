@@ -1,6 +1,8 @@
 package utopia.flow.structure;
 
+import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -189,6 +191,23 @@ public interface RichIterable<T> extends Iterable<T>
 	}
 	
 	/**
+	 * Performs an operation on two lists at the same time
+	 * @param other Another list
+	 * @param f A function that operates on two values at the same time. The left values come from this list. 
+	 * The right values come from the other list.
+	 */
+	public default <U> void forEachSimultaneouslyWith(Iterable<? extends U> other, BiConsumer<? super T, ? super U> f)
+	{
+		RichIterator<T> myIter = iterator();
+		Iterator<? extends U> otherIter = other.iterator();
+		
+		while (myIter.hasNext() && otherIter.hasNext())
+		{
+			f.accept(myIter.next(), otherIter.next());
+		}
+	}
+	
+	/**
 	 * Performs a throwing operation on each of the elements in this collection. Stops iterating on the first exception.
 	 * @param f The function that is performed for each element in the list
 	 * @throws Exception The first exception thrown by the function
@@ -200,6 +219,16 @@ public interface RichIterable<T> extends Iterable<T>
 			f.accept(item);
 		}
 	}
+	
+	/*
+	public default <U, R extends Iterable<? extends U>> R map(
+			Supplier<? extends Builder<? extends R, ?, ? super U>> newBuffer, Function<? super T, ? extends U> map)
+	{
+		Builder<? extends R, ?, ? super U> buffer = newBuffer.get();
+		forEach(item -> buffer.add(map.apply(item)));
+		
+		return buffer.build();
+	}*/
 	
 	/**
 	 * @return A stream from this object's contents

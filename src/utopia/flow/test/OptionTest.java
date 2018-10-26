@@ -1,5 +1,6 @@
 package utopia.flow.test;
 
+import utopia.flow.structure.ListBuilder;
 import utopia.flow.structure.Option;
 import utopia.flow.util.Test;
 
@@ -32,6 +33,9 @@ class OptionTest
 		Test.check(i.filter(a -> a > 10).equals(i));
 		
 		Test.check(Option.max(Option.some(2), Option.none(), Option.some(5), Option.none(), Option.some(1)).contains(5));
+		
+		// ImmutableList<Sting> strings = i.map(ListBuilder::new, i -> i + " moi");
+		// System.out.println(strings);
 		
 		System.out.println("Success!");
 	}

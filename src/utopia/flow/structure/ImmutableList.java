@@ -1116,17 +1116,6 @@ public class ImmutableList<T> implements RichIterable<T>
 	}
 	
 	/**
-	 * Performs an operation on two lists at the same time
-	 * @param other Another list
-	 * @param f A function that operates on two values at the same time. The left values come from this list. 
-	 * The right values come from the other list.
-	 */
-	public <U> void forEachSimultaneouslyWith(ImmutableList<U> other, BiConsumer<? super T, ? super U> f)
-	{
-		mergedWith(other).forEach(p -> f.accept(p.getFirst(), p.getSecond()));
-	}
-	
-	/**
 	 * Performs an operation on each item in this list. The index of each item is also provided for the operation.
 	 * @param f A function that will be performed for each item index pair
 	 */
