@@ -162,12 +162,24 @@ public class View<T> implements RichIterable<T>
 	/**
 	 * Creates a new extended view
 	 * @param items The first set of items to be added
-	 * @param more More item sets to be added
+	 * @param moreItems The seconds set of items to be added
+	 * @param evenMoreItems More item sets
 	 * @return A view that spans all of the item sets
 	 */
-	public View<T> plus(Iterable<? extends T> items, @SuppressWarnings("unchecked") Iterable<? extends T>... more)
+	public View<T> plus(Iterable<? extends T> items, Iterable<? extends T> moreItems, 
+			@SuppressWarnings("unchecked") Iterable<? extends T>... evenMoreItems)
 	{
-		return flatten(ImmutableList.withValues(this, items).plus(more));
+		return flatten(ImmutableList.withValues(this, items, moreItems).plus(evenMoreItems));
+	}
+	
+	/**
+	 * Creates a new extended view
+	 * @param items The first set of items to be added
+	 * @return A view that spans all of the item sets
+	 */
+	public View<T> plus(Iterable<? extends T> items)
+	{
+		return flatten(this, items);
 	}
 	
 	/**
@@ -187,6 +199,14 @@ public class View<T> implements RichIterable<T>
 		}
 		
 		return Option.some(buffer.build());
+	}
+	
+	/**
+	 * @return A repeating version of this view where the items are returned again and again
+	 */
+	public View<T> repeating()
+	{
+		return new View<>(() -> new RepeatingIterator<>(newIterator));
 	}
 	
 	
