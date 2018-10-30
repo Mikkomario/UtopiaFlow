@@ -229,6 +229,39 @@ public class XmlElementBuilder implements XmlElementTemplate<XmlElementBuilder>
 		return addChild(XmlElementBuilder.of(element), index);
 	}
 	
+	/**
+	 * Retrieves or generates a child element
+	 * @param childName The name of the element
+	 * @return Existing or generated child
+	 */
+	public XmlElementBuilder getOrMakeChild(String childName)
+	{
+		return getOrMakeChild(childName, Option.none());
+	}
+	
+	/**
+	 * Retrieves or generates a child element
+	 * @param childName The name of the element
+	 * @param previousElementName The name of the previous element (used for specifying generation location) (optional)
+	 * @return Existing or generated child
+	 */
+	public XmlElementBuilder getOrMakeChild(String childName, String previousElementName)
+	{
+		return getOrMakeChild(childName, Option.some(previousElementName));
+	}
+	
+	/**
+	 * Retrieves or generates a child element
+	 * @param childName The name of the element
+	 * @param previousElementName The name of the previous element (used for specifying generation location) (optional)
+	 * @return Existing or generated child
+	 */
+	public XmlElementBuilder getOrMakeChild(String childName, Option<String> previousElementName)
+	{
+		return getExistingChild(childName).getOrElse(() -> makeChild(childName, previousElementName.flatMap(
+				s -> getChildren().indexWhere(c -> c.getName().equalsIgnoreCase(s)))));
+	}
+	
 	private XmlElementBuilder addChild(XmlElementBuilder child, Option<? extends Integer> index)
 	{
 		index.handle(i -> children = children.plus(child, i), () -> children = children.plus(child));
