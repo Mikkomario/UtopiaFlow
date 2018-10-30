@@ -1,7 +1,6 @@
 package utopia.flow.structure;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -384,13 +383,10 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>
 	 * @param data The data that is appended
 	 * @return A map containing both this map's key value pairs and the provided pairs
 	 */
-	public ImmutableMap<Key, Value> plus(Collection<? extends Pair<? extends Key, ? extends Value>> data)
+	public ImmutableMap<Key, Value> plus(Iterable<? extends Pair<? extends Key, ? extends Value>> data)
 	{
-		Map<Key, Value> map = toMutableMap(data.size());
-		for (Pair<? extends Key, ? extends Value> pair : data)
-		{
-			map.put(pair.getFirst(), pair.getSecond());
-		}
+		Map<Key, Value> map = toMutableMap();
+		data.forEach(p -> map.put(p.getFirst(), p.getSecond()));
 		return new ImmutableMap<>(map);
 	}
 	
@@ -402,10 +398,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>
 	public ImmutableMap<Key, Value> plus(ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
 	{
 		Map<Key, Value> map = toMutableMap(data.size());
-		for (Pair<? extends Key, ? extends Value> pair : data)
-		{
-			map.put(pair.getFirst(), pair.getSecond());
-		}
+		data.forEach(p -> map.put(p.getFirst(), p.getSecond()));
 		return new ImmutableMap<>(map);
 	}
 	

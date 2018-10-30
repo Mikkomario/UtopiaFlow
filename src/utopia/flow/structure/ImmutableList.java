@@ -1047,6 +1047,47 @@ public class ImmutableList<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Maps only a certain index. If index is out of bounds, returns this list instead.
+	 * @param index The target index
+	 * @param f A map function
+	 * @return A copy of this list with one index mapped
+	 */
+	public ImmutableList<T> mapIndex(int index, Function<? super T, ? extends T> f)
+	{
+		if (index < 0 || index >= size())
+			return this;
+		else
+		{
+			ArrayList<T> buffer = new ArrayList<>(size());
+			for (int i = 0; i < index; i++) { buffer.add(get(i)); }
+			buffer.add(f.apply(get(index)));
+			for (int i = index + 1; i < size(); i++) { buffer.add(get(i)); }
+			
+			return new ImmutableList<>(buffer);
+		}
+	}
+	
+	/**
+	 * Maps only certain items
+	 * @param where A function for determining mapped items
+	 * @param map A mapping function
+	 * @return A mapped list
+	 */
+	public ImmutableList<T> mapWhere(Predicate<? super T> where, Function<? super T, ? extends T> map)
+	{
+		ArrayList<T> buffer = new ArrayList<>(size());
+		for (T item : this)
+		{
+			if (where.test(item))
+				buffer.add(map.apply(item));
+			else
+				buffer.add(item);
+		}
+		
+		return new ImmutableList<>(buffer);
+	}
+	
+	/**
 	 * Flatmaps the list
 	 * @param f a mapping function
 	 * @return The mapped list

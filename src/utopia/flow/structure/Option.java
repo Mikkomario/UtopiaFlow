@@ -449,6 +449,20 @@ public class Option<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Either maps a value in this option or generates a new value and returns it instead
+	 * @param itemMap A map function
+	 * @param emptyHandler A back-up generator function
+	 * @return Mapped item or the backup item
+	 */
+	public <B> B handleMap(Function<? super T, ? extends B> itemMap, Supplier<? extends B> emptyHandler)
+	{
+		if (isDefined())
+			return itemMap.apply(value);
+		else
+			return emptyHandler.get();
+	}
+	
+	/**
 	 * @return A list representation of this option
 	 */
 	public ImmutableList<T> toList()

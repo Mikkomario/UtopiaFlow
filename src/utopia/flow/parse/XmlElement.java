@@ -10,7 +10,6 @@ import utopia.flow.generics.Variable;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.Option;
-import utopia.flow.structure.Pair;
 
 /**
  * This class represents an xml element. the class is immutable and has value semantics. The class is designed to 
@@ -18,7 +17,7 @@ import utopia.flow.structure.Pair;
  * @author Mikko Hilpinen
  * @since 14.3.2018
  */
-public class XmlElement
+public class XmlElement implements XmlElementTemplate<XmlElement>
 {
 	// ATTRIBUTES	--------------------
 	
@@ -372,22 +371,16 @@ public class XmlElement
 	/**
 	 * @return The name of this element
 	 */
+	@Override
 	public String getName()
 	{
 		return this.name;
 	}
 	
 	/**
-	 * @return The text inside this element (trimmed). An empty string if the element is empty.
-	 */
-	public String getText()
-	{
-		return this.text.getOrElse("");
-	}
-	
-	/**
 	 * @return The text inside this element (trimmed). None if the element is empty
 	 */
+	@Override
 	public Option<String> getTextOption()
 	{
 		return this.text;
@@ -396,149 +389,23 @@ public class XmlElement
 	/**
 	 * @return the children under this element
 	 */
+	@Override
 	public ImmutableList<XmlElement> getChildren()
 	{
 		return this.children;
 	}
 	
 	/**
-	 * @return The value of the contents of this element
-	 */
-	public Value getValue()
-	{
-		return this.text.map(Value::of).getOrElse(Value.EMPTY);
-	}
-	
-	/**
 	 * @return The attributes of this xml element
 	 */
+	@Override
 	public ImmutableMap<String, String> getAttributes()
 	{
 		return this.attributes;
 	}
 	
-	/**
-	 * @return The attributes of this xml element with values
-	 */
-	public ImmutableMap<String, Value> getAttributesAsValues()
-	{
-		return this.attributes.mapValues(Value::of);
-	}
-	
-	/**
-	 * @return A model representing the attributes in this element
-	 */
-	public Model<Variable> getAttributesModel()
-	{
-		return Model.fromMap(getAttributes());
-	}
-	
-	/**
-	 * @param attributeName The name of the attribute
-	 * @return The string value of the attribute
-	 */
-	public Option<String> getAttribute(String attributeName)
-	{
-		return this.attributes.getOption(attributeName);
-	}
-	
-	/**
-	 * @param attributeName The name of the attribute
-	 * @return The value of the attribute (may be empty)
-	 */
-	public Value getAttributeValue(String attributeName)
-	{
-		return getAttribute(attributeName).map(Value::of).getOrElse(Value.EMPTY);
-	}
-	
-	/**
-	 * Checks whether this element defines the specified attribute
-	 * @param attName The name of the attribute
-	 * @return Whether this element contains an attribute with the provided name
-	 */
-	public boolean hasAttribute(String attName)
-	{
-		return this.attributes.containsKey(attName);
-	}
-	
 	
 	// OTHER METHODS	----------------
-	
-	/**
-	 * @return Whether this element is completely empty (no text and no children)
-	 */
-	public boolean isEmpty()
-	{
-		return this.text.isEmpty() && !hasChildren();
-	}
-	
-	/**
-	 * @return Whether this element contains attributes
-	 */
-	public boolean hasAttributes()
-	{
-		return !this.attributes.isEmpty();
-	}
-	
-	/**
-	 * @return Whether this element has any children
-	 */
-	public boolean hasChildren()
-	{
-		return !this.children.isEmpty();
-	}
-	
-	/**
-	 * @return Whether this element contains any text
-	 */
-	public boolean hasText()
-	{
-		return this.text.isDefined();
-	}
-	
-	/**
-	 * @return A map of the values of the children under this element. Children with children are converted to 
-	 * model type values.
-	 */
-	public ImmutableMap<String, Value> toMap()
-	{
-		ImmutableMap<String, ImmutableList<Value>> attributeListMap = this.children.toListMap(
-				c -> new Pair<>(c.getName(), c.hasChildren() ? Value.Model(c.toModel()) : c.getValue()));
-		ImmutableMap<String, Value> attributes = attributeListMap.mapValues(
-				values -> values.size() == 1 ? values.head() : Value.of(values));
-		
-		return attributes;
-	}
-	
-	/**
-	 * @return Converts this xml element into a model representation
-	 */
-	public Model<Variable> toModel()
-	{
-		Model<Variable> model = Model.createBasicModel();
-		model.addAttributes(toMap().toList().map(p -> new Variable(p.getFirst(), p.getSecond())), true);
-		
-		return model;
-	}
-	
-	/**
-	 * Finds a child under this element
-	 * @param childName The name of the child (case-insensitive)
-	 * @return A child with the specified name
-	 */
-	public Option<XmlElement> getExistingChild(String childName)
-	{
-		return this.children.find(c -> c.getName().equalsIgnoreCase(childName));
-	}
-	
-	/**
-	 * @param name The name of the searched children (case-insensitive)
-	 * @return The children with the specified name
-	 */
-	public ImmutableList<XmlElement> childrenWithName(String name)
-	{
-		return this.children.filter(c -> c.getName().equalsIgnoreCase(name));
-	}
 	
 	/**
 	 * Finds a child under this xml element or if one is not found, makes a temporary replicate
@@ -695,5 +562,41 @@ public class XmlElement
 	public XmlElement findAndMap(Predicate<? super XmlElement> find, Function<? super XmlElement, ? extends XmlElement> map)
 	{
 		return withChildren(children.map(c -> find.test(c) ? map.apply(c) : c.findAndMap(find, map)));
+	}
+	
+	/**
+	 * Maps or generates a child element under this element
+	 * @param childName The name of the target child element
+	 * @param map A mapping function
+	 * @param previousElementName The name of the element previous to the target element (used for placing a generated 
+	 * element if necessary)
+	 * @return A copy of this element with mapped or generated child element
+	 */
+	public XmlElement mapOrGenerateChild(String childName, Function<? super XmlElement, ? extends XmlElement> map, 
+			String previousElementName)
+	{
+		// First searches for an existing child and tries to map it
+		Option<Integer> existingIndex = children.indexWhere(c -> c.getName().equalsIgnoreCase(childName));
+		if (existingIndex.isDefined())
+			return withChildren(children.mapIndex(existingIndex.get(), map));
+		else
+		{
+			XmlElement newChild = map.apply(XmlElement.empty(childName));
+			
+			// Either adds the new child after specified element or at the end of the list
+			ImmutableList<XmlElement> newChildren = children.indexWhere(
+					c -> c.getName().equalsIgnoreCase(previousElementName)).handleMap(
+					lastIndex -> children.plus(newChild, lastIndex + 1), () -> children.plus(newChild));
+			
+			return withChildren(newChildren);
+		}
+	}
+	
+	/**
+	 * @return A mutable copy of this element
+	 */
+	public XmlElementBuilder mutableCopy()
+	{
+		return XmlElementBuilder.of(this);
 	}
 }
