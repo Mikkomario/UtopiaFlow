@@ -295,4 +295,20 @@ public class XmlElementBuilder implements XmlElementTemplate<XmlElementBuilder>
 	{
 		setAttributes(getAttributes().plus(atts));
 	}
+	
+	/**
+	 * Recursively searches for an element with specified name
+	 * @param childName The name of the child
+	 * @return A child with specified name or none
+	 */
+	public Option<XmlElementBuilder> searchFor(String childName)
+	{
+		return getChildren().flatMapFirst(c -> 
+		{
+			if (c.getName().equalsIgnoreCase(childName))
+				return Option.some(c);
+			else
+				return c.searchFor(childName);
+		});
+	}
 }
