@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.Option;
+import utopia.flow.util.StringRepresentable;
 
 /**
  * A promise is a container for a single element that will get filled at some point
@@ -14,7 +15,7 @@ import utopia.flow.structure.Option;
  * @param <T> The type of item provided in this promise
  * @since 22.2.2018
  */
-public class Promise<T>
+public class Promise<T> implements StringRepresentable
 {
 	// ATTRIBUTES	-------------------
 	

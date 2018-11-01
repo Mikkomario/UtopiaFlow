@@ -18,13 +18,15 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * This list cannot be modified after creation and is safe to pass around as a value
  * @author Mikko Hilpinen
  * @param <T> The type of element stored within this list
  * @since 2.11.2017
  */
-public class ImmutableList<T> implements RichIterable<T>
+public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 {
 	// ATTRIBUTES	-------------------
 	

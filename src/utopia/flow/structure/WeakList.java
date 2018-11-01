@@ -2,6 +2,8 @@ package utopia.flow.structure;
 
 import java.lang.ref.WeakReference;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * A weak list only holds weak references to its items. The list cannot be changed from the outside but its contents 
  * will change as garbage collector clears referenced items.
@@ -9,7 +11,7 @@ import java.lang.ref.WeakReference;
  * @param <T> The type of item referenced by this list
  * @since 28.6.2018
  */
-public class WeakList<T> implements RichIterable<T>
+public class WeakList<T> implements RichIterable<T>, StringRepresentable
 {
 	// ATTRIBUTES	--------------------
 	
@@ -71,6 +73,12 @@ public class WeakList<T> implements RichIterable<T>
 	public RichIterator<T> iterator()
 	{
 		return new FlatIterator<>(new MapIterator<>(this.references.iterator(), ref -> new Option<>(ref.get())));
+	}
+	
+	@Override
+	public String toString()
+	{
+		return toStrongList().toString();
 	}
 	
 	

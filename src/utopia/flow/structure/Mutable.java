@@ -1,5 +1,7 @@
 package utopia.flow.structure;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * Mutable instances are used for temporarily wrapping an immutable item so that the value can be modified during 
  * closures, etc.
@@ -7,7 +9,7 @@ package utopia.flow.structure;
  * @since 16.8.2018
  * @param <T> The type of item wrapped
  */
-public class Mutable<T> implements Wrapper<T>
+public class Mutable<T> implements Wrapper<T>, StringRepresentable
 {
 	// ATTRIBUTES	---------------
 	
@@ -32,6 +34,12 @@ public class Mutable<T> implements Wrapper<T>
 	public T get()
 	{
 		return value;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return value.toString();
 	}
 
 	

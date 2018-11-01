@@ -2,6 +2,8 @@ package utopia.flow.structure;
 
 import java.util.function.Supplier;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * This class contains a single value that is lazily initialised. Unlike the implementation of {@link Lazy}, this 
  * class allows one to change / reset the held value. This class does not have value semantics and is not safe to 
@@ -10,7 +12,7 @@ import java.util.function.Supplier;
  * @param <T> The type of item stored in this lazy container
  * @since 22.1.2018
  */
-public class MutableLazy<T> implements Wrapper<T>
+public class MutableLazy<T> implements Wrapper<T>, StringRepresentable
 {
 	// ATTRIBUTES	-------------------
 	
@@ -27,6 +29,15 @@ public class MutableLazy<T> implements Wrapper<T>
 	public MutableLazy(Supplier<? extends T> generator)
 	{
 		this.generator = generator;
+	}
+	
+	
+	// IMPLEMENTED	------------------
+	
+	@Override
+	public String toString()
+	{
+		return item.map(i -> "Lazy(" + i + ")").getOrElse("Lazy");
 	}
 	
 	

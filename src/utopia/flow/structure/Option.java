@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import utopia.flow.function.ThrowingFunction;
+import utopia.flow.util.StringRepresentable;
 
 /**
  * Optionals can be used for more null-safe access of values
@@ -14,7 +15,7 @@ import utopia.flow.function.ThrowingFunction;
  * @param <T> The type of the value handled by this option
  * @since 6.9.2017
  */
-public class Option<T> implements RichIterable<T>
+public class Option<T> implements RichIterable<T>, StringRepresentable
 {
 	// ATTRIBUTES	---------------------
 	

@@ -1,5 +1,11 @@
 package utopia.flow.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.IntRange;
 import utopia.flow.structure.Option;
@@ -14,7 +20,7 @@ import utopia.flow.structure.Try;
  * @author Mikko Hilpinen
  * @since 20.9.2018
  */
-public class RichString implements RichIterable<Character>
+public class RichString implements RichIterable<Character>, StringRepresentable
 {
 	// ATTRIBUTES	-----------------
 	
@@ -87,6 +93,26 @@ public class RichString implements RichIterable<Character>
 		else
 			return new RichString(strings.reduce((a, b) -> a + separator + b));
 	}
+	
+	/**
+	 * @param stream Source stream
+	 * @param charset The source encoding
+	 * @return The contents of the stream as a string
+	 */
+	public static Try<RichString> fromStream(InputStream stream, Charset charset)
+	{
+		return Try.run(() -> of(new String(stream.readAllBytes(), charset)));
+	}
+	
+	/**
+	 * @param filePath A file path
+	 * @param charset The file encoding
+	 * @return The contents of the file as a string
+	 */
+	public static Try<RichString> fromFile(Path filePath, Charset charset)
+	{
+		return Try.run(() -> of(new String(Files.readAllBytes(filePath), charset)));
+	}
 
 	
 	// IMPLEMENTED	-----------------
@@ -138,6 +164,12 @@ public class RichString implements RichIterable<Character>
 		else if (!s.equals(other.s))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public RichString description()
+	{
+		return this;
 	}
 	
 	
@@ -229,6 +261,15 @@ public class RichString implements RichIterable<Character>
 	public Option<Integer> toInt()
 	{
 		return toDouble().map(d -> d.intValue());
+	}
+	
+	/**
+	 * @param charset The byte encoding used
+	 * @return An input stream from the contents of this string
+	 */
+	public ByteArrayInputStream toInputStream(Charset charset)
+	{
+		return new ByteArrayInputStream(s.getBytes(charset));
 	}
 	
 	/**
@@ -349,6 +390,55 @@ public class RichString implements RichIterable<Character>
 	}
 	
 	/**
+	 * @param str The target string to be found
+	 * @return The first index of the string in this string
+	 */
+	public Option<Integer> indexOf(String str)
+	{
+		return Option.positiveInt(s.indexOf(str), true);
+	}
+	
+	/**
+	 * @param str The target string to be found
+	 * @param inclusive Whether the string itself should be included
+	 * @return The part of this string after the provided string
+	 */
+	public RichString afterFirst(String str, boolean inclusive)
+	{
+		int indexMod = inclusive ? 0 : str.length();
+		return indexOf(str).map(i -> dropFirst(i + indexMod)).getOrElse(EMPTY);
+	}
+	
+	/**
+	 * @param str The target string to be found
+	 * @return The part of this string after the provided string (exclusive)
+	 */
+	public RichString afterFirst(String str)
+	{
+		return afterFirst(str, false);
+	}
+	
+	/**
+	 * @param str The target string to be found
+	 * @param inclusive Whether the string itself should be included
+	 * @return The part of this string before the provided string
+	 */
+	public RichString untilFirst(String str, boolean inclusive)
+	{
+		int indexMod = inclusive ? str.length() : 0;
+		return indexOf(str).map(i -> firstChars(i + indexMod)).getOrElse(this);
+	}
+	
+	/**
+	 * @param str The target string to be found
+	 * @return The part of this string before the provided string
+	 */
+	public RichString untilFirst(String str)
+	{
+		return untilFirst(str, false);
+	}
+	
+	/**
 	 * @param s Another string
 	 * @return A combination of these two strings
 	 */
@@ -358,12 +448,12 @@ public class RichString implements RichIterable<Character>
 	}
 	
 	/**
-	 * @param other Another string
-	 * @return A combination of these two strings
+	 * @param item an item that can be represented as a string
+	 * @return A combination of this string and the item description
 	 */
-	public RichString plus(RichString other)
+	public RichString plus(StringRepresentable item)
 	{
-		return plus(other.s);
+		return plus(item.description().s);
 	}
 	
 	/**

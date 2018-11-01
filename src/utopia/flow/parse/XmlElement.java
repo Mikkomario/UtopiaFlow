@@ -10,6 +10,7 @@ import utopia.flow.generics.Variable;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.Option;
+import utopia.flow.util.StringRepresentable;
 
 /**
  * This class represents an xml element. the class is immutable and has value semantics. The class is designed to 
@@ -17,7 +18,7 @@ import utopia.flow.structure.Option;
  * @author Mikko Hilpinen
  * @since 14.3.2018
  */
-public class XmlElement implements XmlElementTemplate<XmlElement>
+public class XmlElement implements XmlElementTemplate<XmlElement>, StringRepresentable
 {
 	// ATTRIBUTES	--------------------
 	

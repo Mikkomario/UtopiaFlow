@@ -76,6 +76,15 @@ public class Completion extends Promise<Unit>
 		return this;
 	}
 	
+	@Override
+	public String toString()
+	{
+		if (isFulfilled())
+			return "Completed";
+		else
+			return "Completion";
+	}
+	
 	
 	// OTHER	------------------------
 	

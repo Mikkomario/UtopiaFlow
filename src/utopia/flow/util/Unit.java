@@ -7,7 +7,7 @@ import utopia.flow.structure.Lazy;
  * @author Mikko Hilpinen
  * @since 26.2.2018
  */
-public class Unit
+public class Unit implements StringRepresentable
 {
 	// ATTRIBUTES	------------------------
 	

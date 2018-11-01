@@ -2,13 +2,15 @@ package utopia.flow.structure;
 
 import java.util.function.Function;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * Ranges specify a start and end value and contain all values in between
  * @author Mikko Hilpinen
  * @since 25.7.2018
  * @param <T> The type of the objects contained in this range
  */
-public class Range<T extends Comparable<? super T>> implements RichComparable<Range<T>>
+public class Range<T extends Comparable<? super T>> implements RichComparable<Range<T>>, StringRepresentable
 {
 	// ATTRIBUTES	--------------------
 	

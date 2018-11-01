@@ -8,6 +8,7 @@ import utopia.flow.function.ThrowingConsumer;
 import utopia.flow.function.ThrowingFunction;
 import utopia.flow.function.ThrowingRunnable;
 import utopia.flow.function.ThrowingSupplier;
+import utopia.flow.util.StringRepresentable;
 import utopia.flow.util.Unit;
 
 /**
@@ -16,7 +17,7 @@ import utopia.flow.util.Unit;
  * @param <T> The type of success wrapped in the try
  * @since 5 Dec 2017
  */
-public class Try<T>
+public class Try<T> implements StringRepresentable
 {
 	// ATTRIBUTES	----------------------
 	

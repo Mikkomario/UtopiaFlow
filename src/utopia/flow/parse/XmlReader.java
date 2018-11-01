@@ -1,5 +1,6 @@
 package utopia.flow.parse;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import utopia.flow.structure.ListBuilder;
 import utopia.flow.structure.Option;
 import utopia.flow.structure.Pair;
 import utopia.flow.structure.Try;
+import utopia.flow.util.RichString;
 
 /**
  * This class is used for reading through xml data. This reader class can be used for both SAX 
@@ -54,9 +56,7 @@ public class XmlReader implements AutoCloseable
 	public XmlReader(InputStream stream, Charset charset) throws XMLStreamException, 
 			FactoryConfigurationError
 	{
-		this.reader = XMLInputFactory.newInstance().createXMLStreamReader(
-				new InputStreamReader(stream, charset));
-		
+		this.reader = XMLInputFactory.newInstance().createXMLStreamReader(new InputStreamReader(stream, charset));
 		_toNextElementStart(Option.none());
 	}
 	
@@ -127,6 +127,26 @@ public class XmlReader implements AutoCloseable
 	}
 	
 	/**
+	 * Reads the xml contents of a string
+	 * @param str A target string
+	 * @param contentReader A function that uses the xml reader and parses the result
+	 * @return The parsed result or a failure
+	 */
+	public static <T> Try<T> readString(RichString str, 
+			ThrowingFunction<? super XmlReader, ? extends T, ?> contentReader)
+	{
+		// Skips the first characters before the '<' character
+		try (ByteArrayInputStream stream = str.afterFirst("<", true).toInputStream(DEFAULT_CHARSET))
+		{
+			return readStream(stream, DEFAULT_CHARSET, contentReader);
+		}
+		catch (IOException e)
+		{
+			return Try.failure(e);
+		}
+	}
+	
+	/**
      * Parses the contents of a stream into an xml element
      * @param stream the target stream
      * @param charset the charset of the stream contents
@@ -177,6 +197,20 @@ public class XmlReader implements AutoCloseable
 	public static Try<XmlElement> parseFile(File file)
 	{
 		return parseFile(file, DEFAULT_CHARSET);
+	}
+	
+	/**
+	 * Parses the contents of a string into an xml element
+	 * @param str An xml string
+	 * @return The element parsed from the string
+	 */
+	public static Try<XmlElement> parseString(RichString str)
+	{
+		return readString(str, reader -> 
+		{
+			return reader.readElement().getOrFail(
+					() -> new NoSuchElementException("No xml data in stream"));
+		}); 
 	}
 	
 	

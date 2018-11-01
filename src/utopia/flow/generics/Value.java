@@ -8,13 +8,15 @@ import utopia.flow.generics.ValueOperation.ValueOperationException;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.Option;
 import utopia.flow.util.ExtraBoolean;
+import utopia.flow.util.RichString;
+import utopia.flow.util.StringRepresentable;
 
 /**
  * This is an immutable value class that has extra support for the basic data types
  * @author Mikko Hilpinen
  * @since 8.11.2015
  */
-public class Value
+public class Value implements StringRepresentable
 {
 	// ATTRIBUTES	------------------
 	
@@ -467,6 +469,12 @@ public class Value
 		return getObjectValue().equals(other.getObjectValue());
 	}
 	
+	@Override
+	public RichString description()
+	{
+		return toRichString();
+	}
+	
 	
 	// OTHER METHODS	--------------
 
@@ -853,6 +861,22 @@ public class Value
 			return Option.none();
 		else
 			return new Option<>((ImmutableList<Value>) safeParseTo(BasicDataType.IMMUTABLE_LIST));
+	}
+	
+	/**
+	 * @return This value as a rich string or none
+	 */
+	public Option<RichString> toRichStringOption()
+	{
+		return toStringOption().map(RichString::of);
+	}
+	
+	/**
+	 * @return This value as a rich string
+	 */
+	public RichString toRichString()
+	{
+		return toRichStringOption().getOrElse(RichString.EMPTY);
 	}
 	
 	/**

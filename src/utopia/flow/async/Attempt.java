@@ -78,6 +78,18 @@ public class Attempt<T> extends Promise<Try<T>>
 	}
 	
 	
+	// IMPLEMENTED	----------------------
+	
+	@Override
+	public String toString()
+	{
+		if (isFulfilled())
+			return getCurrentItem().get().toString();
+		else
+			return "Attempt";
+	}
+	
+	
 	// OTHER METHODS	------------------
 	
 	/**

@@ -2,13 +2,15 @@ package utopia.flow.structure;
 
 import java.util.function.Supplier;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * This utility class allows lazy initialization of values
  * @author Mikko Hilpinen
  * @param <T> The type of object accessed through this class
  * @since 16.1.2018
  */
-public class Lazy<T> implements Wrapper<T>
+public class Lazy<T> implements Wrapper<T>, StringRepresentable
 {
 	// ATTRIBUTES	------------------
 	
@@ -62,6 +64,15 @@ public class Lazy<T> implements Wrapper<T>
 			
 			return newItem;
 		}
+	}
+	
+	@Override
+	public String toString()
+	{
+		if (item.isDefined())
+			return "Lazy(" + item.get().toString() + ")";
+		else
+			return "Lazy";
 	}
 	
 	

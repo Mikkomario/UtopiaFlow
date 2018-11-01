@@ -4,6 +4,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * Eithers are used for holding a single value with one of two types. Usually the "Right" side is used for a success / 
  * default value while the "Left" side is used for a failure / alternative value.
@@ -12,7 +14,7 @@ import java.util.function.Supplier;
  * @param <Right> The right (success / default) type
  * @since 19.7.2018
  */
-public class Either<Left, Right>
+public class Either<Left, Right> implements StringRepresentable
 {
 	// ATTRIBUTES	---------------------
 	

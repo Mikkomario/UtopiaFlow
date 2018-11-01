@@ -1,5 +1,7 @@
 package utopia.flow.structure;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * Pairs is an immutable object that holds two values that may have different data types
  * @author Mikko Hilpinen
@@ -7,7 +9,7 @@ package utopia.flow.structure;
  * @param <T2> The data type of the second value in the pair
  * @since 27.11.2015
  */
-public class Pair<T1, T2>
+public class Pair<T1, T2> implements StringRepresentable
 {
 	// ATTRIBUTES	---------------------
 	
@@ -89,6 +91,12 @@ public class Pair<T1, T2>
 			return false;
 		
 		return true;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "(" + first + ", " + second + ")";
 	}
 
 

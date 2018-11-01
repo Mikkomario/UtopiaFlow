@@ -60,6 +60,33 @@ public class XmlTest
 		
 		Test.checkEquals(parsedG1.getSuccess(), gChild1);
 		
+		// Tests reading a test file
+		/*
+		try
+		{
+			String fileStr = readFile(Paths.get("test/CUSTOMERS2.xml"), StandardCharsets.UTF_8);
+			System.out.println("|" + fileStr + "|");
+		}
+		catch (IOException e)
+		{
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			Test.fail("Stream read failed");
+		}
+		
+		Try<XmlElement> parsed2 = RichString.fromFile(Paths.get("test/CUSTOMERS.XML"), 
+				StandardCharsets.UTF_8).flatMap(XmlReader::parseString);
+		parsed2.failure().forEach(e -> 
+		{
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+		});
+		
+		Test.check(parsed2.isSuccess());
+		
+		System.out.println(parsed2.getSuccess());
+		*/
+		
 		System.out.println("Done");
 	}
 }

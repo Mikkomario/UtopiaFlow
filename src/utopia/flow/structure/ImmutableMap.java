@@ -13,6 +13,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import utopia.flow.util.StringRepresentable;
+
 /**
  * This map doesn't allow it's contents to be modified and also supports use of options
  * @author Mikko Hilpinen
@@ -20,7 +22,7 @@ import java.util.function.Supplier;
  * @param <Value> The types of the values stored in the map
  * @since 1.11.2017
  */
-public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>
+public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringRepresentable
 {
 	// ATTRIBUTES	------------------
 	
