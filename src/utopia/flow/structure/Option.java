@@ -145,9 +145,10 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	 * @return The maximum value, if there is one
 	 */
 	@SafeVarargs
-	public static <T extends Comparable<? super T>> Option<T> max(Option<T> first, Option<T> second, Option<T>... more)
+	public static <T extends Comparable<? super T>> Option<T> max(Option<? extends T> first, Option<? extends T> second, 
+			Option<? extends T>... more)
 	{
-		return ImmutableList.maxFrom(ImmutableList.flatten(first, second, ImmutableList.flatten(ImmutableList.of(more))));
+		return RichIterable.maxFrom(View.flatten(first, second, more));
 	}
 	
 	/**
@@ -158,9 +159,10 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	 * @return The minimum value, if there is one
 	 */
 	@SafeVarargs
-	public static <T extends Comparable<? super T>> Option<T> min(Option<T> first, Option<T> second, Option<T>... more)
+	public static <T extends Comparable<? super T>> Option<T> min(Option<? extends T> first, Option<? extends T> second, 
+			Option<? extends T>... more)
 	{
-		return ImmutableList.minFrom(ImmutableList.flatten(first, second, ImmutableList.flatten(ImmutableList.of(more))));
+		return RichIterable.minFrom(View.flatten(first, second, more));
 	}
 	
 	

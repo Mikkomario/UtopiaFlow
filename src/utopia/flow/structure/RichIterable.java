@@ -1,5 +1,6 @@
 package utopia.flow.structure;
 
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
@@ -33,6 +34,29 @@ public interface RichIterable<T> extends Iterable<T>
 	
 	@Override
 	public RichIterator<T> iterator();
+	
+	
+	// STATIC	----------------------------
+	
+	/**
+	 * Finds the maximum value from the provided items
+	 * @param items The items the maximum value is searched from
+	 * @return The maximum value from the list. None if list is empty.
+	 */
+	public static <T extends Comparable<? super T>> Option<T> maxFrom(RichIterable<T> items)
+	{
+		return items.max((a, b) -> a.compareTo(b));
+	}
+	
+	/**
+	 * Finds the minimum value from the provided items
+	 * @param items The items the minimum value is searched from
+	 * @return The minimum value from the list. None if list is empty.
+	 */
+	public static <T extends Comparable<? super T>> Option<T> minFrom(RichIterable<T> items)
+	{
+		return items.min((a, b) -> a.compareTo(b));
+	}
 	
 	
 	// OTHER METHODS	--------------------
@@ -85,6 +109,24 @@ public interface RichIterable<T> extends Iterable<T>
 	public default ImmutableList<T> takeWhile(Predicate<? super T> f)
 	{
 		return iterator().takeWhile(f);
+	}
+	
+	/**
+	 * Creates a view where the first n elements are skipped
+	 * @param n The amount of elements to skip
+	 * @return A view of the latter portion of this iterable
+	 */
+	public default View<T> dropFirstView(int n)
+	{
+		return new View<>(() -> new SkipFirstIterator<>(iterator(), n));
+	}
+	
+	/**
+	 * @return A view of all but the first item in this iterable
+	 */
+	public default View<T> tailView()
+	{
+		return dropFirstView(1);
 	}
 	
 	/**
@@ -188,6 +230,115 @@ public interface RichIterable<T> extends Iterable<T>
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * @param comparator A comparator
+	 * @return The maximum value in this iterable, using the specified comparator
+	 */
+	public default Option<T> max(Comparator<? super T> comparator)
+	{
+		Option<T> first = headOption();
+		if (first.isEmpty())
+			return Option.none();
+		else
+		{
+			T max = first.get();
+			for (T item : tailView())
+			{
+				if (comparator.compare(item, max) > 0)
+					max = item;
+			}
+			
+			return Option.some(max);
+		}
+	}
+	
+	/**
+	 * @param comparator A comparator
+	 * @return The minimum value in this iterable, using the specified comparator
+	 */
+	public default Option<T> min(Comparator<? super T> comparator)
+	{
+		return max(comparator.reversed());
+	}
+	
+	/**
+	 * Finds the maximum value in this list based on a mapped value
+	 * @param f A mapping function
+	 * @return The maximum item in the list based on the mapped value. None if list is empty.
+	 * @see #maxFrom(RichIterable)
+	 */
+	public default <K extends Comparable<? super K>> Option<T> maxBy(Function<? super T, ? extends K> f)
+	{
+		return max((a, b) -> f.apply(a).compareTo(f.apply(b)));
+	}
+	
+	/**
+	 * Finds the minimum value in this list based on a mapped value
+	 * @param f A mapping function
+	 * @return The minimum item in the list based on the mapped value. None if list is empty.
+	 * @see #minFrom(RichIterable)
+	 */
+	public default <K extends Comparable<? super K>> Option<T> minBy(Function<? super T, ? extends K> f)
+	{
+		return min((a, b) -> f.apply(a).compareTo(f.apply(b)));
+	}
+	
+	/**
+	 * Maps the items and finds the smallest mapped value
+	 * @param map A mapping function
+	 * @param comparator A comparator for mapped values
+	 * @return The smallest mapped value
+	 */
+	public default <B> Option<B> mapMin(Function<? super T, ? extends B> map, Comparator<? super B> comparator)
+	{
+		Option<T> first = headOption();
+		if (first.isEmpty())
+			return Option.none();
+		else
+		{
+			B min = map.apply(first.get());
+			for (T next : tailView())
+			{
+				B mapped = map.apply(next);
+				if (comparator.compare(mapped, min) < 0)
+					min = mapped;
+			}
+			
+			return Option.some(min);
+		}
+	}
+	
+	/**
+	 * Maps the items and finds the smallest mapped value
+	 * @param map A mapping function
+	 * @return The smallest mapped value
+	 */
+	public default <B extends Comparable<? super B>> Option<B> mapMin(Function<? super T, ? extends B> map)
+	{
+		return mapMin(map, (a, b) -> a.compareTo(b));
+	}
+	
+	/**
+	 * Maps the items and finds the largest mapped value
+	 * @param map A mapping function
+	 * @param comparator A comparator for mapped values
+	 * @return The largest mapped value
+	 */
+	public default <B> Option<B> mapMax(Function<? super T, ? extends B> map, Comparator<? super B> comparator)
+	{
+		return mapMin(map, comparator.reversed());
+	}
+	
+	/**
+	 * Maps the items and finds the largest mapped value
+	 * @param map A mapping function
+	 * @return The largest mapped value
+	 */
+	public default <B extends Comparable<? super B>> Option<B> mapMax(Function<? super T, ? extends B> map)
+	{
+		return mapMax(map, (a, b) -> a.compareTo(b));
 	}
 	
 	/**
