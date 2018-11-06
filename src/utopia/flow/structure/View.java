@@ -137,6 +137,31 @@ public class View<T> implements RichIterable<T>
 	}
 	
 	/**
+	 * Finds the item at the specific index in this view. Please note that this is an O(n) operation and if you wish 
+	 * to read multiple items, it's better to force this view into a concrete list instead
+	 * @param index The target index
+	 * @return An item in the specified index or none if this view didn't have such an index
+	 */
+	public Option<T> itemAtIndex(int index)
+	{
+		if (index < 0)
+			return Option.none();
+		
+		RichIterator<T> iter = iterator();
+		int nextIndex = 0;
+		while (nextIndex < 0 && iter.hasNext())
+		{
+			iter.next();
+			nextIndex ++;
+		}
+		
+		if (iter.hasNext())
+			return Option.some(iter.next());
+		else
+			return Option.none();
+	}
+	
+	/**
 	 * Maps this view. The actual mapping is done when items are requested from the resulting view
 	 * @param f A mapping function
 	 * @return A view that performs mapping on-demand
