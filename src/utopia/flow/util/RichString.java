@@ -11,9 +11,9 @@ import utopia.flow.structure.IntRange;
 import utopia.flow.structure.Option;
 import utopia.flow.structure.Range;
 import utopia.flow.structure.RichIterable;
-import utopia.flow.structure.RichIterator;
-import utopia.flow.structure.StringCharIterator;
 import utopia.flow.structure.Try;
+import utopia.flow.structure.iterator.RichIterator;
+import utopia.flow.structure.iterator.StringCharIterator;
 
 /**
  * This class can be used for providing more features to basic strings

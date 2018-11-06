@@ -2,6 +2,8 @@ package utopia.flow.structure;
 
 import java.lang.ref.WeakReference;
 
+import utopia.flow.structure.iterator.RichIterator;
+
 /**
  * A weak holds a single value with a weak reference. Weaks may be converted to options at any point. The user must 
  * not expect that the contents of the weak are always there.

@@ -2,9 +2,17 @@ package utopia.flow.structure;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import utopia.flow.structure.iterator.FlatIterator;
+import utopia.flow.structure.iterator.MapIterator;
+import utopia.flow.structure.iterator.MergeIterator;
+import utopia.flow.structure.iterator.RepeatingIterator;
+import utopia.flow.structure.iterator.RichIterator;
+import utopia.flow.structure.iterator.StringCharIterator;
 
 /**
  * Views are used for viewing certain collections / iterators. Views access items on-demand and don't keep them in 
@@ -180,6 +188,27 @@ public class View<T> implements RichIterable<T>
 	public View<T> plus(Iterable<? extends T> items)
 	{
 		return flatten(this, items);
+	}
+	
+	/**
+	 * Merges this view with another iterable instance
+	 * @param other Another iterable item
+	 * @param merge A function that merges two values
+	 * @return A view of the merge of these two iterable items
+	 */
+	public <B, Merge> View<Merge> mergedWith(Iterable<? extends B> other, BiFunction<? super T, ? super B, ? extends Merge> merge)
+	{
+		return new View<>(() -> new MergeIterator<>(iterator(), other.iterator(), merge));
+	}
+	
+	/**
+	 * Merges this view with another iterable instance
+	 * @param other Another iterable item
+	 * @return A view of pairs formed from these two iterable items
+	 */
+	public <B> View<Pair<T, B>> mergedWith(Iterable<? extends B> other)
+	{
+		return mergedWith(other, Pair::new);
 	}
 	
 	/**

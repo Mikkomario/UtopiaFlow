@@ -18,6 +18,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import utopia.flow.structure.iterator.RichIterator;
+import utopia.flow.structure.iterator.StringCharIterator;
 import utopia.flow.util.StringRepresentable;
 
 /**

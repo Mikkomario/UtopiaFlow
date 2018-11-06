@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import utopia.flow.function.ThrowingFunction;
+import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.util.StringRepresentable;
 
 /**

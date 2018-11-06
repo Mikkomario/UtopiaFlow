@@ -1,7 +1,9 @@
-package utopia.flow.structure;
+package utopia.flow.structure.iterator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import utopia.flow.structure.Option;
 
 /**
  * These iterators are used for iterating through a flattened collection

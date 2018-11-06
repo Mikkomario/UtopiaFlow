@@ -1,5 +1,7 @@
 package utopia.flow.structure;
 
+import utopia.flow.structure.iterator.RichIterator;
+
 /**
  * Builders are used for building immutable data structures in mutable fashion
  * @author Mikko Hilpinen

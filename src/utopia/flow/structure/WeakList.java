@@ -2,6 +2,9 @@ package utopia.flow.structure;
 
 import java.lang.ref.WeakReference;
 
+import utopia.flow.structure.iterator.FlatIterator;
+import utopia.flow.structure.iterator.MapIterator;
+import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.util.StringRepresentable;
 
 /**

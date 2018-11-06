@@ -4,7 +4,7 @@ import java.util.function.Function;
 
 import utopia.flow.structure.Lazy;
 import utopia.flow.structure.Option;
-import utopia.flow.structure.RichIterator;
+import utopia.flow.structure.iterator.RichIterator;
 
 /**
  * Generators are used for generating possibly infinite amount of values

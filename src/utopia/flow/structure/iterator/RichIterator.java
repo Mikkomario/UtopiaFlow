@@ -1,10 +1,13 @@
-package utopia.flow.structure;
+package utopia.flow.structure.iterator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import utopia.flow.structure.ImmutableList;
+import utopia.flow.structure.Option;
 
 /**
  * This interface offers some additional methods for all iterators

@@ -1,4 +1,4 @@
-package utopia.flow.structure;
+package utopia.flow.structure.iterator;
 
 /**
  * This class is used for iterating through characters in a string

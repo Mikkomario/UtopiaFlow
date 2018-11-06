@@ -1,4 +1,4 @@
-package utopia.flow.structure;
+package utopia.flow.structure.iterator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

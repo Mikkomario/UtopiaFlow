@@ -1,5 +1,7 @@
 package utopia.flow.structure;
 
+import utopia.flow.structure.iterator.RichIterator;
+
 /**
  * This range spans all integers between two integer values
  * @author Mikko Hilpinen

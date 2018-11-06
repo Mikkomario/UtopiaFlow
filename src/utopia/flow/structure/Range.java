@@ -2,6 +2,7 @@ package utopia.flow.structure;
 
 import java.util.function.Function;
 
+import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.util.StringRepresentable;
 
 /**

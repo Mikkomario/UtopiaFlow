@@ -2,6 +2,8 @@ package utopia.flow.structure;
 
 import java.util.Map;
 
+import utopia.flow.structure.iterator.RichIterator;
+
 /**
  * This is a wrapper for maps that allows iterating with pairs
  * @author Mikko Hilpinen

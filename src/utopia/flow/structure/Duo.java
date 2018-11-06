@@ -2,6 +2,8 @@ package utopia.flow.structure;
 
 import java.util.function.Function;
 
+import utopia.flow.structure.iterator.RichIterator;
+
 /**
  * A duo holds two values of a similar type
  * @author Mikko Hilpinen

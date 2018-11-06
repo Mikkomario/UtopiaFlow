@@ -13,6 +13,8 @@ import java.util.stream.StreamSupport;
 
 import utopia.flow.function.FunctionUtils;
 import utopia.flow.function.ThrowingConsumer;
+import utopia.flow.structure.iterator.RichIterator;
+import utopia.flow.structure.iterator.SkipFirstIterator;
 
 /**
  * Classes implementing this interface will have access to methods additional to normal iterables
