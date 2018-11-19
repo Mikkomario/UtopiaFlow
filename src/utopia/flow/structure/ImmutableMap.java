@@ -475,6 +475,18 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	}
 	
 	/**
+	 * Creates a new map with multiple keys removed
+	 * @param keys The keys to be removed
+	 * @return A map without the specified keys
+	 */
+	public ImmutableMap<Key, Value> minus(Iterable<? extends Key> keys)
+	{
+		Map<Key, Value> map = toMutableMap();
+		keys.forEach(map::remove);
+		return new ImmutableMap<>(map);
+	}
+	
+	/**
 	 * Maps this map
 	 * @param f a function that maps key value pairs
 	 * @return A mapped map
