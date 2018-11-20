@@ -382,6 +382,19 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
+	 * Finds the item at specified index or none if this list doesn't have such an index
+	 * @param index The target index
+	 * @return An item from the specified index
+	 */
+	public Option<T> getOption(int index)
+	{
+		if (index >= 0 && index < size())
+			return Option.some(get(index));
+		else
+			return Option.none();
+	}
+	
+	/**
 	 * Retrieves a range of items from this list
 	 * @param from The minimum index (inclusive)
 	 * @param to The maximum index (inclusive)
