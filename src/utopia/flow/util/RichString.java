@@ -237,6 +237,14 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	}
 	
 	/**
+	 * @return The lines forming this string
+	 */
+	public ImmutableList<RichString> lines()
+	{
+		return split("\\\n");
+	}
+	
+	/**
 	 * @return A normal string from this rich string. None if empty.
 	 */
 	public Option<String> toStringNotEmpty()
