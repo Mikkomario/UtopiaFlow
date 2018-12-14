@@ -21,6 +21,9 @@ public class BackgroundOperationTest
 		
 		Container<Boolean> running = new Container<>(true);
 		
+		// Prints forever
+		BackgroundProcessUtils.repeatForever(BackgroundOperationTest::printRepeat, Duration.ofSeconds(1));
+		
 		// Stops after 10 seconds
 		BackgroundProcessUtils.performAfter(() -> running.set(false), Duration.ofSeconds(10));
 		
@@ -31,6 +34,11 @@ public class BackgroundOperationTest
 		WaitUtils.wait(Duration.ofSeconds(15), running);
 		
 		System.out.println("Stopped");
+	}
+	
+	private static void printRepeat()
+	{
+		System.out.println(".");
 	}
 	
 	private static class Container<T>
