@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import utopia.flow.function.ThrowingPredicate;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.StringCharIterator;
 import utopia.flow.util.StringRepresentable;
@@ -811,6 +812,23 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 			if (f.test(get(i)))
 				return Option.some(i);
 		}
+		return Option.none();
+	}
+	
+	/**
+	 * Finds the first index where the predicate is true. May throw
+	 * @param f The predicate for finding the index. May throw
+	 * @return The first index where the predicate is true. None if no such index exists
+	 * @throws E If the predicate failed at any point
+	 */
+	public <E extends Exception> Option<Integer> indexWhereThrowing(ThrowingPredicate<? super T, E> f) throws E
+	{
+		for (int i = 0; i < size(); i++)
+		{
+			if (f.test(get(i)))
+				return Option.some(i);
+		}
+		
 		return Option.none();
 	}
 	
