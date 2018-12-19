@@ -59,7 +59,10 @@ public class Range<T extends Comparable<? super T>> implements RichComparable<Ra
 	@Override
 	public String toString()
 	{
-		return this.first + "-" + this.last;
+		if (first.equals(last))
+			return first.toString();
+		else
+			return this.first + "-" + this.last;
 	}
 	
 	@Override
