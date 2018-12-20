@@ -1,11 +1,10 @@
 package utopia.flow.async;
 
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.function.Supplier;
 
+import utopia.flow.structure.Lazy;
 import utopia.flow.structure.Option;
 import utopia.flow.util.WaitUtils;
 
@@ -28,6 +27,8 @@ public class BackgroundProcessUtils
 		System.err.println("Error in background process");
 		e.printStackTrace();
 	});
+	
+	private static final Lazy<DailyTasksLoop> TASK_LOOP = new Lazy<>(BackgroundProcessUtils::setUpDailyTasksLoop);
 	
 	
 	// CONSTRUCTOR	-----------------------
@@ -127,8 +128,17 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeatDaily(Runnable r, int hours, int minutes)
 	{
-		LocalDateTime targetTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(hours, minutes));
-		runInBackground(new ScheduledRunnable(r, targetTime));
+		repeatDaily(r, LocalTime.of(hours, minutes));
+	}
+	
+	/**
+	 * Repeats a certain operation every day at a certain time
+	 * @param r The repeated operation
+	 * @param time The scheduled time of running the operation
+	 */
+	public static void repeatDaily(Runnable r, LocalTime time)
+	{
+		TASK_LOOP.get().schedule(r, time);
 	}
 	
 	/**
@@ -144,7 +154,7 @@ public class BackgroundProcessUtils
 	private static void startAfter(Loop loop, Duration delay)
 	{
 		// Registers the loop to shutdown when JVM closes
-		LoopCloseHook.getInstance().register(loop);
+		loop.registerToStopAtExit();
 		
 		repeatPool.execute(new DelayedRunnable(loop, delay.toMillis()));
 	}
@@ -175,7 +185,7 @@ public class BackgroundProcessUtils
 	public static void start(Loop loop)
 	{
 		// Registers the loop to end on JVM shutdown
-		LoopCloseHook.getInstance().register(loop);
+		loop.registerToStopAtExit();
 		
 		// Starts the loop
 		repeatPool.execute(loop);
@@ -185,6 +195,18 @@ public class BackgroundProcessUtils
 	{
 		// Creates the loop and starts it
 		start(new Loop(r, interval, checkContinue));
+	}
+	
+	private static DailyTasksLoop setUpDailyTasksLoop()
+	{
+		// Creates the loop and registers it to close on JVM shutdown
+		DailyTasksLoop loop = new DailyTasksLoop();
+		loop.registerToStopAtExit();
+		
+		// Starts the loop
+		repeatPool.execute(loop);
+		
+		return loop;
 	}
 	
 	
@@ -214,45 +236,6 @@ public class BackgroundProcessUtils
 		{
 			WaitUtils.wait(this.intervalMillis, this);
 			this.operation.run();
-		}
-	}
-	
-	// TODO: Create a new interface for scheduled tasks
-	private static class ScheduledRunnable implements Runnable
-	{
-		// ATTRIBUTES	--------------------
-		
-		private LocalDateTime nextRunTime;
-		private Runnable operation;
-		
-		
-		// CONSTRUCTOR	-------------------
-		
-		public ScheduledRunnable(Runnable operation, LocalDateTime nextRunTime)
-		{
-			this.operation = operation;
-			this.nextRunTime = nextRunTime;
-			
-			while (this.nextRunTime.isBefore(LocalDateTime.now()))
-			{
-				this.nextRunTime = this.nextRunTime.plusDays(1);
-			}
-		}
-		
-		@Override
-		public void run()
-		{
-			while (true)
-			{
-				WaitUtils.waitUntil(this.nextRunTime, this);
-				this.operation.run();
-				
-				do
-				{
-					this.nextRunTime = this.nextRunTime.plusDays(1);
-				}
-				while (this.nextRunTime.isBefore(LocalDateTime.now()));
-			}
 		}
 	}
 }

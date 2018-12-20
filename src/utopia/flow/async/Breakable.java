@@ -15,4 +15,15 @@ public interface Breakable
 	 * @return An asynchronous completion for the stopping operation
 	 */
 	public Completion stop();
+	
+	
+	// OTHER	-------------------
+	
+	/**
+	 * Registers this loop to stop when JVM is closing
+	 */
+	public default void registerToStopAtExit()
+	{
+		LoopCloseHook.getInstance().register(this);
+	}
 }
