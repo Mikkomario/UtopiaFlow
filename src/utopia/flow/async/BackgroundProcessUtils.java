@@ -56,10 +56,11 @@ public class BackgroundProcessUtils
 	 * Repeats a certain process in the background as long as the jvm is active
 	 * @param r The operation that is repeated in background
 	 * @param intervalMillis The amount of milliseconds between each repeat
+	 * @deprecated Please move to using duration instead of milliseconds value
 	 */
 	public static void repeatForever(Runnable r, long intervalMillis)
 	{
-		repeat(r, intervalMillis, Option.none());
+		repeatForever(r, Duration.ofMillis(intervalMillis));
 	}
 	
 	/**
@@ -69,7 +70,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeatForever(Runnable r, Duration interval)
 	{
-		repeatForever(r, interval.toMillis());
+		repeat(r, interval, Option.none());
 	}
 	
 	/**
@@ -80,7 +81,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeatForever(Runnable r, Duration interval, Duration delay)
 	{
-		repeatAfter(new RepeatingRunnable(r, interval.toMillis(), Option.none()), delay);
+		startAfter(Loop.forever(r, interval), delay);
 	}
 	
 	/**
@@ -88,10 +89,11 @@ public class BackgroundProcessUtils
 	 * @param r The repeated operation
 	 * @param intervalMillis The amount of milliseconds between each run
 	 * @param checkContinue A function used for checking whether another run should be made
+	 * @deprecated Please move to using duration instead of milliseconds value
 	 */
 	public static void repeat(Runnable r, long intervalMillis, Supplier<Boolean> checkContinue)
 	{
-		repeat(r, intervalMillis, Option.some(checkContinue));
+		repeat(r, Duration.ofMillis(intervalMillis), checkContinue);
 	}
 	
 	/**
@@ -102,7 +104,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeat(Runnable r, Duration interval, Supplier<Boolean> checkContinue)
 	{
-		repeat(r, interval.toMillis(), checkContinue);
+		repeat(r, interval, Option.some(checkContinue));
 	}
 	
 	/**
@@ -114,7 +116,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeat(Runnable r, Duration interval, Duration delay, Supplier<Boolean> checkContinue)
 	{
-		repeatAfter(new RepeatingRunnable(r, interval.toMillis(), Option.some(checkContinue)), delay);
+		startAfter(new Loop(r, interval, Option.some(checkContinue)), delay);
 	}
 	
 	/**
@@ -139,9 +141,12 @@ public class BackgroundProcessUtils
 		runInBackground(new DelayedRunnable(r, durationMillis));
 	}
 	
-	private static void repeatAfter(Runnable r, Duration delay)
+	private static void startAfter(Loop loop, Duration delay)
 	{
-		repeatPool.execute(new DelayedRunnable(r, delay.toMillis()));
+		// Registers the loop to shutdown when JVM closes
+		LoopCloseHook.getInstance().register(loop);
+		
+		repeatPool.execute(new DelayedRunnable(loop, delay.toMillis()));
 	}
 	
 	/**
@@ -163,46 +168,27 @@ public class BackgroundProcessUtils
 		pool.execute(r);
 	}
 	
-	private static void repeat(Runnable r, long intervalMillis, Option<Supplier<Boolean>> checkContinue)
+	/**
+	 * Starts a loop in the background
+	 * @param loop A loop that will be run in the background. The loop will be terminated once JVM is closing.
+	 */
+	public static void start(Loop loop)
 	{
-		runInBackground(new RepeatingRunnable(r, intervalMillis, checkContinue));
+		// Registers the loop to end on JVM shutdown
+		LoopCloseHook.getInstance().register(loop);
+		
+		// Starts the loop
+		repeatPool.execute(loop);
+	}
+	
+	private static void repeat(Runnable r, Duration interval, Option<Supplier<Boolean>> checkContinue)
+	{
+		// Creates the loop and starts it
+		start(new Loop(r, interval, checkContinue));
 	}
 	
 	
 	// NESTED CLASSES	-------------------
-	
-	private static class RepeatingRunnable implements Runnable
-	{
-		// ATTRIBUTES	-------------------
-		
-		private Runnable operation;
-		private long intervalMillis;
-		private Option<Supplier<Boolean>> continueCheck;
-		
-		
-		// CONSTRUCTOR	-------------------
-		
-		public RepeatingRunnable(Runnable operation, long intervalMillis, Option<Supplier<Boolean>> continueCheck)
-		{
-			this.operation = operation;
-			this.intervalMillis = intervalMillis;
-			this.continueCheck = continueCheck;
-		}
-		
-		
-		// IMPLEMENTED METHODS	----------
-		
-		@Override
-		public synchronized void run()
-		{
-			do
-			{
-				this.operation.run();
-				WaitUtils.wait(this.intervalMillis, this);
-			}
-			while (this.continueCheck.forAll(c -> c.get()));
-		}
-	}
 	
 	private static class DelayedRunnable implements Runnable
 	{
@@ -226,18 +212,12 @@ public class BackgroundProcessUtils
 		@Override
 		public void run()
 		{
-			try
-			{
-				WaitUtils.wait(this.intervalMillis, this);
-				this.operation.run();
-			}
-			finally
-			{
-				this.operation = null;
-			}
+			WaitUtils.wait(this.intervalMillis, this);
+			this.operation.run();
 		}
 	}
 	
+	// TODO: Create a new interface for scheduled tasks
 	private static class ScheduledRunnable implements Runnable
 	{
 		// ATTRIBUTES	--------------------
