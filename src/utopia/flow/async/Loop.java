@@ -108,4 +108,12 @@ public abstract class Loop implements Runnable, Breakable
 	{
 		return waitLock;
 	}
+	
+	/**
+	 * Starts running this loop a background daemon thread.
+	 */
+	public void startInBackground()
+	{
+		BackgroundProcessUtils.start(this);
+	}
 }

@@ -152,7 +152,7 @@ public class BackgroundProcessUtils
 		performAfter(r, Duration.ofMillis(durationMillis));
 	}
 	
-	private static void startAfter(StaticIntervalLoop loop, Duration delay)
+	private static void startAfter(Loop loop, Duration delay)
 	{
 		// Registers the loop to shutdown when JVM closes
 		loop.registerToStopAtExit();
@@ -183,7 +183,7 @@ public class BackgroundProcessUtils
 	 * Starts a loop in the background
 	 * @param loop A loop that will be run in the background. The loop will be terminated once JVM is closing.
 	 */
-	public static void start(StaticIntervalLoop loop)
+	public static void start(Loop loop)
 	{
 		// Registers the loop to end on JVM shutdown
 		loop.registerToStopAtExit();
@@ -202,10 +202,7 @@ public class BackgroundProcessUtils
 	{
 		// Creates the loop and registers it to close on JVM shutdown
 		DailyTasksLoop loop = new DailyTasksLoop();
-		loop.registerToStopAtExit();
-		
-		// Starts the loop
-		repeatPool.execute(loop);
+		start(loop);
 		
 		return loop;
 	}
