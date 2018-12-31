@@ -1,11 +1,12 @@
 package utopia.flow.async;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import utopia.flow.structure.ImmutableList;
-import utopia.flow.structure.WeakList;
+import utopia.flow.util.WaitTarget;
 import utopia.flow.util.WaitUtils;
 
 /**
@@ -13,67 +14,39 @@ import utopia.flow.util.WaitUtils;
  * @author Mikko Hilpinen
  * @since 20.12.2018
  */
-public class DailyTasksLoop implements Runnable, Breakable
+public class DailyTasksLoop extends Loop
 {
 	// ATTRIBUTES	-----------------------
 	
 	private Volatile<ImmutableList<ScheduledTask>> tasks = new Volatile<>(ImmutableList.empty());
 	
-	private VolatileFlag runningFlag = new VolatileFlag();
-	private VolatileFlag breakFlag = new VolatileFlag();
-	private WeakList<Completion> breakCompletions = WeakList.empty();
-	
 	
 	// IMPLEMENTED	-----------------------
 	
 	@Override
-	public Completion stop()
+	protected boolean runOnce()
 	{
-		// Non-running loops simply return an empty completion
-		if (runningFlag.isSet())
+		// After wait, checks if any tasks can be performed
+		while (!isBroken() && tasks.get().headOption().exists(t -> t.isPastScheduledTime()))
 		{
-			// Creates the completion first
-			Completion completion = new Completion();
-			breakCompletions = breakCompletions.plus(completion);
+			// while tasks can be performed, runs them
+			// Pops the first task from the list
+			ScheduledTask next = tasks.pop(l -> l.head(), l -> l.tail());
+			next.run();
 			
-			// Tries to stop the run and returns the completion
-			breakFlag.set();
-			WaitUtils.notify(this);
-			
-			return completion;
+			// Adds the task again for tomorrow
+			tasks.update(l -> l.plus(next.forTomorrow()));
 		}
-		else
-			return Completion.fulfilled();
+		
+		return true;
 	}
 
 	@Override
-	public void run()
+	protected WaitTarget getNextWaitTarget()
 	{
-		breakFlag.reset();
-		runningFlag.set();
-		
-		// Repeats the operation as long as not broken
-		while (!breakFlag.isSet())
-		{
-			// Finds the next task to run and waits for it (the tasks list may change while waiting)
-			tasks.get().headOption().handle(nextTask -> WaitUtils.waitUntil(nextTask.time, this), 
-					() -> WaitUtils.waitUntilNotified(this));
-			
-			// After wait, checks if any tasks can be performed
-			while (!breakFlag.isSet() && tasks.get().headOption().exists(t -> t.isPastScheduledTime(LocalDateTime.now())))
-			{
-				// while tasks can be performed, runs them
-				// Pops the first task from the list
-				ScheduledTask next = tasks.pop(l -> l.head(), l -> l.tail());
-				next.run();
-				
-				// Adds the task again for tomorrow
-				tasks.update(l -> l.plus(next.forTomorrow()));
-			}
-		}
-		
-		runningFlag.reset();
-		breakCompletions.forEach(c -> c.fulfill());
+		// Finds the next task to run and waits for it (the tasks list may change while waiting)
+		return tasks.get().headOption().handleMap(task -> WaitTarget.withDuration(task.getDurationUntilNextRun()), 
+				() -> WaitTarget.untilNotified());
 	}
 	
 	
@@ -137,9 +110,14 @@ public class DailyTasksLoop implements Runnable, Breakable
 		
 		// OTHER	------------------------
 		
-		public boolean isPastScheduledTime(LocalDateTime currentTime)
+		public Duration getDurationUntilNextRun()
 		{
-			return !currentTime.isBefore(time);
+			return Duration.between(LocalDateTime.now(), time);
+		}
+		
+		public boolean isPastScheduledTime()
+		{
+			return !LocalDateTime.now().isBefore(time);
 		}
 		
 		public ScheduledTask forTomorrow()

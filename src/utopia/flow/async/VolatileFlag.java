@@ -1,6 +1,7 @@
 package utopia.flow.async;
 
 import utopia.flow.function.ThrowingRunnable;
+import utopia.flow.structure.Mutable;
 
 /**
  * Volatile flags are used for marking singular events (flags) in a multi-threaded environment
@@ -44,6 +45,22 @@ public class VolatileFlag extends Volatile<Boolean>
 	public boolean isSet()
 	{
 		return get();
+	}
+	
+	/**
+	 * Sets this flag
+	 * @return The state of the flag before the call of this method
+	 */
+	public boolean getAndSet()
+	{
+		Mutable<Boolean> oldStatus = new Mutable<>(false);
+		update(old -> 
+		{
+			oldStatus.set(old);
+			return true;
+		});
+		
+		return oldStatus.get();
 	}
 	
 	/**

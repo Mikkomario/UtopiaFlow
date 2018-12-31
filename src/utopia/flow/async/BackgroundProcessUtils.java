@@ -82,7 +82,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeatForever(Runnable r, Duration interval, Duration delay)
 	{
-		startAfter(Loop.forever(r, interval), delay);
+		startAfter(StaticIntervalLoop.forever(r, interval), delay);
 	}
 	
 	/**
@@ -117,7 +117,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void repeat(Runnable r, Duration interval, Duration delay, Supplier<Boolean> checkContinue)
 	{
-		startAfter(new Loop(r, interval, Option.some(checkContinue)), delay);
+		startAfter(new StaticIntervalLoop(r, interval, Option.some(checkContinue)), delay);
 	}
 	
 	/**
@@ -145,18 +145,19 @@ public class BackgroundProcessUtils
 	 * Performs a certain operation after a certain period of time
 	 * @param r The operation that will be run
 	 * @param durationMillis The amount of milliseconds before the start of the operation
+	 * @deprecated Please move to using duration and {@link #performAfter(Runnable, Duration)}
 	 */
 	public static void performAfter(Runnable r, long durationMillis)
 	{
-		runInBackground(new DelayedRunnable(r, durationMillis));
+		performAfter(r, Duration.ofMillis(durationMillis));
 	}
 	
-	private static void startAfter(Loop loop, Duration delay)
+	private static void startAfter(StaticIntervalLoop loop, Duration delay)
 	{
 		// Registers the loop to shutdown when JVM closes
 		loop.registerToStopAtExit();
 		
-		repeatPool.execute(new DelayedRunnable(loop, delay.toMillis()));
+		repeatPool.execute(new DelayedRunnable(loop, delay));
 	}
 	
 	/**
@@ -166,7 +167,7 @@ public class BackgroundProcessUtils
 	 */
 	public static void performAfter(Runnable r, Duration duration)
 	{
-		performAfter(r, duration.toMillis());
+		runInBackground(new DelayedRunnable(r, duration));
 	}
 	
 	/**
@@ -182,7 +183,7 @@ public class BackgroundProcessUtils
 	 * Starts a loop in the background
 	 * @param loop A loop that will be run in the background. The loop will be terminated once JVM is closing.
 	 */
-	public static void start(Loop loop)
+	public static void start(StaticIntervalLoop loop)
 	{
 		// Registers the loop to end on JVM shutdown
 		loop.registerToStopAtExit();
@@ -194,7 +195,7 @@ public class BackgroundProcessUtils
 	private static void repeat(Runnable r, Duration interval, Option<Supplier<Boolean>> checkContinue)
 	{
 		// Creates the loop and starts it
-		start(new Loop(r, interval, checkContinue));
+		start(new StaticIntervalLoop(r, interval, checkContinue));
 	}
 	
 	private static DailyTasksLoop setUpDailyTasksLoop()
@@ -217,15 +218,15 @@ public class BackgroundProcessUtils
 		// ATTRIBUTES	-----------------
 		
 		private Runnable operation;
-		private long intervalMillis;
+		private Duration interval;
 		
 		
 		// CONSTRUCTOR	-----------------
 		
-		public DelayedRunnable(Runnable operation, long intervalMillis)
+		public DelayedRunnable(Runnable operation, Duration interval)
 		{
 			this.operation = operation;
-			this.intervalMillis = intervalMillis;
+			this.interval = interval;
 		}
 
 
@@ -234,8 +235,8 @@ public class BackgroundProcessUtils
 		@Override
 		public void run()
 		{
-			WaitUtils.wait(this.intervalMillis, this);
-			this.operation.run();
+			WaitUtils.wait(interval, this);
+			operation.run();
 		}
 	}
 }

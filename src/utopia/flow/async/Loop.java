@@ -1,85 +1,37 @@
 package utopia.flow.async;
 
-import java.time.Duration;
-import java.util.function.Supplier;
-
-import utopia.flow.structure.Option;
 import utopia.flow.structure.WeakList;
-import utopia.flow.util.WaitUtils;
+import utopia.flow.util.WaitTarget;
 
 /**
- * A loop is a background process that keeps repeating either indefinitely or until a certain condition is met. Loops 
- * will always run at least once. All loops will close once the JVM closes. This class doesn't have value semantics 
- * since it implements {@link Breakable}
+ * This is an abstract class for looping, breakable operations that handles continuing checks and waiting between 
+ * iterations, as well as breaking the loop
  * @author Mikko Hilpinen
- * @since 20.12.2018
+ * @since 31.12.2018
  */
-public class Loop implements Runnable, Breakable
+public abstract class Loop implements Runnable, Breakable
 {
 	// ATTRIBUTES	------------------
 	
-	private Runnable operation;
-	private Duration interval;
-	private Option<Supplier<Boolean>> continueCheck;
+	private final Object waitLock = new Object();
 	
-	private VolatileFlag breakFlag = new VolatileFlag();
-	private VolatileFlag runningFlag = new VolatileFlag();
+	private final VolatileFlag breakFlag = new VolatileFlag();
+	private final VolatileFlag runningFlag = new VolatileFlag();
 	private WeakList<Completion> stopCompletions = WeakList.empty();
 	
 	
-	// CONSTRUCTOR	------------------
+	// ABSTRACT	----------------------
 	
 	/**
-	 * Creates a new looping process
-	 * @param operation The operation that will be looped
-	 * @param interval The interval between the repeats
-	 * @param continueCheck A check that will be called between each run to see whether the loop should 
-	 * continue. Optional.
+	 * @return Perfomrs the main operation of this loop once
 	 */
-	public Loop(Runnable operation, Duration interval, Option<Supplier<Boolean>> continueCheck)
-	{
-		this.operation = operation;
-		this.interval = interval;
-		this.continueCheck = continueCheck;
-	}
+	protected abstract boolean runOnce();
 	
 	/**
-	 * Creates a new looping process
-	 * @param operation The operation that will be looped
-	 * @param interval The interval between the repeats
-	 * @param continueCheck A check that will be called between each run to see whether the loop should 
-	 * continue. Optional.
+	 * This method is used for checking how long the loop should wait before calling {@link #runOnce()} next time
+	 * @return A wait target for the next iteration
 	 */
-	public Loop(Runnable operation, Duration interval, Supplier<Boolean> continueCheck)
-	{
-		this.operation = operation;
-		this.interval = interval;
-		this.continueCheck = Option.some(continueCheck);
-	}
-	
-	/**
-	 * Creates a loop that continues forever or until broken
-	 * @param operation The operation that will be looped
-	 * @param interval The interval between the loops
-	 * @return A new loop that will not terminate by itself
-	 */
-	public static Loop forever(Runnable operation, Duration interval)
-	{
-		return new Loop(operation, interval, Option.none());
-	}
-	
-	/**
-	 * Creates a loop that continues until the JVM closes or until broken
-	 * @param operation The operation that will be looped
-	 * @param interval The interval between the loops
-	 * @return A new loop that will not terminate by itself until the JVM closes
-	 */
-	public static Loop untilJVMCloses(Runnable operation, Duration interval)
-	{
-		Loop loop = forever(operation, interval);
-		LoopCloseHook.getInstance().register(loop);
-		return loop;
-	}
+	protected abstract WaitTarget getNextWaitTarget();
 	
 	
 	// IMPLEMENTED	------------------
@@ -87,16 +39,24 @@ public class Loop implements Runnable, Breakable
 	@Override
 	public void run()
 	{
+		// Starts the loop
 		breakFlag.reset();
 		runningFlag.set();
 		
+		boolean isContinuing = true;
 		do
 		{
-			operation.run();
-			WaitUtils.wait(interval, this);
+			// Performs the operation, checks whether should be continued
+			isContinuing = runOnce();
+			
+			// Waits between continues
+			if (isContinuing && !isBroken())
+				getNextWaitTarget().waitWith(waitLock);
 		}
-		while (!breakFlag.isSet() && continueCheck.forAll(c -> c.get()));
+		// Loops until broken or finished
+		while (isContinuing && !isBroken());
 		
+		// Finishes loop & informs listeners
 		runningFlag.reset();
 		stopCompletions.forEach(c -> c.fulfill());
 	}
@@ -104,7 +64,7 @@ public class Loop implements Runnable, Breakable
 	@Override
 	public Completion stop()
 	{
-		if (runningFlag.isSet())
+		if (isRunning())
 		{
 			// If this loop is running, has to wait until it has ended
 			// Creates the completion and registers it to listen to the end of this loop
@@ -113,7 +73,7 @@ public class Loop implements Runnable, Breakable
 			
 			// Breaks this loop (asynchronous)
 			breakFlag.set();
-			WaitUtils.notify(this);
+			WaitTarget.notify(waitLock);
 			
 			return completion;
 		}
@@ -126,21 +86,26 @@ public class Loop implements Runnable, Breakable
 	// OTHER	-----------------------
 	
 	/**
-	 * Creates another loop that has an additional check before continuing
-	 * @param check The additional continue check
-	 * @return A new loop that will also check the provided check before continuing
+	 * @return Whether this loop is currently running
 	 */
-	public Loop withAdditionalCheck(Supplier<Boolean> check)
+	public boolean isRunning()
 	{
-		Supplier<Boolean> finalCheck;
-		if (continueCheck.isDefined())
-		{
-			Supplier<Boolean> original = continueCheck.get();
-			finalCheck = () -> original.get() && check.get();
-		}
-		else
-			finalCheck = check;
-		
-		return new Loop(operation, interval, finalCheck);
+		return runningFlag.isSet();
+	}
+	
+	/**
+	 * @return Whether this loop has been broken
+	 */
+	public boolean isBroken()
+	{
+		return breakFlag.isSet();
+	}
+	
+	/**
+	 * @return A wait lock used by this loop. Should be used in all breakable waits concerning this loop.
+	 */
+	protected Object getWaitLock()
+	{
+		return waitLock;
 	}
 }
