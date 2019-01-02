@@ -47,9 +47,16 @@ public class Generator<T> implements RichIterator<T>
 	@Override
 	public synchronized T next()
 	{
-		T newItem = this.increase.apply(this.lastItem.getOrElse(this.firstItem::get)).getOrElse(this.firstItem::get);
-		this.lastItem = Option.some(newItem);
+		T newItem;
 		
+		// If no item has been stored yet, uses the first item
+		if (lastItem.isEmpty())
+			newItem = firstItem.get();
+		// Otherwise increments the last item, until no item is produced
+		else
+			newItem = increase.apply(lastItem.get()).getOrElse(firstItem::get);
+		
+		lastItem = Option.some(newItem);
 		return newItem;
 	}
 }

@@ -142,30 +142,52 @@ public class WaitTarget
 	 */
 	public void waitWith(Object lock)
 	{
-		boolean waitCompleted = false;
-		Instant targetTime = Instant.now();
-		
-		synchronized (lock)
+		if (isFinite())
 		{
-			Instant currentTime = Instant.now();
+			boolean waitCompleted = false;
+			Instant targetTime = getEndTime().get();
 			
-			while (!waitCompleted && currentTime.isBefore(targetTime))
+			synchronized (lock)
 			{
-				try
-				{
-					Duration waitDuration = Duration.between(currentTime, targetTime);
-					// Waits in nano precision
-					lock.wait(waitDuration.toSecondsPart() * 1000l, waitDuration.toNanosPart());
-					
-					if (breaksOnNotify())
-						waitCompleted = true;
-				}
-				catch (InterruptedException e)
-				{
-					// Ignored
-				}
+				Instant currentTime = Instant.now();
 				
-				currentTime = Instant.now();
+				while (!waitCompleted && currentTime.isBefore(targetTime))
+				{
+					try
+					{
+						Duration waitDuration = Duration.between(currentTime, targetTime);
+						// Waits in nano precision
+						lock.wait(waitDuration.toMillis(), waitDuration.getNano() / 1000);
+						
+						if (breaksOnNotify())
+							waitCompleted = true;
+					}
+					catch (InterruptedException e)
+					{
+						// Ignored
+					}
+					
+					currentTime = Instant.now();
+				}
+			}
+		}
+		else
+		{
+			boolean waitCompleted = false;
+			synchronized (lock)
+			{
+				while (!waitCompleted)
+				{
+					try
+					{
+						lock.wait();
+						waitCompleted = true;
+					}
+					catch (InterruptedException e)
+					{
+						// Ignored
+					}
+				}
 			}
 		}
 	}
