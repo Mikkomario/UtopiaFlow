@@ -27,6 +27,19 @@ public class MapTest
 		Test.check(a.containsKey("A"));
 		Test.check(!a.containsKey("C"));
 		
+		// Tests map merge
+		ImmutableMap<String, Integer> b = ImmutableMap.build(m -> 
+		{
+			m.put("A", 3);
+			m.put("C", 5);
+		});
+		
+		ImmutableMap<String, Integer> merged = a.mergedWith(b, (v1, v2) -> v1 + v2);
+		
+		Test.checkEquals(merged.get("A"), 4);
+		Test.checkEquals(merged.get("B"), 2);
+		Test.checkEquals(merged.get("C"), 5);
+		
 		System.out.println("DONE");
 	}
 }

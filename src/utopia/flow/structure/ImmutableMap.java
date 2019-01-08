@@ -576,6 +576,44 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	}
 	
 	/**
+	 * Merges two maps together so that keys from both maps are included. Unlike {@link #plus(ImmutableMap)}, this 
+	 * method uses a merge function instead of a simple overwrite
+	 * @param other Another map
+	 * @param merge A merge function that is used when both maps contain a key. Left side parameter is taken from 
+	 * this map while right side parameter is from the provided map parameter
+	 * @return A new map that contains (possibly merged) items from both maps
+	 */
+	public <V2 extends Value> ImmutableMap<Key, Value> mergedWith(ImmutableMap<Key, ? extends V2> other, 
+			BiFunction<? super Value, ? super V2, ? extends Value> merge)
+	{
+		if (other.isEmpty())
+			return this;
+		else
+		{
+			Map<Key, Value> newMap = new HashMap<>();
+			
+			// Adds all keys from this map
+			forEach((k, v) -> 
+			{
+				// If the other map also contains the key, merges the two values
+				if (other.containsKey(k))
+					newMap.put(k, merge.apply(v, other.get(k)));
+				else
+					newMap.put(k, v);
+			});
+			
+			// Adds unmerged items from the other map
+			other.forEach((k, v) -> 
+			{
+				if (!containsKey(k))
+					newMap.put(k, v);
+			});
+			
+			return new ImmutableMap<>(newMap);
+		}
+	}
+	
+	/**
 	 * Combines two list maps with each other. the final list map will contain values from both maps
 	 * @param first The first list map
 	 * @param second The second list map
