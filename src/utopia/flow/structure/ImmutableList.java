@@ -1218,9 +1218,19 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	 * @return A map based on this list's contents. If multiple items are mapped to the same key, only the last 
 	 * item is included
 	 */
-	public <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super T, Pair<Key, Value>> f)
+	public <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super T, ? extends Pair<Key, Value>> f)
 	{
 		return ImmutableMap.of(map(f));
+	}
+	
+	/**
+	 * Creates a new map of this list by pairing items with values. The items in this list become keys in the new map
+	 * @param pair A function that pairs items with values
+	 * @return A new map based on the pairs
+	 */
+	public <Value> ImmutableMap<T, Value> pairValues(Function<? super T, ? extends Value> pair)
+	{
+		return toMap(v -> new Pair<>(v, pair.apply(v)));
 	}
 	
 	/**
