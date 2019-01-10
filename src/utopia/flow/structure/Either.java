@@ -209,6 +209,32 @@ public class Either<Left, Right> implements StringRepresentable
 	}
 	
 	/**
+	 * Retrieves left value and uses right value as backup
+	 * @param rightMap A mapping function for the right value
+	 * @return The left value or right value mapped
+	 */
+	public Left mapToLeft(Function<? super Right, ? extends Left> rightMap)
+	{
+		if (isLeft())
+			return left.get();
+		else
+			return rightMap.apply(right.get());
+	}
+	
+	/**
+	 * Retrieves right value and uses left value as backup
+	 * @param leftMap A mapping function for left value
+	 * @return Right value or left value mapped
+	 */
+	public Right mapToRight(Function<? super Left, ? extends Right> leftMap)
+	{
+		if (isRight())
+			return right.get();
+		else
+			return leftMap.apply(left.get());
+	}
+	
+	/**
 	 * Transforms the left side value of this either
 	 * @param f A mapping function for the left side value
 	 * @return A new either with transformed value
