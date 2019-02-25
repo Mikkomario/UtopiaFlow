@@ -1,10 +1,13 @@
 package utopia.flow.util;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.IntRange;
@@ -101,7 +104,19 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	 */
 	public static Try<RichString> fromStream(InputStream stream, Charset charset)
 	{
-		return Try.run(() -> of(new String(stream.readAllBytes(), charset)));
+		try (InputStreamReader streamReader = new InputStreamReader(stream, charset))
+		{
+			try (BufferedReader bufferedReader = new BufferedReader(streamReader))
+			{
+				return Try.success(of(bufferedReader.lines().collect(Collectors.joining("\n"))));
+			}
+		}
+		catch (Exception e)
+		{
+			return Try.failure(e);
+		}
+		
+		// return Try.run(() -> of(new String(stream.readAllBytes(), charset)));
 	}
 	
 	/**
