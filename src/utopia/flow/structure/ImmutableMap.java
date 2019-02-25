@@ -329,6 +329,27 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	}
 	
 	/**
+	 * @param key The target key
+	 * @param errorSupplier A function for producing an exception if value is not found
+	 * @return The target value
+	 * @throws E An exception if there was no value available
+	 */
+	public <E extends Exception> Value getOrFail(Key key, Supplier<? extends E> errorSupplier) throws E
+	{
+		return getOption(key).getOrFail(errorSupplier);
+	}
+	
+	/**
+	 * @param key The target key
+	 * @return The target value
+	 * @throws EmptyResultException if there was no value available
+	 */
+	public Value getOrFail(Key key) throws EmptyResultException
+	{
+		return getOption(key).getOrFail();
+	}
+	
+	/**
 	 * @param f A search function for keys
 	 * @return A value for the searched key
 	 */

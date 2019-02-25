@@ -1246,16 +1246,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
-	 * Divides this list into two categories
-	 * @param f The filter function that is used for splitting this list
-	 * @return The filter results. One list for accepted values and one list for not accepted values
-	 */
-	public ImmutableMap<Boolean, ImmutableList<T>> divideBy(Predicate<? super T> f)
-	{
-		return ImmutableMap.withValue(true, filter(f)).plus(false, filter(f.negate()));
-	}
-	
-	/**
 	 * Finds the maximum value from the provided items
 	 * @param items The items the maximum value is searched from
 	 * @param comparator The comparator used for comparing the values

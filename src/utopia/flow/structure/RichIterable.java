@@ -199,6 +199,32 @@ public interface RichIterable<T> extends Iterable<T>
 	}
 	
 	/**
+	 * Divides this list into two categories
+	 * @param f The filter function that is used for splitting this list
+	 * @return The filter results. One list for accepted values and one list for not accepted values
+	 */
+	public default ImmutableMap<Boolean, ImmutableList<T>> divideBy(Predicate<? super T> f)
+	{
+		// Goes through this iterable, and groups the values
+		ListBuilder<T> trues = new ListBuilder<>();
+		ListBuilder<T> falses = new ListBuilder<>();
+		
+		forEach(item -> 
+		{
+			if (f.test(item))
+				trues.add(item);
+			else
+				falses.add(item);
+		});
+		
+		return ImmutableMap.build(result -> 
+		{
+			result.put(true, trues.build());
+			result.put(false, falses.build());
+		});
+	}
+	
+	/**
 	 * Returns the first transformed item where the transformation is available. Similar to calling flatMap(f).first(), 
 	 * except that this function doesn't transform unnecessary items.
 	 * @param f The transformation function

@@ -286,6 +286,16 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
+	 * Returns the value of this option or throws
+	 * @return The value inside this option
+	 * @throws EmptyResultException If this option was empty
+	 */
+	public T getOrFail() throws EmptyResultException
+	{
+		return getOrFail(() -> new EmptyResultException("The option is empty"));
+	}
+	
+	/**
 	 * Returns the value from this option or a failure if this option was empty
 	 * @param errorSuplier A function for producing the correct error
 	 * @return The result wrapped in a try
@@ -296,6 +306,15 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 			return Try.success(this.value);
 		else
 			return Try.failure(errorSuplier.get());
+	}
+	
+	/**
+	 * Returns the value from this option or a failure if this option was empty
+	 * @return The result wrapped in a try
+	 */
+	public Try<T> toTry()
+	{
+		return toTry(() -> new EmptyResultException("The option is empty"));
 	}
 	
 	/**
