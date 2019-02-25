@@ -346,7 +346,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public Value getOrFail(Key key) throws EmptyResultException
 	{
-		return getOption(key).getOrFail();
+		return getOrFail(key, () -> new EmptyResultException("No value for key: " + key));
 	}
 	
 	/**
