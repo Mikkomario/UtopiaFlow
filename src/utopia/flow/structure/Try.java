@@ -21,6 +21,11 @@ public class Try<T> implements StringRepresentable
 {
 	// ATTRIBUTES	----------------------
 	
+	/**
+	 * A success with no specific content
+	 */
+	public static final Try<Unit> SUCCESS = Try.success(Unit.getInstance());
+	
 	private Option<T> success;
 	private Option<Exception> exception;
 	
