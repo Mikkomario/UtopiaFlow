@@ -67,6 +67,8 @@ public class BasicValueParser implements ValueParser
 		addConversion(buffer, BasicDataType.STRING, BasicDataType.DOUBLE, ConversionReliability.DANGEROUS);
 		addConversion(buffer, BasicDataType.INTEGER, BasicDataType.DOUBLE, ConversionReliability.PERFECT);
 		
+		addConversion(buffer, BasicDataType.INTEGER, BasicDataType.LONG, ConversionReliability.PERFECT);
+		
 		// Floats can be parsed from numbers and strings
 		addConversion(buffer, BasicDataType.STRING, BasicDataType.FLOAT, ConversionReliability.DANGEROUS);
 		

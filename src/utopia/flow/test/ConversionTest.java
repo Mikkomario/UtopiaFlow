@@ -68,6 +68,7 @@ class ConversionTest
 		convert(date, BasicDataType.DATETIME);
 		convert(dateTime, BasicDataType.DATE);
 		
+		convert(i, BasicDataType.LONG);
 		convert(l, BasicDataType.INTEGER);
 		convert(f, BasicDataType.NUMBER);
 		
