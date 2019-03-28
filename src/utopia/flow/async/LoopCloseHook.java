@@ -65,10 +65,16 @@ public class LoopCloseHook
 		loops = loops.plus(loop);
 	}
 	
-	private void shutdown()
+	/**
+	 * Stops down all linked resources. Blocks until the resources have closed
+	 */
+	public void shutdown()
 	{
 		// Breaks all loops, may need to wait
 		ImmutableList<Completion> shutdownCompletions = loops.toStrongList().map(l -> l.stop());
+		
+		// Clears the loop list too
+		loops = WeakList.empty();
 		
 		if (!shutdownCompletions.isEmpty())
 		{
