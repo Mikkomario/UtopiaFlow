@@ -53,7 +53,7 @@ public class Promise<T> implements StringRepresentable
 	 * @param getResults The function that generates the promised results
 	 * @return The promise that will be fulfilled in a separate thread
 	 */
-	public static <T> Promise<T> asynchronous(Supplier<T> getResults)
+	public static <T> Promise<T> asynchronous(Supplier<? extends T> getResults)
 	{
 		Promise<T> promise = new Promise<>();
 		

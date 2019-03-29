@@ -1,6 +1,8 @@
 package utopia.flow.function;
 
 import utopia.flow.structure.Option;
+import utopia.flow.structure.Try;
+import utopia.flow.util.Unit;
 
 /**
  * Throwing runnables are used instead of runnables in environments that allow throwing of exceptions
@@ -16,6 +18,23 @@ public interface ThrowingRunnable<E extends Exception>
 	 * @throws Exception An exception is thrown on failure
 	 */
 	public void run() throws E;
+	
+	/**
+	 * Performs this operation. Returns the result.
+	 * @return Success if operation ran without exceptions. Failure otherwise.
+	 */
+	public default Try<Unit> tryRun()
+	{
+		try
+		{
+			run();
+			return Try.SUCCESS;
+		}
+		catch (Exception e)
+		{
+			return Try.failure(e);
+		}
+	}
 	
 	/**
 	 * Performs the operation in this runnable. If the operation fails, catches the exception and returns it

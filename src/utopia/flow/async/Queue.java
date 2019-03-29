@@ -2,7 +2,10 @@ package utopia.flow.async;
 
 import java.util.function.Supplier;
 
-import utopia.flow.structure.ImmutableList;
+import utopia.flow.function.ThrowingRunnable;
+import utopia.flow.function.ThrowingSupplier;
+import utopia.flow.structure.Pair;
+import utopia.flow.util.Unit;
 
 /**
  * This queue handles attempts in an order, delaying some attempts when necessary
@@ -14,8 +17,8 @@ public class Queue
 	// ATTRIBUTES	---------------------
 	
 	private int maxWidth;
-	private int currentWidth = 0;
-	private volatile ImmutableList<Delayed<?>> queue = ImmutableList.empty();
+	private Volatile<Integer> currentWidth = new Volatile<>(0);
+	private VolatileList<Delayed<?>> queue = new VolatileList<>();
 	
 	
 	// CONSTRUCTOR	---------------------
@@ -33,12 +36,52 @@ public class Queue
 	// OTHER	-------------------------
 	
 	/**
+	 * Pushes a new synchronous action to this queue. Action will be performed asynchronously.
+	 * @param getResult A function for producing a result
+	 * @return A promise of the resulting result
+	 */
+	public <T> Promise<T> push(Supplier<? extends T> getResult)
+	{
+		return pushPromise(() -> Promise.asynchronous(getResult));
+	}
+	
+	/**
+	 * Pushes a new synchronous action to this queue. Action will be performed asynchronously.
+	 * @param getResult A function for producing a result. May fail.
+	 * @return A promise of the resulting result. May contain a failure.
+	 */
+	public <T> Attempt<T> pushThrowing(ThrowingSupplier<T, ?> getResult)
+	{
+		return pushAttempt(() -> Attempt.tryAsynchronous(getResult));
+	}
+	
+	/**
+	 * Pushes a new synchronous action to this queue. Action will be performed asynchronously.
+	 * @param action An action that will be run
+	 * @return Completion of the action
+	 */
+	public Completion push(Runnable action)
+	{
+		return pushCompletion(() -> Completion.ofAsynchronous(action));
+	}
+	
+	/**
+	 * Pushes a new synchronous action to this queue. Action will be performed asynchronously.
+	 * @param action An action that will be run. May fail.
+	 * @return Completion of the action. May contain a failure.
+	 */
+	public Attempt<Unit> pushThrowing(ThrowingRunnable<?> action)
+	{
+		return pushAttempt(() -> Attempt.tryAsynchronous(action::tryRun));
+	}
+	
+	/**
 	 * Pushes a new attempt to this queue. If the queue is empty / has room, performs the attempt immediately, otherwise 
 	 * delays the start of the attempt.
 	 * @param makeRequest A function for providing / starting an attempt
 	 * @return An attempt that provides the final value for the operation
 	 */
-	public synchronized <T> Attempt<T> pushAttempt(Supplier<? extends Attempt<T>> makeRequest)
+	public <T> Attempt<T> pushAttempt(Supplier<? extends Attempt<T>> makeRequest)
 	{
 		return push(makeRequest, Attempt::new);
 	}
@@ -49,49 +92,58 @@ public class Queue
 	 * @param makeRequest A function for providing / starting a promise
 	 * @return A promise that provides the final value for the operation
 	 */
-	public synchronized <T> Promise<T> pushPromise(Supplier<? extends Promise<T>> makeRequest)
+	public <T> Promise<T> pushPromise(Supplier<? extends Promise<T>> makeRequest)
 	{
 		return push(makeRequest, Promise::new);
+	}
+	
+	/**
+	 * Pushes a new asynchronous action to this queue. If this queue is empty or has room, 
+	 * performs the action immediately, otherwise delays the start of the action.
+	 * @param performAction A function for providing and starting the action
+	 * @return A completion for when the action is done
+	 */
+	public Completion pushCompletion(Supplier<? extends Completion> performAction)
+	{
+		return push(performAction, Completion::new);
 	}
 	
 	private synchronized <T, P extends Promise<T>> P push(Supplier<? extends P> makeRequest, 
 			Supplier<? extends P> makeEmpty)
 	{
-		// If there is room, just runs the attempt at once
-		if (this.currentWidth < this.maxWidth)
+		return currentWidth.pop(w -> 
 		{
-			this.currentWidth ++;
-			P request = makeRequest.get();
-			request.onCompletion(this::release);
-			
-			return request;
-		}
-		// Otherwise delays the attempt until there is enough room
-		else
-		{
-			P empty = makeEmpty.get();
-			Delayed<T> delayed = new Delayed<>(makeRequest, empty);
-			this.queue = this.queue.plus(delayed);
-			
-			return empty;
-		}
-	}
-	
-	private synchronized void take()
-	{
-		Delayed<?> next = this.queue.head();
-		this.queue = this.queue.tail();
-		
-		next.start();
-		next.toPromise().onCompletion(this::release);
-		this.currentWidth ++;
+			// If there is room, just runs the attempt at once
+			if (w < maxWidth)
+			{
+				P request = makeRequest.get();
+				request.onCompletion(this::release);
+				
+				return new Pair<>(request, w + 1);
+			}
+			// Otherwise delays the attempt until there is enough room
+			else
+			{
+				P empty = makeEmpty.get();
+				Delayed<T> delayed = new Delayed<>(makeRequest, empty);
+				queue.add(delayed);
+				
+				return new Pair<>(empty, w);
+			}
+		});
 	}
 	
 	private synchronized void release()
 	{
-		this.currentWidth --;
-		if (!this.queue.isEmpty())
-			take();
+		// When released, tries taking the next operation in this queue
+		queue.pop().handle(next -> 
+		{
+			// If there was an operation in the queue, runs it and releases once completed
+			next.start();
+			next.toPromise().onCompletion(this::release);
+			
+			// Otherwise, since running stopped, makes space for new operations
+		}, () -> currentWidth.update(i -> i - 1));
 	}
 	
 	
@@ -118,7 +170,7 @@ public class Queue
 		
 		public Promise<T> toPromise()
 		{
-			return this.promise;
+			return promise;
 		}
 		
 		
@@ -126,7 +178,7 @@ public class Queue
 		
 		public void start()
 		{
-			this.makeRequest.get().doOnceFulfilled(this.promise::fulfill);
+			makeRequest.get().doOnceFulfilled(promise::fulfill);
 		}
 	}
 }
