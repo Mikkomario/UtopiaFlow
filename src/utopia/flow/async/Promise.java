@@ -291,6 +291,37 @@ public class Promise<T> implements StringRepresentable
 	}
 	
 	/**
+	 * Performs another asynchronous operation after this promise has completed
+	 * @param getResult A function for producing a result
+	 * @return A promise of the completed result
+	 */
+	public <B> Promise<B> continueWithAsync(Supplier<? extends B> getResult)
+	{
+		return asynchronous(() -> 
+		{
+			waitFor();
+			return getResult.get();
+		});
+	}
+	
+	/**
+	 * Performs another asynchronous operation after this promise has completed
+	 * @param makePromise A function for starting an asynchronous process
+	 * @return A promise of the completed result
+	 */
+	public <B, P extends Promise<B>> Promise<B> continueWith(Supplier<? extends P> makePromise)
+	{
+		if (isFulfilled())
+			return makePromise.get();
+		else
+			return asynchronous(() -> 
+			{
+				waitFor();
+				return makePromise.get().waitFor();
+			});
+	}
+	
+	/**
 	 * @return A promise of the completion of this promise
 	 */
 	public Completion completion()

@@ -1,7 +1,5 @@
 package utopia.flow.async;
 
-import java.util.function.Supplier;
-
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.RichIterable;
 import utopia.flow.util.Unit;
@@ -94,23 +92,6 @@ public class Completion extends Promise<Unit>
 	public void fulfill()
 	{
 		fulfill(Unit.getInstance());
-	}
-	
-	/**
-	 * Continues this operation with a asynchronously completed operation
-	 * @param asyncOperation An asynchronously completed operation
-	 * @return A completion for the second operation
-	 */
-	public Completion continueWith(Supplier<? extends Completion> asyncOperation)
-	{
-		if (isFulfilled())
-			return asyncOperation.get();
-		else
-			return Completion.ofAsynchronous(() -> 
-			{
-				waitFor();
-				asyncOperation.get().waitFor();
-			});
 	}
 	
 	/**
