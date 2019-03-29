@@ -40,12 +40,4 @@ public class IntRange extends Range<Integer> implements RichIterable<Integer>
 	{
 		return getLast() - getFirst() + 1;
 	}
-	
-	/**
-	 * @return A list containing all items in this range
-	 */
-	public ImmutableList<Integer> toList()
-	{
-		return view().force();
-	}
 }

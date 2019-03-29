@@ -244,6 +244,88 @@ public interface RichIterable<T> extends Iterable<T>
 	}
 	
 	/**
+	 * @return An immutable list based on the values of this iterable
+	 */
+	public default ImmutableList<T> toList()
+	{
+		return ImmutableList.build(buffer -> buffer.add(this));
+	}
+	
+	/**
+	 * @param mapper A mapper function that transforms the values
+	 * @return An immutable list based on transformed values of this iterable
+	 */
+	public default <B> ImmutableList<B> mapToList(Function<? super T, ? extends B> mapper)
+	{
+		return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
+	}
+	
+	/**
+	 * @param mapper A mapper function that transforms the values into zero or more items
+	 * @return An immutable list with all transformed results in sequential order
+	 */
+	public default <B> ImmutableList<B> flatMapToList(Function<? super T, ? extends Iterable<B>> mapper)
+	{
+		return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
+	}
+	
+	/**
+	 * Transforms this list into a map
+	 * @param f A function that maps items to key value pairs
+	 * @return A map based on this list's contents. If multiple items are mapped to the same key, only the last 
+	 * item is included
+	 */
+	public default <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super T, ? extends Pair<Key, Value>> f)
+	{
+		return ImmutableMap.of(mapToList(f));
+	}
+	
+	/**
+	 * Creates a new map of this list by pairing items with values. The items in this list become keys in the new map
+	 * @param pair A function that pairs items with values
+	 * @return A new map based on the pairs
+	 */
+	public default <Value> ImmutableMap<T, Value> pairValues(Function<? super T, ? extends Value> pair)
+	{
+		return toMap(v -> new Pair<>(v, pair.apply(v)));
+	}
+	
+	/**
+	 * Creates a map based on the contents of this list and mapping results. Multiple values may be grouped 
+	 * together under a single key
+	 * @param f a function that maps the items in this list to key value pairs
+	 * @return A map with values of mapped items
+	 */
+	public default <Key, Value> ImmutableMap<Key, ImmutableList<Value>> toListMap(Function<? super T, Pair<Key, Value>> f)
+	{
+		return ImmutableMap.<Key, ListBuilder<Value>>build(buffer -> 
+		{
+			forEach (item -> 
+			{
+				Pair<Key, Value> keyValue = f.apply(item);
+				Key category = keyValue.getFirst();
+				Value value = keyValue.getSecond();
+				
+				if (buffer.containsKey(category))
+					buffer.get(category).add(value);
+				else
+					buffer.put(category, ListBuilder.withValue(value));
+			});
+			
+		}).mapValues(b -> b.build());
+	}
+	
+	/**
+	 * Groups the contents of this list into subcategories based on mapping results
+	 * @param f A mapping function
+	 * @return The contents of this list grouped to categories based on the mapping function results
+	 */
+	public default <Key> ImmutableMap<Key, ImmutableList<T>> groupBy(Function<? super T, ? extends Key> f)
+	{
+		return toListMap(item -> new Pair<>(f.apply(item), item));
+	}
+	
+	/**
 	 * Performs a fold operation over this list, going from left to right
 	 * @param start The starting value
 	 * @param f A function that folds items into the result value
@@ -258,6 +340,39 @@ public interface RichIterable<T> extends Iterable<T>
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Performs a reduce over the list from left to right
+	 * @param f The reduce function
+	 * @return The reduce result
+	 * @throws NoSuchElementException If the list is empty
+	 */
+	public default T reduce(BiFunction<? super T, ? super T, ? extends T> f) throws NoSuchElementException
+	{
+		T result = null;
+		for (T item : this)
+		{
+			if (result == null)
+				result = item;
+			else
+				result = f.apply(result, item);
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Performs a reduce over the list from left to right
+	 * @param f The reduce function
+	 * @return The reduce result. None if the list was empty
+	 */
+	public default Option<T> reduceOption(BiFunction<? super T, ? super T, ? extends T> f)
+	{
+		if (isEmpty())
+			return Option.none();
+		else
+			return Option.some(reduce(f));
 	}
 	
 	/**

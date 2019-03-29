@@ -47,14 +47,6 @@ public class Duo<T> extends Pair<T, T> implements RichIterable<T>
 	// OTHER	-----------------------
 	
 	/**
-	 * @return This duo as a list with 2 items
-	 */
-	public ImmutableList<T> toList()
-	{
-		return ImmutableList.withValues(getFirst(), getSecond());
-	}
-	
-	/**
 	 * Maps this duo to a different type
 	 * @param f A mapping function
 	 * @return A double with mapped values

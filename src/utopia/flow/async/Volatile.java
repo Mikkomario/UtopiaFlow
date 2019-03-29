@@ -92,6 +92,18 @@ public class Volatile<T>
 	}
 	
 	/**
+	 * Retrieves the value in this volatile container, then updates this container
+	 * @param newValue The new value that will be set to this container
+	 * @return The previous value of this container
+	 */
+	public synchronized T getAndSet(T newValue)
+	{
+		T result = value;
+		value = newValue;
+		return result;
+	}
+	
+	/**
 	 * This method reads a value from the held value, then mutates the held value and finally returns the read value.
 	 * @param taker A function for taking / reading a value from the currently held value
 	 * @param modifier A function for updating the value afterwards

@@ -222,6 +222,12 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 		return BiIterable.super.contains(item);
 	}
 	
+	@Override
+	public ImmutableList<Pair<Key, Value>> toList()
+	{
+		return list.get();
+	}
+	
 	
 	// OTHER METHODS	-----------
 
@@ -238,14 +244,6 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 		HashMap<Key, Value> mutable = new HashMap<>(size() + extraCapacity);
 		mutable.putAll(this.map);
 		return mutable;
-	}
-	
-	/**
-	 * @return An immutable list representation of this map
-	 */
-	public ImmutableList<Pair<Key, Value>> toList()
-	{
-		return this.list.get();
 	}
 	
 	/**

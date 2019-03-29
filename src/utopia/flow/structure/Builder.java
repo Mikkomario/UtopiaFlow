@@ -66,6 +66,18 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer ex
 	}
 	
 	
+	// ACCESSORS	----------------
+	
+	/**
+	 * @return The underlying buffer instance. The buffer is for reading and should not be 
+	 * modified through this method call!
+	 */
+	protected Buffer getBuffer()
+	{
+		return buffer;
+	}
+	
+	
 	// OTHER	--------------------
 	
 	/**

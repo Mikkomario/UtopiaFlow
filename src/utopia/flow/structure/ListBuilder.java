@@ -29,6 +29,28 @@ public class ListBuilder<T> extends Builder<ImmutableList<T>, ArrayList<T>, T>
 		super(new ArrayList<>(initialCapacity));
 	}
 	
+	/**
+	 * @param item The initial item in the builder
+	 * @return A builder with first value set
+	 */
+	public static <T> ListBuilder<T> withValue(T item)
+	{
+		ListBuilder<T> builder = new ListBuilder<>();
+		builder.add(item);
+		return builder;
+	}
+	
+	/**
+	 * @param items The initial items in the builder
+	 * @return A builder with first values set
+	 */
+	public static <T> ListBuilder<T> withValues(Iterable<? extends T> items)
+	{
+		ListBuilder<T> builder = new ListBuilder<>();
+		builder.add(items);
+		return builder;
+	}
+	
 	
 	// IMPLEMENTED METHODS	--------
 

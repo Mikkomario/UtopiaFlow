@@ -485,17 +485,6 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 			return emptyHandler.get();
 	}
 	
-	/**
-	 * @return A list representation of this option
-	 */
-	public ImmutableList<T> toList()
-	{
-		if (isDefined())
-			return ImmutableList.withValue(this.value);
-		else
-			return ImmutableList.empty();
-	}
-	
 	
 	// NESTED CLASSES	----------------------
 	

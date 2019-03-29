@@ -3,11 +3,8 @@ package utopia.flow.structure;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -1041,7 +1038,8 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	 */
 	public <B> ImmutableList<B> map(Function<? super T, ? extends B> f)
 	{
-		return new ImmutableList<>(stream().map(f).collect(Collectors.toList()));
+		// return new ImmutableList<>(stream().map(f).collect(Collectors.toList()));
+		return mapToList(f);
 	}
 	
 	/**
@@ -1111,36 +1109,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
-	 * Performs a reduce over the list from left to right
-	 * @param f The reduce function
-	 * @return The reduce result
-	 * @throws NoSuchElementException If the list is empty
-	 */
-	public T reduce(BiFunction<? super T, ? super T, ? extends T> f) throws NoSuchElementException
-	{
-		T result = head();
-		for (T item : tail())
-		{
-			result = f.apply(result, item);
-		}
-		
-		return result;
-	}
-	
-	/**
-	 * Performs a reduce over the list from left to right
-	 * @param f The reduce function
-	 * @return The reduce result. None if the list was empty
-	 */
-	public Option<T> reduceOption(BiFunction<? super T, ? super T, ? extends T> f)
-	{
-		if (isEmpty())
-			return Option.none();
-		else
-			return Option.some(reduce(f));
-	}
-	
-	/**
 	 * Filters the list so that it contains only unique elements. When filtering out elements, 
 	 * the leftmost unique item is preserved. For example, when using distinct on [1, 2, 3, 4, 4, 3, 1], the 
 	 * resulting list is [1, 2, 3, 4]
@@ -1191,58 +1159,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	public ImmutableList<T> distinct()
 	{
 		return distinct(SAFE_EQUALS);
-	}
-	
-	/**
-	 * Groups the contents of this list into subcategories based on mapping results
-	 * @param f A mapping function
-	 * @return The contents of this list grouped to categories based on the mapping function results
-	 */
-	public <B> ImmutableMap<B, ImmutableList<T>> groupBy(Function<? super T, ? extends B> f)
-	{
-		Map<B, List<T>> buffer = new HashMap<>();
-		for (T item : this)
-		{
-			B category = f.apply(item);
-			if (!buffer.containsKey(category))
-				buffer.put(category, new ArrayList<>());
-			buffer.get(category).add(item);
-		}
-		
-		return ImmutableMap.of(buffer).mapValues(list -> new ImmutableList<>(list));
-	}
-	
-	/**
-	 * Transforms this list into a map
-	 * @param f A function that maps items to key value pairs
-	 * @return A map based on this list's contents. If multiple items are mapped to the same key, only the last 
-	 * item is included
-	 */
-	public <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super T, ? extends Pair<Key, Value>> f)
-	{
-		return ImmutableMap.of(map(f));
-	}
-	
-	/**
-	 * Creates a new map of this list by pairing items with values. The items in this list become keys in the new map
-	 * @param pair A function that pairs items with values
-	 * @return A new map based on the pairs
-	 */
-	public <Value> ImmutableMap<T, Value> pairValues(Function<? super T, ? extends Value> pair)
-	{
-		return toMap(v -> new Pair<>(v, pair.apply(v)));
-	}
-	
-	/**
-	 * Creates a map based on the contents of this list and mapping results. Multiple values may be grouped 
-	 * together under a single key
-	 * @param f a function that maps the items in this list to key value pairs
-	 * @return A map with values of mapped items
-	 */
-	public <Key, Value> ImmutableMap<Key, ImmutableList<Value>> toListMap(Function<? super T, Pair<Key, Value>> f)
-	{
-		return map(f).groupBy(keyValue -> keyValue.getFirst()).mapValues(keyValueList -> 
-				keyValueList.map(keyValue -> keyValue.getSecond()));
 	}
 	
 	/**

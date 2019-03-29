@@ -1,6 +1,8 @@
 package utopia.flow.structure;
 
 import java.util.HashMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * This class can be used for building an immutable map with buffered data. Map builders are not thread safe.
@@ -65,6 +67,57 @@ public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>,
 	public void put(Key key, Value value)
 	{
 		add(new Pair<>(key, value));
+	}
+	
+	/**
+	 * @param key A key
+	 * @return The current value for the specified key
+	 */
+	public Value get(Key key)
+	{
+		return getBuffer().get().get(key);
+	}
+	
+	/**
+	 * Adds a new value to this buffer, either inserting it with a new key or combining it with 
+	 * an existing mapping
+	 * @param key The target key
+	 * @param value The inserted value (raw)
+	 * @param toValue A function for converting the value into a new insertion 
+	 * (used when no such key exists yet)
+	 * @param combine A function for appending the value into an existing value 
+	 * (used when key already exists)
+	 */
+	public <B> void mapOrCombine(Key key, B value, Function<? super B, ? extends Value> toValue, 
+			BiFunction<? super Value, ? super B, ? extends Value> combine)
+	{
+		if (containsKey(key))
+			put(key, combine.apply(get(key), value));
+		else
+			put(key, toValue.apply(value));
+	}
+	
+	/**
+	 * Adds a new value to this buffer, either inserting it with a new key or combining it with 
+	 * an existing mapping
+	 * @param key The target key
+	 * @param value The inserted value
+	 * @param combine A function for appending the value into an existing value 
+	 * (used when key already exists)
+	 */
+	public void putOrCombine(Key key, Value value, 
+			BiFunction<? super Value, ? super Value, ? extends Value> combine)
+	{
+		mapOrCombine(key, value, Function.identity(), combine);
+	}
+	
+	/**
+	 * @param key A key
+	 * @return Whether this buffer already contains the specified key
+	 */
+	public boolean containsKey(Object key)
+	{
+		return getBuffer().get().containsKey(key);
 	}
 	
 	/**
