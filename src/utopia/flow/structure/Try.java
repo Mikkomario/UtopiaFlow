@@ -28,14 +28,16 @@ public class Try<T> implements StringRepresentable
 	
 	private Option<T> success;
 	private Option<Exception> exception;
+	private Option<String> message;
 	
 	
 	// CONSTRUCTOR	----------------------
 	
-	private Try(Option<T> success, Option<Exception> exception)
+	private Try(Option<T> success, Option<Exception> exception, Option<String> message)
 	{
 		this.success = success;
 		this.exception = exception;
+		this.message = message;
 	}
 	
 	/**
@@ -45,6 +47,8 @@ public class Try<T> implements StringRepresentable
 	 */
 	public Try(ThrowingSupplier<? extends T, ?> f)
 	{
+		this.message = Option.none();
+		
 		try
 		{
 			this.success = Option.some(f.throwingGet());
@@ -64,7 +68,29 @@ public class Try<T> implements StringRepresentable
 	 */
 	public static <T> Try<T> success(T success)
 	{
-		return new Try<>(Option.some(success), Option.none());
+		return new Try<>(Option.some(success), Option.none(), Option.none());
+	}
+	
+	/**
+	 * Creates a new failure result
+	 * @param e The exception wrapped in try
+	 * @param message The message sent with the exception
+	 * @return The wrapped exception
+	 */
+	public static <T> Try<T> failure(Exception e, Option<String> message)
+	{
+		return new Try<>(Option.none(), Option.some(e), message);
+	}
+	
+	/**
+	 * Creates a new failure result
+	 * @param e The exception wrapped in try
+	 * @param message The message sent with the exception
+	 * @return The wrapped exception
+	 */
+	public static <T> Try<T> failure(Exception e, String message)
+	{
+		return failure(e, Option.some(message));
 	}
 	
 	/**
@@ -74,7 +100,7 @@ public class Try<T> implements StringRepresentable
 	 */
 	public static <T> Try<T> failure(Exception e)
 	{
-		return new Try<>(Option.none(), Option.some(e));
+		return failure(e, Option.none());
 	}
 	
 	/**
@@ -119,7 +145,7 @@ public class Try<T> implements StringRepresentable
 	public static <T> Try<T> flatten(Try<? extends Try<T>> t)
 	{
 		if (t.isFailure())
-			return failure(t.getFailure());
+			return failure(t.getFailure(), t.message);
 		else
 			return t.getSuccess();
 	}
@@ -143,7 +169,7 @@ public class Try<T> implements StringRepresentable
 		if (isSuccess())
 			return "Success(" + getSuccess() + ")";
 		else
-			return "Failure(" + getFailure().getMessage() + ")";
+			return "Failure(" + getMessage() + ")";
 	}
 	
 	
@@ -154,7 +180,7 @@ public class Try<T> implements StringRepresentable
 	 */
 	public Option<T> success()
 	{
-		return this.success;
+		return success;
 	}
 	
 	/**
@@ -164,7 +190,7 @@ public class Try<T> implements StringRepresentable
 	public T getSuccess() throws TryFailedRuntimeException
 	{
 		throwRuntimeIfFailure();
-		return this.success.get();
+		return success.get();
 	}
 	
 	/**
@@ -172,7 +198,7 @@ public class Try<T> implements StringRepresentable
 	 */
 	public Option<Exception> failure()
 	{
-		return this.exception;
+		return exception;
 	}
 	
 	/**
@@ -181,11 +207,26 @@ public class Try<T> implements StringRepresentable
 	 */
 	public Exception getFailure() throws NullPointerException
 	{
-		return this.exception.get();
+		return exception.get();
 	}
 	
 	
 	// OTHER METHODS	-----------------
+	
+	/**
+	 * @return The error message sent with this try. If this try is a success, a 
+	 * placeholder message is provided.
+	 */
+	public String getMessage()
+	{
+		return message.getOrElse(() -> handleMap(s -> "Success (" + s + ")", e -> 
+		{
+			if (e.getMessage() == null)
+				return "No error message provided";
+			else
+				return e.getMessage();
+		}));
+	}
 	
 	/**
 	 * Unwraps the try, throwing the exception on failure
@@ -227,7 +268,7 @@ public class Try<T> implements StringRepresentable
 	 */
 	public boolean isSuccess()
 	{
-		return this.success.isDefined();
+		return success.isDefined();
 	}
 	
 	/**
@@ -245,7 +286,7 @@ public class Try<T> implements StringRepresentable
 	public void throwIfFailure() throws TryFailedException
 	{
 		if (isFailure())
-			throw new TryFailedException(getFailure());
+			throw new TryFailedException(getMessage(), getFailure());
 	}
 	
 	/**
@@ -255,7 +296,7 @@ public class Try<T> implements StringRepresentable
 	public void throwRuntimeIfFailure() throws TryFailedRuntimeException
 	{
 		if (isFailure())
-			throw new TryFailedRuntimeException(getFailure());
+			throw new TryFailedRuntimeException(getMessage(), getFailure());
 	}
 	
 	/**
@@ -318,7 +359,7 @@ public class Try<T> implements StringRepresentable
 	 */
 	public <B> Try<B> map(Function<? super T, B> f)
 	{
-		return new Try<>(success().map(f), failure());
+		return new Try<>(success().map(f), failure(), message);
 	}
 	
 	/**
@@ -341,7 +382,7 @@ public class Try<T> implements StringRepresentable
 		if (isSuccess())
 			return f.apply(getSuccess());
 		else
-			return Try.failure(getFailure());
+			return Try.failure(getFailure(), message);
 	}
 	
 	/**
@@ -442,6 +483,16 @@ public class Try<T> implements StringRepresentable
 		}
 		
 		/**
+		 * Wraps another exception
+		 * @param message The message sent with this exception
+		 * @param cause The causing exception
+		 */
+		public TryFailedException(String message, Exception cause)
+		{
+			super(message, cause);
+		}
+		
+		/**
 		 * Throws the original causing exception
 		 * @throws Throwable The original exception
 		 */
@@ -468,6 +519,16 @@ public class Try<T> implements StringRepresentable
 		public TryFailedRuntimeException(Exception cause)
 		{
 			super(cause.getMessage(), cause);
+		}
+		
+		/**
+		 * Wraps another exception
+		 * @param message The message sent with this exception
+		 * @param cause The causing exception
+		 */
+		public TryFailedRuntimeException(String message, Exception cause)
+		{
+			super(message, cause);
 		}
 		
 		/**

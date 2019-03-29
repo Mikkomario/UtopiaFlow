@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import utopia.flow.function.ThrowingRunnable;
 import utopia.flow.function.ThrowingSupplier;
 import utopia.flow.structure.Pair;
+import utopia.flow.structure.Try;
 import utopia.flow.util.Unit;
 
 /**
@@ -50,9 +51,19 @@ public class Queue
 	 * @param getResult A function for producing a result. May fail.
 	 * @return A promise of the resulting result. May contain a failure.
 	 */
-	public <T> Attempt<T> pushThrowing(ThrowingSupplier<T, ?> getResult)
+	public <T> Attempt<T> pushTry(Supplier<? extends Try<T>> getResult)
 	{
 		return pushAttempt(() -> Attempt.tryAsynchronous(getResult));
+	}
+	
+	/**
+	 * Pushes a new synchronous action to this queue. Action will be performed asynchronously.
+	 * @param getResult A function for producing a result. May fail.
+	 * @return A promise of the resulting result. May contain a failure.
+	 */
+	public <T> Attempt<T> pushThrowing(ThrowingSupplier<T, ?> getResult)
+	{
+		return pushTry(getResult);
 	}
 	
 	/**
