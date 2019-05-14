@@ -119,7 +119,7 @@ public class Queue
 		return push(performAction, Completion::new);
 	}
 	
-	private synchronized <T, P extends Promise<T>> P push(Supplier<? extends P> makeRequest, 
+	private <T, P extends Promise<T>> P push(Supplier<? extends P> makeRequest, 
 			Supplier<? extends P> makeEmpty)
 	{
 		return currentWidth.pop(w -> 
@@ -128,7 +128,8 @@ public class Queue
 			if (w < maxWidth)
 			{
 				P request = makeRequest.get();
-				request.onCompletion(this::release);
+				request.doAsync(u -> release());
+				// request.onCompletion(this::release);
 				
 				return new Pair<>(request, w + 1);
 			}
@@ -144,14 +145,14 @@ public class Queue
 		});
 	}
 	
-	private synchronized void release()
+	private void release()
 	{
 		// When released, tries taking the next operation in this queue
 		queue.pop().handle(next -> 
 		{
 			// If there was an operation in the queue, runs it and releases once completed
 			next.start();
-			next.toPromise().onCompletion(this::release);
+			next.toPromise().doAsync(u -> release());
 			
 			// Otherwise, since running stopped, makes space for new operations
 		}, () -> currentWidth.update(i -> i - 1));
