@@ -2,10 +2,12 @@ package utopia.flow.test;
 
 import java.time.Duration;
 
-import utopia.flow.async.ActionQueue;
 import utopia.flow.async.Completion;
+import utopia.flow.async.Promise;
+import utopia.flow.async.ActionQueue;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.IntRange;
+import utopia.flow.util.Unit;
 import utopia.flow.util.WaitUtils;
 
 /**
@@ -19,7 +21,7 @@ public class ActionQueueTest
 	public static void main(String[] args)
 	{
 		// Creates the queue
-		ActionQueue queue = new ActionQueue();
+		ActionQueue queue = new ActionQueue(1);
 		
 		// Creates actions
 		ImmutableList<Runnable> actions = IntRange.fromTo(1, 5).toList().map(i -> () -> 
@@ -30,7 +32,7 @@ public class ActionQueueTest
 		});
 		
 		// Pushes actions to queue
-		ImmutableList<Completion> completions = actions.map(queue::push);
+		ImmutableList<Promise<Unit>> completions = actions.map(queue::push);
 		
 		Completion.ofMany(completions).waitFor();
 		System.out.println("All actions completed. Exiting.");

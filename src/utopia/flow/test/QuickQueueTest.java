@@ -4,16 +4,18 @@ import java.time.Duration;
 import java.util.Random;
 
 import utopia.flow.async.Completion;
-import utopia.flow.async.Queue;
+import utopia.flow.async.Promise;
+import utopia.flow.async.ActionQueue;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ListBuilder;
 import utopia.flow.util.Test;
+import utopia.flow.util.Unit;
 import utopia.flow.util.WaitUtils;
 
 /**
  * Tests queues in a crowded, asynchronous environment
  * @author Mikko Hilpinen
- * @since 14.5.2019
+ * @since 16.5.2019
  */
 public class QuickQueueTest
 {
@@ -21,13 +23,13 @@ public class QuickQueueTest
 	@SuppressWarnings("javadoc")
 	public static void main(String[] args)
 	{
-		Queue queue = new Queue(5);
+		ActionQueue queue = new ActionQueue(5);
 		
 		Object genLock = new Object();
 		int generatedItems = 0;
 		int maxGenItems = 1000;
 		Random random = new Random();
-		ListBuilder<Completion> completionsBuffer = new ListBuilder<>(maxGenItems);
+		ListBuilder<Promise<Unit>> completionsBuffer = new ListBuilder<>(maxGenItems);
 		
 		while (generatedItems < maxGenItems)
 		{
@@ -36,7 +38,7 @@ public class QuickQueueTest
 			WaitUtils.wait(Duration.ofMillis(random.nextInt(10)), genLock);
 		}
 		
-		ImmutableList<Completion> completions = completionsBuffer.build();
+		ImmutableList<Promise<Unit>> completions = completionsBuffer.build();
 		Test.check(completions.size() == maxGenItems);
 		
 		System.out.println("All completions created");

@@ -1,66 +1,154 @@
 package utopia.flow.async;
 
+import java.util.function.Supplier;
+
+import utopia.flow.function.ThrowingSupplier;
+import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.Option;
-import utopia.flow.structure.Pair;
+import utopia.flow.structure.Try;
+import utopia.flow.util.Unit;
 
 /**
- * Action queues are used for performing multiple asynchronous operations back to back
+ * This queue takes in multiple operations and performs them in order asynchronously. This queue 
+ * may handle multiple operations at once, based on its width
  * @author Mikko Hilpinen
- * @since 28.3.2019
+ * @since 16.5.2019
  */
 public class ActionQueue
 {
-	// ATTRIBUTES	----------------
+	// ATTRIBUTES	---------------------
 	
-	private VolatileList<Pair<Runnable, Completion>> actions = new VolatileList<>();
-	private Volatile<Completion> currentRunCompleted = new Volatile<>(Completion.fulfilled());
+	private int maxWidth;
+	private VolatileList<Action<?>> queue = new VolatileList<>();
+	private VolatileList<Completion> handlerCompletions = new VolatileList<>();
 	
 	
-	// OTHER	--------------------
+	// CONSTRUCTOR	---------------------
 	
 	/**
-	 * Pushes a new action to this action queue. The action will be run asynchronously once the 
-	 * previous actions have finished
-	 * @param action The action to be run
-	 * @return A completion for that specific action (completes when action finishes)
+	 * Creates a new queue with maximum width
+	 * @param maxWidth A maximum width for this queue
 	 */
-	public Completion push(Runnable action)
+	public ActionQueue(int maxWidth)
 	{
-		// Adds the task to the queue
-		Completion taskCompletion = new Completion();
-		actions.add(new Pair<>(action, taskCompletion));
-		
-		// If the queue is not running, starts it
-		currentRunCompleted.update(status -> 
-		{
-			if (status.isEmpty())
-				return status;
-			else
-				return processData();
-		});
-		
-		return taskCompletion;
+		this.maxWidth = maxWidth;
 	}
 	
-	private Completion processData()
+	
+	// OTHER	-------------------------
+	
+	/**
+	 * Pushes a new operation to this queue
+	 * @param operation An operation that will be performed asynchronously
+	 * @return A promise for the operation result
+	 */
+	public <T> Promise<T> push(Supplier<? extends T> operation)
 	{
-		return Completion.ofAsynchronous(() -> 
+		// Pushes the item to the queue
+		Action<T> action = new Action<>(operation);
+		queue.add(action);
+		
+		// Starts additional handlers if possible
+		handlerCompletions.update(current -> 
 		{
-			// Iterates as long as actions remain
-			while (!actions.isEmpty())
-			{
-				Option<Pair<Runnable, Completion>> next = actions.pop();
-				
-				if (next.isEmpty())
-					break;
-				else
-				{
-					// Performs the action
-					next.get().getFirst().run();
-					// Completes the associated completion
-					next.get().getSecond().fulfill();
-				}
-			}
+			ImmutableList<Completion> incomplete = current.filter(c -> c.isEmpty());
+			if (incomplete.size() < maxWidth)
+				return incomplete.plus(Completion.ofAsynchronous(new Handler(queue::pop)));
+			else
+				return incomplete;
 		});
+		
+		return action.getPromise();
+	}
+	
+	/**
+	 * Pushes a new runnable to this queue
+	 * @param operation An operation that will be performed asynchronously
+	 * @return A completion for the operation
+	 */
+	public Promise<Unit> push(Runnable operation)
+	{
+		return push(() -> 
+		{
+			operation.run();
+			return Unit.getInstance();
+		}); 
+	}
+	
+	/**
+	 * Pushes a new operation to this queue
+	 * @param operation An operation that may throw
+	 * @return A promise for the operation result (wrapped in try)
+	 */
+	public <T> Promise<Try<T>> pushTry(ThrowingSupplier<T, ?> operation)
+	{
+		return push(operation);
+	}
+	
+	
+	// NESTED CLASSES	-----------------
+	
+	private static class Handler implements Runnable
+	{
+		// ATTRIBUTES	-----------------
+		
+		private Supplier<Option<Action<?>>> getNext;
+		
+		
+		// CONSTRUCTOR	-----------------
+		
+		public Handler(Supplier<Option<Action<?>>> getNext)
+		{
+			this.getNext = getNext;
+		}
+		
+		
+		// IMPLEMENTED	----------------
+		
+		@Override
+		public void run()
+		{
+			// Handles items as long as there are some available
+			Option<Action<?>> next = getNext.get();
+			
+			while (next.isDefined())
+			{
+				next.get().run();
+				next = getNext.get();
+			}
+		}
+	}
+	
+	private static class Action<T> implements Runnable
+	{
+		// ATTRIBUTES	-----------------
+		
+		private Promise<T> promise = new Promise<>();
+		private Supplier<? extends T> make;
+		
+		
+		// CONSTRUCTOR	----------------
+		
+		public Action(Supplier<? extends T> make)
+		{
+			this.make = make;
+		}
+		
+		
+		// ACCESSORS	----------------
+		
+		public Promise<T> getPromise()
+		{
+			return promise;
+		}
+		
+		
+		// IMPLEMENTED	----------------
+		
+		@Override
+		public void run()
+		{
+			promise.fulfill(make.get());
+		}
 	}
 }
