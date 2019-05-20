@@ -792,9 +792,9 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	 * @param element an element
 	 * @return The index of the element in this list or None if no such element exists
 	 */
-	public Option<Integer> indexOf(T element)
+	public Option<Integer> indexOf(Object element)
 	{
-		return Option.positiveInt(this.list.indexOf(element), true);
+		return Option.positiveInt(list.indexOf(element), true);
 	}
 	
 	/**
@@ -827,6 +827,33 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 		}
 		
 		return Option.none();
+	}
+	
+	/**
+	 * Finds the last index where the provided predicate holds true
+	 * @param find A function for testing an instance
+	 * @return The last index in this list where the instance was accepted by the predicate 
+	 * (None if no such index was found)
+	 */
+	public Option<Integer> lastIndexWhere(Predicate<? super T> find)
+	{
+		for (int i = size() - 1; i >= 0; i--)
+		{
+			if (find.test(get(i)))
+				return Option.some(i);
+		}
+		return Option.none();
+	}
+	
+	/**
+	 * Finds the last index for the specified object
+	 * @param element An object
+	 * @return The last index where there is an equal element in this list. None if element didn't 
+	 * exist in this list
+	 */
+	public Option<Integer> lastIndexOf(Object element)
+	{
+		return Option.positiveInt(list.lastIndexOf(element), true);
 	}
 	
 	/**
