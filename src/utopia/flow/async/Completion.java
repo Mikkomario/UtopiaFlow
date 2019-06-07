@@ -12,6 +12,14 @@ import utopia.flow.util.Unit;
  */
 public class Completion extends Promise<Unit>
 {
+	// ATTRIBUTES	---------------------
+	
+	/**
+	 * A fulfilled completion
+	 */
+	public static final Completion FULFILLED = fulfilled();
+	
+	
 	// CONSTRUCTOR	---------------------
 	
 	/**
