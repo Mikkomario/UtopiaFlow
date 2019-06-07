@@ -19,6 +19,7 @@ public class Generator<T> implements RichIterator<T>
 	private Lazy<? extends T> firstItem;
 	private Option<T> lastItem = Option.none();
 	private Function<? super T, ? extends Option<T>> increase;
+	private Option<T> polled = Option.none();
 	
 	
 	// CONSTRUCTOR	---------------------
@@ -49,6 +50,11 @@ public class Generator<T> implements RichIterator<T>
 	{
 		T newItem;
 		
+		if (polled.isDefined())
+		{
+			newItem = polled.get();
+			polled = Option.none();
+		}
 		// If no item has been stored yet, uses the first item
 		if (lastItem.isEmpty())
 			newItem = firstItem.get();
@@ -58,5 +64,13 @@ public class Generator<T> implements RichIterator<T>
 		
 		lastItem = Option.some(newItem);
 		return newItem;
+	}
+
+	@Override
+	public T poll()
+	{
+		T item = next();
+		polled = Option.some(item);
+		return item;
 	}
 }

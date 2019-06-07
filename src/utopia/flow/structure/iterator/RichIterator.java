@@ -7,7 +7,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import utopia.flow.structure.ImmutableList;
+import utopia.flow.structure.ListBuilder;
 import utopia.flow.structure.Option;
+import utopia.flow.structure.RichIterable;
 
 /**
  * This interface offers some additional methods for all iterators
@@ -17,6 +19,14 @@ import utopia.flow.structure.Option;
  */
 public interface RichIterator<T> extends Iterator<T>
 {
+	// ABSTRACT	---------------------------
+	
+	/**
+	 * @return Checks the next item from this iterator but won't advance.
+	 */
+	public T poll();
+	
+	
 	// OTHER METHODS	-------------------
 	
 	/**
@@ -26,6 +36,17 @@ public interface RichIterator<T> extends Iterator<T>
 	{
 		if (hasNext())
 			return Option.some(next());
+		else
+			return Option.none();
+	}
+	
+	/**
+	 * @return The next item from this iterator without advancing it. None if there are no more items.
+	 */
+	public default Option<T> pollOption()
+	{
+		if (hasNext())
+			return Option.some(poll());
 		else
 			return Option.none();
 	}
@@ -60,7 +81,7 @@ public interface RichIterator<T> extends Iterator<T>
 	 * @param transform A transform function
 	 * @return A flat mapped version of this iterator
 	 */
-	public default <B> FlatIterator<B> flatMap(Function<? super T, ? extends Iterable<B>> transform)
+	public default <B> FlatIterator<B> flatMap(Function<? super T, ? extends RichIterable<B>> transform)
 	{
 		return new FlatIterator<>(map(transform));
 	}
@@ -71,16 +92,14 @@ public interface RichIterator<T> extends Iterator<T>
 	 */
 	public default ImmutableList<T> takeWhile(Predicate<? super T> f)
 	{
-		List<T> buffer = new ArrayList<>();
+		ListBuilder<T> buffer = new ListBuilder<>();
 		
-		Option<T> next = nextOption();
-		while (next.exists(f))
+		while (pollOption().exists(f))
 		{
-			next.forEach(buffer::add);
-			next = nextOption();
+			nextOption().forEach(buffer::add);
 		}
 		
-		return ImmutableList.of(buffer);
+		return buffer.build();
 	}
 	
 	/**
@@ -106,6 +125,7 @@ public interface RichIterator<T> extends Iterator<T>
 	{
 		// ATTRIBUTES	---------------------
 		
+		private Option<T> polled = Option.none();
 		private Iterator<? extends T> value;
 		
 		
@@ -122,13 +142,28 @@ public interface RichIterator<T> extends Iterator<T>
 		@Override
 		public boolean hasNext()
 		{
-			return this.value.hasNext();
+			return polled.isDefined() || value.hasNext();
 		}
 
 		@Override
 		public T next()
 		{
-			return this.value.next();
+			if (polled.isDefined())
+			{
+				T next = polled.get();
+				polled = Option.none();
+				return next;
+			}
+			else
+				return value.next();
+		}
+
+		@Override
+		public T poll()
+		{
+			T next = next();
+			polled = Option.some(next);
+			return next;
 		}
 	}
 }

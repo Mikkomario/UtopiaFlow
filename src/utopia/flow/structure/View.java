@@ -25,7 +25,7 @@ public class View<T> implements RichIterable<T>
 {
 	// ATTIRUBTES	--------------------
 	
-	private Supplier<? extends Iterator<T>> newIterator;
+	private Supplier<? extends RichIterator<T>> newIterator;
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -34,7 +34,7 @@ public class View<T> implements RichIterable<T>
 	 * Creates a new view
 	 * @param newIterator A supplier that provides new iterators
 	 */
-	public View(Supplier<? extends Iterator<T>> newIterator)
+	public View(Supplier<? extends RichIterator<T>> newIterator)
 	{
 		this.newIterator = newIterator;
 	}
@@ -44,7 +44,7 @@ public class View<T> implements RichIterable<T>
 	 * @param iterable An iterable element that contains iterable elements
 	 * @return A flattened view of the target element
 	 */
-	public static <T> View<T> flatten(Iterable<? extends Iterable<? extends T>> iterable)
+	public static <T> View<T> flatten(Iterable<? extends RichIterable<? extends T>> iterable)
 	{
 		return new View<>(() -> new FlatIterator<>(iterable.iterator()));
 	}
@@ -57,8 +57,8 @@ public class View<T> implements RichIterable<T>
 	 * @return A view of the flattened collection
 	 */
 	@SafeVarargs
-	public static <T> View<T> flatten(Iterable<? extends T> first, Iterable<? extends T> second, 
-			Iterable<? extends T>... more)
+	public static <T> View<T> flatten(RichIterable<? extends T> first, RichIterable<? extends T> second, 
+			RichIterable<? extends T>... more)
 	{
 		return flatten(ImmutableList.withValues(first, second, more));
 	}
@@ -68,7 +68,7 @@ public class View<T> implements RichIterable<T>
 	 * @param iterable An iterable element
 	 * @return A view for the element
 	 */
-	public static <T> View<T> of(Iterable<T> iterable)
+	public static <T> View<T> of(RichIterable<T> iterable)
 	{
 		return new View<T>(iterable::iterator);
 	}
@@ -177,7 +177,7 @@ public class View<T> implements RichIterable<T>
 	 * @param f A mapping function
 	 * @return A view that performs mapping on-demand
 	 */
-	public <B> View<B> flatMap(Function<? super T, ? extends Iterable<? extends B>> f)
+	public <B> View<B> flatMap(Function<? super T, ? extends RichIterable<? extends B>> f)
 	{
 		return new View<>(() -> new FlatIterator<>(new MapIterator<>(iterator(), f)));
 	}
@@ -199,8 +199,8 @@ public class View<T> implements RichIterable<T>
 	 * @param evenMoreItems More item sets
 	 * @return A view that spans all of the item sets
 	 */
-	public View<T> plus(Iterable<? extends T> items, Iterable<? extends T> moreItems, 
-			@SuppressWarnings("unchecked") Iterable<? extends T>... evenMoreItems)
+	public View<T> plus(RichIterable<? extends T> items, RichIterable<? extends T> moreItems, 
+			@SuppressWarnings("unchecked") RichIterable<? extends T>... evenMoreItems)
 	{
 		return flatten(ImmutableList.withValues(this, items, moreItems).plus(evenMoreItems));
 	}
@@ -210,7 +210,7 @@ public class View<T> implements RichIterable<T>
 	 * @param items The first set of items to be added
 	 * @return A view that spans all of the item sets
 	 */
-	public View<T> plus(Iterable<? extends T> items)
+	public View<T> plus(RichIterable<? extends T> items)
 	{
 		return flatten(this, items);
 	}
@@ -221,7 +221,8 @@ public class View<T> implements RichIterable<T>
 	 * @param merge A function that merges two values
 	 * @return A view of the merge of these two iterable items
 	 */
-	public <B, Merge> View<Merge> mergedWith(Iterable<? extends B> other, BiFunction<? super T, ? super B, ? extends Merge> merge)
+	public <B, Merge> View<Merge> mergedWith(RichIterable<? extends B> other, 
+			BiFunction<? super T, ? super B, ? extends Merge> merge)
 	{
 		return new View<>(() -> new MergeIterator<>(iterator(), other.iterator(), merge));
 	}
@@ -231,7 +232,7 @@ public class View<T> implements RichIterable<T>
 	 * @param other Another iterable item
 	 * @return A view of pairs formed from these two iterable items
 	 */
-	public <B> View<Pair<T, B>> mergedWith(Iterable<? extends B> other)
+	public <B> View<Pair<T, B>> mergedWith(RichIterable<? extends B> other)
 	{
 		return mergedWith(other, Pair::new);
 	}
@@ -279,6 +280,12 @@ public class View<T> implements RichIterable<T>
 		{
 			throw new NoSuchElementException("Trying to read value from an empty iterator");
 		}
+
+		@Override
+		public T poll()
+		{
+			return null;
+		}
 	}
 	
 	private static class SingleItemIterator<T> implements RichIterator<T>
@@ -310,6 +317,12 @@ public class View<T> implements RichIterable<T>
 			T next = this.item;
 			this.item = null;
 			return next;
+		}
+
+		@Override
+		public T poll()
+		{
+			return item;
 		}
 	}
 	
@@ -343,6 +356,12 @@ public class View<T> implements RichIterable<T>
 			T next = array[nextIndex];
 			nextIndex ++;
 			return next;
+		}
+
+		@Override
+		public T poll()
+		{
+			return array[nextIndex];
 		}
 	}
 }

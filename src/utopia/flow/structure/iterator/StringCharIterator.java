@@ -36,8 +36,14 @@ public class StringCharIterator implements RichIterator<Character>
 	@Override
 	public Character next()
 	{
-		Character c = this.target.charAt(this.nextIndex);
+		Character c = poll();
 		this.nextIndex ++;
 		return c;
+	}
+
+	@Override
+	public Character poll()
+	{
+		return this.target.charAt(this.nextIndex);
 	}
 }

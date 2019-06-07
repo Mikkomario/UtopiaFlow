@@ -82,6 +82,12 @@ public class Weak<T> implements RichIterable<T>, Wrapper<Option<T>>
 		public T next()
 		{
 			consumed = true;
+			return poll();
+		}
+
+		@Override
+		public T poll()
+		{
 			return next.get().get();
 		}
 	}

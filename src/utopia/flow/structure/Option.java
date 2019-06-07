@@ -500,13 +500,19 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 		@Override
 		public boolean hasNext()
 		{
-			return !this.consumed && isDefined();
+			return !consumed && isDefined();
 		}
 
 		@Override
 		public T next()
 		{
-			this.consumed = true;
+			consumed = true;
+			return get();
+		}
+
+		@Override
+		public T poll()
+		{
 			return get();
 		}	
 	}

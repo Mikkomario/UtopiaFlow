@@ -201,15 +201,21 @@ public class Range<T extends Comparable<? super T>> implements RichComparable<Ra
 		@Override
 		public boolean hasNext()
 		{
-			return this.nextItem.compareTo(getLast()) <= 0;
+			return nextItem.compareTo(getLast()) <= 0;
 		}
 
 		@Override
 		public T next()
 		{
-			T next = this.nextItem;
-			this.nextItem = this.increment.apply(next);
+			T next = nextItem;
+			nextItem = increment.apply(next);
 			return next;
+		}
+
+		@Override
+		public T poll()
+		{
+			return nextItem;
 		}
 	}
 }

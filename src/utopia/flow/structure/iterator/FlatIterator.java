@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import utopia.flow.structure.Option;
+import utopia.flow.structure.RichIterable;
 
 /**
  * These iterators are used for iterating through a flattened collection
@@ -15,8 +16,8 @@ public class FlatIterator<T> implements RichIterator<T>
 {
 	// ATTRIBUTES	--------------------
 	
-	private Iterator<? extends Iterable<? extends T>> iterator;
-	private Option<Iterator<? extends T>> currentItem = Option.none();
+	private Iterator<? extends RichIterable<? extends T>> iterator;
+	private Option<RichIterator<? extends T>> currentItem = Option.none();
 	
 	
 	// CONSTRUCTOR	--------------------
@@ -25,7 +26,7 @@ public class FlatIterator<T> implements RichIterator<T>
 	 * Wraps another iterator into a flat iterator
 	 * @param iterator an iterator for iterable elements
 	 */
-	public FlatIterator(Iterator<? extends Iterable<? extends T>> iterator)
+	public FlatIterator(Iterator<? extends RichIterable<? extends T>> iterator)
 	{
 		this.iterator = iterator;
 	}
@@ -46,7 +47,16 @@ public class FlatIterator<T> implements RichIterator<T>
 	public T next()
 	{
 		if (hasNextDirect() || findNextIterator())
-			return this.currentItem.get().next();
+			return currentItem.get().next();
+		else
+			throw new NoSuchElementException();
+	}
+	
+	@Override
+	public T poll()
+	{
+		if (hasNextDirect() || findNextIterator())
+			return currentItem.get().poll();
 		else
 			throw new NoSuchElementException();
 	}
@@ -63,7 +73,7 @@ public class FlatIterator<T> implements RichIterator<T>
 	{
 		while (this.iterator.hasNext())
 		{
-			Iterator<? extends T> iter = this.iterator.next().iterator();
+			RichIterator<? extends T> iter = this.iterator.next().iterator();
 			if (iter.hasNext())
 			{
 				this.currentItem = Option.some(iter);

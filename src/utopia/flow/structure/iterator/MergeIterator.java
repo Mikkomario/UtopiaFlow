@@ -1,6 +1,5 @@
 package utopia.flow.structure.iterator;
 
-import java.util.Iterator;
 import java.util.function.BiFunction;
 
 import utopia.flow.structure.Duo;
@@ -19,8 +18,8 @@ public class MergeIterator<A, B, Result> implements RichIterator<Result>
 	// ATTRIBUTES	--------------------
 	
 	private BiFunction<? super A, ? super B, ? extends Result> merge;
-	private Iterator<? extends A> firstIter;
-	private Iterator<? extends B> secondIter;
+	private RichIterator<? extends A> firstIter;
+	private RichIterator<? extends B> secondIter;
 	
 	
 	// CONSTRUCTOR	--------------------
@@ -31,7 +30,7 @@ public class MergeIterator<A, B, Result> implements RichIterator<Result>
 	 * @param second The second source iterator
 	 * @param merge A function for merging two items
 	 */
-	public MergeIterator(Iterator<? extends A> first, Iterator<? extends B> second, 
+	public MergeIterator(RichIterator<? extends A> first, RichIterator<? extends B> second, 
 			BiFunction<? super A, ? super B, ? extends Result> merge)
 	{
 		this.merge = merge;
@@ -45,7 +44,8 @@ public class MergeIterator<A, B, Result> implements RichIterator<Result>
 	 * @param second The second source iterator
 	 * @return A new merge iterator
 	 */
-	public static <A, B> MergeIterator<A, B, Pair<A, B>> pair(Iterator<? extends A> first, Iterator<? extends B> second)
+	public static <A, B> MergeIterator<A, B, Pair<A, B>> pair(RichIterator<? extends A> first, 
+			RichIterator<? extends B> second)
 	{
 		return new MergeIterator<>(first, second, Pair::new);
 	}
@@ -56,7 +56,8 @@ public class MergeIterator<A, B, Result> implements RichIterator<Result>
 	 * @param second The second source iterator
 	 * @return A new merge iterator
 	 */
-	public static <T> MergeIterator<T, T, Duo<T>> duo(Iterator<? extends T> first, Iterator<? extends T> second)
+	public static <T> MergeIterator<T, T, Duo<T>> duo(RichIterator<? extends T> first, 
+			RichIterator<? extends T> second)
 	{
 		return new MergeIterator<>(first, second, Duo::new);
 	}
@@ -74,5 +75,11 @@ public class MergeIterator<A, B, Result> implements RichIterator<Result>
 	public Result next()
 	{
 		return merge.apply(firstIter.next(), secondIter.next());
+	}
+
+	@Override
+	public Result poll()
+	{
+		return merge.apply(firstIter.poll(), secondIter.poll());
 	}
 }

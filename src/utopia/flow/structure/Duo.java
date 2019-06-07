@@ -66,15 +66,21 @@ public class Duo<T> extends Pair<T, T> implements RichIterable<T>
 		@Override
 		public boolean hasNext()
 		{
-			return this.nextIndex < 2;
+			return nextIndex < 2;
 		}
 
 		@Override
 		public T next()
 		{
-			T item = this.nextIndex == 0 ? getFirst() : getSecond();
-			this.nextIndex ++;
+			T item = poll();
+			nextIndex ++;
 			return item;
+		}
+
+		@Override
+		public T poll()
+		{
+			return nextIndex == 0 ? getFirst() : getSecond();
 		}
 	}
 }

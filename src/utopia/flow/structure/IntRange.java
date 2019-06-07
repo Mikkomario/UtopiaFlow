@@ -21,6 +21,16 @@ public class IntRange extends Range<Integer> implements RichIterable<Integer>
 		super(first, last);
 	}
 	
+	/**
+	 * Creates a range with length of 1
+	 * @param number A number
+	 * @return A range that only contains the provided number
+	 */
+	public static IntRange wrap(int number)
+	{
+		return new IntRange(number, number);
+	}
+	
 	
 	// IMPLEMENTED	-------------------
 

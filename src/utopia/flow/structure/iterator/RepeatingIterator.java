@@ -1,6 +1,5 @@
 package utopia.flow.structure.iterator;
 
-import java.util.Iterator;
 import java.util.function.Supplier;
 
 /**
@@ -13,8 +12,8 @@ public class RepeatingIterator<T> implements RichIterator<T>
 {
 	// ATTRIBUTES	------------------
 	
-	private Supplier<? extends Iterator<T>> makeIterator;
-	private Iterator<T> currentIterator;
+	private Supplier<? extends RichIterator<T>> makeIterator;
+	private RichIterator<T> currentIterator;
 	
 	
 	// CONSTRUCTOR	------------------
@@ -23,7 +22,7 @@ public class RepeatingIterator<T> implements RichIterator<T>
 	 * Creates a new repeating iterator
 	 * @param makeIterator A function for producing new iterators
 	 */
-	public RepeatingIterator(Supplier<? extends Iterator<T>> makeIterator)
+	public RepeatingIterator(Supplier<? extends RichIterator<T>> makeIterator)
 	{
 		this.makeIterator = makeIterator;
 		this.currentIterator = makeIterator.get();
@@ -49,5 +48,11 @@ public class RepeatingIterator<T> implements RichIterator<T>
 			currentIterator = makeIterator.get();
 		
 		return next;
+	}
+
+	@Override
+	public T poll()
+	{
+		return currentIterator.poll();
 	}
 }

@@ -1,6 +1,5 @@
 package utopia.flow.structure.iterator;
 
-import java.util.Iterator;
 import java.util.function.Function;
 
 /**
@@ -14,7 +13,7 @@ public class MapIterator<From, To> implements RichIterator<To>
 {
 	// ATTRIBUTES	------------------
 	
-	private Iterator<? extends From> iterator;
+	private RichIterator<? extends From> iterator;
 	private Function<? super From, ? extends To> map;
 	
 	
@@ -25,7 +24,7 @@ public class MapIterator<From, To> implements RichIterator<To>
 	 * @param i The source iterator
 	 * @param map The mapping function
 	 */
-	public MapIterator(Iterator<? extends From> i, Function<? super From, ? extends To> map)
+	public MapIterator(RichIterator<? extends From> i, Function<? super From, ? extends To> map)
 	{
 		this.iterator = i;
 		this.map = map;
@@ -44,5 +43,11 @@ public class MapIterator<From, To> implements RichIterator<To>
 	public To next()
 	{
 		return this.map.apply(this.iterator.next());
+	}
+
+	@Override
+	public To poll()
+	{
+		return map.apply(iterator.poll());
 	}
 }

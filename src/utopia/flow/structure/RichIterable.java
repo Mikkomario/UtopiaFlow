@@ -114,6 +114,34 @@ public interface RichIterable<T> extends Iterable<T>
 	}
 	
 	/**
+	 * Splits this collection in half at a specified index
+	 * @param index the split index
+	 * @return First the items before the split, then the rest of the items (including specified index)
+	 */
+	public default Duo<ImmutableList<T>> splitAt(int index)
+	{
+		RichIterator<T> iterator = iterator();
+		ImmutableList<T> firstPart = iterator.take(index);
+		ImmutableList<T> rest = ImmutableList.readWith(iterator);
+		
+		return new Duo<>(firstPart, rest);
+	}
+	
+	/**
+	 * Splits this collection in half at the first item accepted by the predicate
+	 * @param find A predicate for finding split index
+	 * @return First the items before the split, then the rest of the items (including search result)
+	 */
+	public default Duo<ImmutableList<T>> splitAt(Predicate<? super T> find)
+	{
+		RichIterator<T> iterator = iterator();
+		ImmutableList<T> firstPart = iterator.takeWhile(item -> !find.test(item));
+		ImmutableList<T> rest = ImmutableList.readWith(iterator);
+		
+		return new Duo<>(firstPart, rest);
+	}
+	
+	/**
 	 * Creates a view where the first n elements are skipped
 	 * @param n The amount of elements to skip
 	 * @return A view of the latter portion of this iterable

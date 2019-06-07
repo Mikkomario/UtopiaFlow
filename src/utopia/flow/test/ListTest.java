@@ -1,5 +1,6 @@
 package utopia.flow.test;
 
+import utopia.flow.structure.Duo;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
 import utopia.flow.util.Test;
@@ -73,6 +74,13 @@ class ListTest
 		
 		Test.checkEquals(dividedWords.get(true).size(), 5);
 		Test.checkEquals(dividedWords.get(false).size(), 3);
+		
+		Duo<ImmutableList<String>> split1 = words3.splitAt(w -> !w.startsWith("a"));
+		
+		Test.checkEquals(split1.getFirst().size(), 2);
+		Test.checkEquals(split1.getSecond().size(), 2);
+		Test.checkEquals(split1.getSecond().head(), "y");
+		Test.checkEquals(split1, words3.splitAt(2));
 		
 		System.out.println("Success!");
 	}

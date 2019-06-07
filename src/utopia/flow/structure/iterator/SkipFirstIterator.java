@@ -1,6 +1,5 @@
 package utopia.flow.structure.iterator;
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
@@ -13,7 +12,7 @@ public class SkipFirstIterator<T> implements RichIterator<T>
 {
 	// ATTRIBUTES	--------------------
 	
-	private Iterator<? extends T> iter;
+	private RichIterator<? extends T> iter;
 	private int skipsLeft;
 	
 	
@@ -23,7 +22,7 @@ public class SkipFirstIterator<T> implements RichIterator<T>
 	 * @param iter The underlying iterator
 	 * @param skipAmount The amount of items skipped
 	 */
-	public SkipFirstIterator(Iterator<? extends T> iter, int skipAmount)
+	public SkipFirstIterator(RichIterator<? extends T> iter, int skipAmount)
 	{
 		this.skipsLeft = skipAmount;
 		this.iter = iter;
@@ -43,6 +42,15 @@ public class SkipFirstIterator<T> implements RichIterator<T>
 	{
 		if (doSkip())
 			return iter.next();
+		else
+			throw new NoSuchElementException();
+	}
+	
+	@Override
+	public T poll()
+	{
+		if (doSkip())
+			return iter.poll();
 		else
 			throw new NoSuchElementException();
 	}

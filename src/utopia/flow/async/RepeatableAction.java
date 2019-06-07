@@ -34,7 +34,7 @@ public class RepeatableAction
 	 * Runs the action, if one hasn't been queued yet
 	 * @return The completion of the next action run
 	 */
-	public Completion runAsync()
+	public synchronized Completion runAsync()
 	{
 		// If an action is already waiting to be started, doesn't start a new one
 		if (lastActionCompletion.isFulfilled())
