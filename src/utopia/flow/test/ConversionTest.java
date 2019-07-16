@@ -8,7 +8,9 @@ import utopia.flow.generics.DataType;
 import utopia.flow.generics.DataTypeException;
 import utopia.flow.generics.DataTypes;
 import utopia.flow.generics.Value;
+import utopia.flow.structure.Option;
 import utopia.flow.util.ExtraBoolean;
+import utopia.flow.util.Test;
 
 /**
  * This class tests the generic value conversion
@@ -71,6 +73,10 @@ class ConversionTest
 		convert(i, BasicDataType.LONG);
 		convert(l, BasicDataType.INTEGER);
 		convert(f, BasicDataType.NUMBER);
+		
+		// Value.of(recording.getId()).toLongOption()
+		convert(Value.of("5610"), BasicDataType.LONG);
+		Test.checkEquals(Value.of("5610").toLongOption(), Option.some(5610l));
 		
 		/*
 		System.out.println("\nVariable Conversions");
