@@ -70,7 +70,7 @@ public class DailyTasksLoop extends Loop
 		
 		// Adds the task to tasks list, resets the wait
 		tasks.update(l -> l.plus(new ScheduledTask(operation, finalTime)).sorted());
-		WaitUtils.notify(this);
+		WaitUtils.notify(getWaitLock());
 	}
 
 	
