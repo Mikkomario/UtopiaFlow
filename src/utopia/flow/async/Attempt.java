@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import utopia.flow.structure.Option;
 import utopia.flow.structure.Try;
+import utopia.flow.util.WaitUtils;
 
 /**
  * An attempt is a promise that can fail
@@ -25,20 +26,47 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public static <T> Attempt<T> tryAsynchronous(Supplier<? extends Try<T>> f)
 	{
-		// TODO: WET WET
 		Attempt<T> attempt = new Attempt<>();
 		
 		// Generates the promise contents in a separate thread
-		Runnable r = new Runnable()
+		Runnable r = () -> 
 		{
-			@Override
-			public void run()
+			// Generates the result
+			Try<T> result = f.get();
+			// Fulfills the promise
+			attempt.fulfill(result);
+		};
+		
+		getThreadPool().execute(r);
+		return attempt;
+	}
+	
+	/**
+	 * Makes an asynchronous attempt that may be repeated multiple times on failure
+	 * @param f A function that is performed to get the results. May be called multiple times.
+	 * @param maxAttempts The maximum amount of attempts in total (>= 1)
+	 * @param delayBetweenAttempts Delay between each retry
+	 * @return A new attempt that may try multiple times to get the desired result
+	 */
+	public static <T> Attempt<T> tryAsynchronous(Supplier<? extends Try<T>> f, int maxAttempts, 
+			Duration delayBetweenAttempts)
+	{
+		Attempt<T> attempt = new Attempt<>();
+		
+		Runnable r = () -> 
+		{
+			int failedAttempts = 0;
+			Try<T> result = f.get();
+			
+			// Tries the operation multiple times on failure
+			while (result.isFailure() && failedAttempts < maxAttempts - 1)
 			{
-				// Generates the result
-				Try<T> result = f.get();
-				// Fulfills the promise
-				attempt.fulfill(result);
+				failedAttempts += 1;
+				WaitUtils.wait(delayBetweenAttempts, new Object());
+				result = f.get();
 			}
+			
+			attempt.fulfill(result);
 		};
 		
 		getThreadPool().execute(r);

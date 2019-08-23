@@ -58,16 +58,12 @@ public class Promise<T> implements StringRepresentable
 		Promise<T> promise = new Promise<>();
 		
 		// Generates the promise contents in a separate thread
-		Runnable r = new Runnable()
+		Runnable r = () -> 
 		{
-			@Override
-			public void run()
-			{
-				// Generates the result
-				T result = getResults.get();
-				// Fulfills the promise
-				promise.fulfill(result);
-			}
+			// Generates the result
+			T result = getResults.get();
+			// Fulfills the promise
+			promise.fulfill(result);
 		};
 		
 		pool.execute(r);
