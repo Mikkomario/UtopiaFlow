@@ -199,6 +199,63 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	}
 	
 	/**
+	 * Checks whether this string contains the specified string
+	 * @param another Searched string
+	 * @param caseSensitive Whether search should be case-sensitive (default = true)
+	 * @return Whether this string contains the specified string
+	 */
+	public boolean contains(String another, boolean caseSensitive)
+	{
+		if (caseSensitive)
+			return s.contains(another);
+		else
+			return s.toLowerCase().contains(another.toLowerCase());
+	}
+	
+	/**
+	 * Checks whether this string contains the specified string (case-sensitive)
+	 * @param another Searched string
+	 * @return Whether this string contains the specified string
+	 */
+	public boolean contains(String another)
+	{
+		return contains(another, true);
+	}
+	
+	/**
+	 * Checks whether this string contains all of the specified strings
+	 * @param strings Searched strings
+	 * @param caseSensitive Whether search should be case-sensitive (default = true)
+	 * @return Whether this string containsl all of the specified strings
+	 */
+	public boolean containsAll(RichIterable<? extends String> strings, boolean caseSensitive)
+	{
+		return strings.forAll(s -> contains(s, caseSensitive));
+	}
+	
+	/**
+	 * Checks whether this string contains all of the specified strings (case-sensitive)
+	 * @param strings Searched strings
+	 * @return Whether this string containsl all of the specified strings
+	 */
+	public boolean containsAll(RichIterable<? extends String> strings)
+	{
+		return containsAll(strings, true);
+	}
+	
+	/**
+	 * Checks whether this string contains all of the specified strings (case-sensitive)
+	 * @param first First string to search
+	 * @param second Second string to search
+	 * @param more More strings to search
+	 * @return Whether this string containsl all of the specified strings
+	 */
+	public boolean containsAll(String first, String second, String... more)
+	{
+		return containsAll(ImmutableList.withValues(first, second, more));
+	}
+	
+	/**
 	 * @return Upper case version of this string
 	 */
 	public RichString toUpperCase()
@@ -257,6 +314,14 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	public ImmutableList<RichString> lines()
 	{
 		return split("\\\n");
+	}
+	
+	/**
+	 * @return The words in this string, including special characters.
+	 */
+	public ImmutableList<RichString> words()
+	{
+		return split(" ").map(s -> s.trimmed()).filter(s -> !s.isEmpty());
 	}
 	
 	/**
@@ -414,11 +479,22 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	
 	/**
 	 * @param str The target string to be found
-	 * @return The first index of the string in this string
+	 * @return The first index of the string in this string. None if this string doens't contain such 
+	 * a string.
 	 */
 	public Option<Integer> indexOf(String str)
 	{
 		return Option.positiveInt(s.indexOf(str), true);
+	}
+	
+	/**
+	 * @param str The target string to be found
+	 * @return The last index of the string in this string. None if this string doens't contain such 
+	 * a string.
+	 */
+	public Option<Integer> lastIndexOf(String str)
+	{
+		return Option.positiveInt(s.lastIndexOf(str), true);
 	}
 	
 	/**
@@ -444,6 +520,26 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	/**
 	 * @param str The target string to be found
 	 * @param inclusive Whether the string itself should be included
+	 * @return The part of this string after the last occurrence of the provided string
+	 */
+	public RichString afterLast(String str, boolean inclusive)
+	{
+		int indexMod = inclusive ? 0 : str.length();
+		return lastIndexOf(str).map(i -> dropFirst(i + indexMod)).getOrElse(EMPTY);
+	}
+	
+	/**
+	 * @param str The target string to be found
+	 * @return The part of this string after the provided string (exclusive)
+	 */
+	public RichString afterLast(String str)
+	{
+		return afterLast(str, false);
+	}
+	
+	/**
+	 * @param str The target string to be found
+	 * @param inclusive Whether the string itself should be included
 	 * @return The part of this string before the provided string
 	 */
 	public RichString untilFirst(String str, boolean inclusive)
@@ -454,11 +550,47 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	
 	/**
 	 * @param str The target string to be found
+	 * @param inclusive Whether the string itself should be included
+	 * @return The part of this string before the last occurrence of the provided string
+	 */
+	public RichString untilLast(String str, boolean inclusive)
+	{
+		int indexMod = inclusive ? str.length() : 0;
+		return lastIndexOf(str).map(i -> firstChars(i + indexMod)).getOrElse(this);
+	}
+	
+	/**
+	 * @param str The target string to be found
 	 * @return The part of this string before the provided string
 	 */
 	public RichString untilFirst(String str)
 	{
 		return untilFirst(str, false);
+	}
+	
+	/**
+	 * @param str The target string to be found
+	 * @return The part of this string before the last occurrence of the provided string
+	 */
+	public RichString untilLast(String str)
+	{
+		return untilLast(str, false);
+	}
+	
+	/**
+	 * @return The first word in this string
+	 */
+	public RichString firstWord()
+	{
+		return untilFirst(" ");
+	}
+	
+	/**
+	 * @return The last word in this string
+	 */
+	public RichString lastWord()
+	{
+		return afterLast(" ");
 	}
 	
 	/**
