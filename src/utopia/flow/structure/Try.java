@@ -8,6 +8,7 @@ import utopia.flow.function.ThrowingConsumer;
 import utopia.flow.function.ThrowingFunction;
 import utopia.flow.function.ThrowingRunnable;
 import utopia.flow.function.ThrowingSupplier;
+import utopia.flow.util.AutoCloseWrapper;
 import utopia.flow.util.StringRepresentable;
 import utopia.flow.util.Unit;
 
@@ -135,6 +136,74 @@ public class Try<T> implements StringRepresentable
 	public static <T> Try<T> runAndFlatten(ThrowingSupplier<? extends Try<T>, ?> f)
 	{
 		return flatten(f.get());
+	}
+	
+	/**
+	 * Creates a try-with
+	 * @param makeInput A function for making temporary autocloseable input object
+	 * @param makeOutput A function for consuming input object and producing output object. Shouldn't 
+	 * close input.
+	 * @return Second function result or an error if any process failed.
+	 */
+	public static <I extends AutoCloseable, O> Try<O> with(ThrowingSupplier<? extends I, ?> makeInput, 
+			ThrowingFunction<? super I, O, ?> makeOutput)
+	{
+		try (I input = makeInput.throwingGet())
+		{
+			return makeOutput.apply(input);
+		}
+		catch (Exception e)
+		{
+			return failure(e);
+		}
+	}
+	
+	/**
+	 * Creates a try-with
+	 * @param makeInput A function for making temporary autocloseable input object
+	 * @param useInput A function for consuming input object. Shouldn't close input.
+	 * @return Unit or an error if any process failed.
+	 */
+	public static <I extends AutoCloseable> Try<Unit> with(ThrowingSupplier<? extends I, ?> makeInput, 
+			ThrowingConsumer<? super I, ?> useInput)
+	{
+		return with(makeInput, input -> 
+		{
+			useInput.accept(input);
+			return Unit.getInstance();
+		});
+	}
+	
+	/**
+	 * Creates a try-with
+	 * @param makeInput A function for making temporary non-autocloseable input object
+	 * @param closeInput A function for closing the input object once operation has been completed
+	 * @param makeOutput A function for consuming input object and producing output object. Shouldn't 
+	 * close input.
+	 * @return Second function result or an error if any process failed.
+	 */
+	public static <I, O> Try<O> with(ThrowingSupplier<? extends I, ?> makeInput, 
+			ThrowingConsumer<? super I, ?> closeInput, 
+			ThrowingFunction<? super I, ? extends O, ?> makeOutput)
+	{
+		return Try.<AutoCloseWrapper<I>, O>with(
+				() -> AutoCloseWrapper.wrap(makeInput.throwingGet(), closeInput), 
+				inputWrap -> makeOutput.throwingApply(inputWrap.get()));
+	}
+	
+	/**
+	 * Creates a try-with
+	 * @param makeInput A function for making temporary non-autocloseable input object
+	 * @param closeInput A function for closing the input object once operation has been completed
+	 * @param useInput A function for consuming input object. Shouldn't close input.
+	 * @return Unit or an error if any process failed.
+	 */
+	public static <I> Try<Unit> with(ThrowingSupplier<? extends I, ?> makeInput, 
+			ThrowingConsumer<? super I, ?> closeInput, ThrowingConsumer<? super I, ?> useInput)
+	{
+		return Try.<AutoCloseWrapper<I>>with(
+				() -> AutoCloseWrapper.wrap(makeInput.throwingGet(), closeInput), 
+				inputWrap -> useInput.accept(inputWrap.get()));
 	}
 	
 	/**

@@ -47,7 +47,7 @@ public class AutoCloseWrapper<T> implements AutoCloseable, Wrapper<T>
 	@Override
 	public void close() throws Exception
 	{
-		this.close.accept(this.item);
+		close.accept(item);
 	}
 	
 	
@@ -56,6 +56,6 @@ public class AutoCloseWrapper<T> implements AutoCloseable, Wrapper<T>
 	@Override
 	public T get()
 	{
-		return this.item;
+		return item;
 	}
 }
