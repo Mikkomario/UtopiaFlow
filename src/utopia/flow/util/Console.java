@@ -35,7 +35,7 @@ public class Console
 			while (true)
 			{
 				RichString input;
-				input = RichString.of(br.readLine().toLowerCase());
+				input = RichString.of(br.readLine());
 				if (!continueCheck.test(input))
 					break;
 				else

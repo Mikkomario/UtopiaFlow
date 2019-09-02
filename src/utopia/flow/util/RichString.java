@@ -256,6 +256,50 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	}
 	
 	/**
+	 * @param str Searched string
+	 * @param caseSensitive Whether search should be case-sensitive (default = true)
+	 * @return Whether this string starts with the specified string
+	 */
+	public boolean startsWith(String str, boolean caseSensitive)
+	{
+		if (caseSensitive)
+			return s.startsWith(str);
+		else
+			return s.toLowerCase().startsWith(str.toLowerCase());
+	}
+	
+	/**
+	 * @param str Searched string
+	 * @return Whether this string starts with the specified string
+	 */
+	public boolean startsWith(String str)
+	{
+		return startsWith(str, true);
+	}
+	
+	/**
+	 * @param str Searched string
+	 * @param caseSensitive Whether search should be case-sensitive (default = true)
+	 * @return Whether this string ends with the specified string
+	 */
+	public boolean endsWith(String str, boolean caseSensitive)
+	{
+		if (caseSensitive)
+			return s.endsWith(str);
+		else
+			return s.toLowerCase().endsWith(str.toLowerCase());
+	}
+	
+	/**
+	 * @param str Searched string
+	 * @return Whether this string ends with the specified string
+	 */
+	public boolean endsWith(String str)
+	{
+		return endsWith(str, true);
+	}
+	
+	/**
 	 * @return Upper case version of this string
 	 */
 	public RichString toUpperCase()

@@ -857,6 +857,23 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
+	 * Finds the last item that fulfills the provided predicate (starts the check from the end of 
+	 * this list)
+	 * @param find A function for finding the desired item
+	 * @return The searched item if one was found
+	 */
+	public Option<T> lastWhere(Predicate<? super T> find)
+	{
+		for (int i = size() - 1; i >= 0; i--)
+		{
+			T element = get(i);
+			if (find.test(element))
+				return Option.some(element);
+		}
+		return Option.none();
+	}
+	
+	/**
 	 * Creates a sorted copy of this list
 	 * @param c a comparator that sorts the list
 	 * @return A sorted copy of this list
