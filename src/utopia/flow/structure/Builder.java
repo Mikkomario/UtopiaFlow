@@ -1,5 +1,7 @@
 package utopia.flow.structure;
 
+import java.util.Iterator;
+
 import utopia.flow.structure.iterator.RichIterator;
 
 /**
@@ -10,7 +12,7 @@ import utopia.flow.structure.iterator.RichIterator;
  * @param <Item> The type of items added to the buffer
  * @since 3.8.2018
  */
-public abstract class Builder<Result extends Iterable<? extends Item>, Buffer extends Iterable<? extends Item>, Item> 
+public abstract class Builder<Result extends Iterable<? extends Item>, Buffer, Item> 
 		implements RichIterable<Item>
 {
 	// ATTRIBUTES	----------------
@@ -53,6 +55,13 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer ex
 	 */
 	protected abstract void append(Buffer buffer, Item newItem);
 	
+	/**
+	 * Retrieves iterator from target buffer
+	 * @param buffer Buffer used by this builder
+	 * @return Provides an iterator for the buffer
+	 */
+	protected abstract RichIterator<Item> iteratorFrom(Buffer buffer);
+	
 	
 	// IMPLEMENTED	----------------
 	
@@ -62,7 +71,7 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer ex
 		if (currentResult.isDefined())
 			return RichIterator.wrap(currentResult.get().iterator());
 		else
-			return RichIterator.wrap(buffer.iterator());
+			return iteratorFrom(buffer);
 	}
 	
 	
@@ -125,6 +134,16 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer ex
 			@SuppressWarnings("unchecked") Item... more)
 	{
 		add(ImmutableList.withValues(first, second, more));
+	}
+	
+	/**
+	 * Reads all remaining items from an iterator and adds them to this builder
+	 * @param iterator The iterator items are read from
+	 */
+	public void read(Iterator<? extends Item> iterator)
+	{
+		revalidate();
+		iterator.forEachRemaining(i -> append(buffer, i));
 	}
 	
 	private void revalidate()

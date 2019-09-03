@@ -2,6 +2,8 @@ package utopia.flow.structure;
 
 import java.util.ArrayList;
 
+import utopia.flow.structure.iterator.RichIterator;
+
 /**
  * This class can be used for building immutable lists in a mutable fashion. List buffers are not thread safe.
  * @author Mikko Hilpinen
@@ -70,5 +72,11 @@ public class ListBuilder<T> extends Builder<ImmutableList<T>, ArrayList<T>, T>
 	protected void append(ArrayList<T> buffer, T newItem)
 	{
 		buffer.add(newItem);
+	}
+
+	@Override
+	protected RichIterator<T> iteratorFrom(ArrayList<T> buffer)
+	{
+		return RichIterator.wrap(buffer.iterator());
 	}
 }

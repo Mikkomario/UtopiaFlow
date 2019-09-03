@@ -8,11 +8,13 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import utopia.flow.function.FunctionUtils;
 import utopia.flow.function.ThrowingConsumer;
+import utopia.flow.function.ThrowingFunction;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.SkipFirstIterator;
 
@@ -64,11 +66,19 @@ public interface RichIterable<T> extends Iterable<T>
 	// OTHER METHODS	--------------------
 	
 	/**
+	 * @return Whether this iterable contains any items
+	 */
+	public default boolean nonEmpty()
+	{
+		return iterator().hasNext();
+	}
+	
+	/**
 	 * @return Whether this iterable is empty (contains no items)
 	 */
 	public default boolean isEmpty()
 	{
-		return !iterator().hasNext();
+		return !nonEmpty();
 	}
 	
 	/**
@@ -96,49 +106,81 @@ public interface RichIterable<T> extends Iterable<T>
 	/**
 	 * The first n items in this iterable
 	 * @param n The number of items included (at maximum)
+	 * @param makeBuilder A function for producing builder for the final collection
 	 * @return Up to the first n items from this iterable
 	 */
-	public default ImmutableList<T> first(int n)
+	public default <R> R first(int n, Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
 	{
-		return iterator().take(n);
+		return iterator().take(n, makeBuilder);
 	}
 	
 	/**
 	 * Takes elements as long as they satisfy a predicate
 	 * @param f A function used for testing the items
+	 * @param makeBuilder A function for producing builder for the final collection
 	 * @return The first n items that satisfy the provided predicate
 	 */
-	public default ImmutableList<T> takeWhile(Predicate<? super T> f)
+	public default <R> R takeWhile(Predicate<? super T> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
 	{
-		return iterator().takeWhile(f);
+		return iterator().takeWhile(f, makeBuilder);
+	}
+	
+	/**
+	 * Drops items as long as the specified predicate is fulfilled and returns the rest of this collection
+	 * @param f A predicate for dropping items from the beginning of this list
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return A collection without the first n items that satisfy the predicate
+	 */
+	public default <R> R dropWhile(Predicate<? super T> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super T> builder = makeBuilder.get();
+		RichIterator<T> iter = iterator();
+		
+		// Skips items while predicate holds
+		while (iter.pollOption().exists(f))
+		{
+			iter.next();
+		}
+		
+		// Reads remaining items
+		builder.read(iter);
+		return builder.build();
 	}
 	
 	/**
 	 * Splits this collection in half at a specified index
 	 * @param index the split index
+	 * @param makeBuilder A function for producing builders for the final collections
 	 * @return First the items before the split, then the rest of the items (including specified index)
 	 */
-	public default Duo<ImmutableList<T>> splitAt(int index)
+	public default <R> Duo<R> splitAt(int index, 
+			Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
 	{
 		RichIterator<T> iterator = iterator();
-		ImmutableList<T> firstPart = iterator.take(index);
-		ImmutableList<T> rest = ImmutableList.readWith(iterator);
+		R firstPart = iterator.take(index, makeBuilder);
+		Builder<? extends R, ?, ? super T> secondPartBuilder = makeBuilder.get();
+		secondPartBuilder.read(iterator);
 		
-		return new Duo<>(firstPart, rest);
+		return new Duo<>(firstPart, secondPartBuilder.build());
 	}
 	
 	/**
 	 * Splits this collection in half at the first item accepted by the predicate
 	 * @param find A predicate for finding split index
+	 * @param makeBuilder A function for producing builders for final collections
 	 * @return First the items before the split, then the rest of the items (including search result)
 	 */
-	public default Duo<ImmutableList<T>> splitAt(Predicate<? super T> find)
+	public default <R> Duo<R> splitAt(Predicate<? super T> find, 
+			Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
 	{
 		RichIterator<T> iterator = iterator();
-		ImmutableList<T> firstPart = iterator.takeWhile(item -> !find.test(item));
-		ImmutableList<T> rest = ImmutableList.readWith(iterator);
+		R firstPart = iterator.takeWhile(item -> !find.test(item), makeBuilder);
+		Builder<? extends R, ?, ? super T> remainingBuilder = makeBuilder.get();
+		remainingBuilder.read(iterator);
 		
-		return new Duo<>(firstPart, rest);
+		return new Duo<>(firstPart, remainingBuilder.build());
 	}
 	
 	/**
@@ -177,11 +219,22 @@ public interface RichIterable<T> extends Iterable<T>
 	/**
 	 * Checks whether this collection contains the provided item
 	 * @param item An item
+	 * @param equals A function for checking equality
+	 * @return whether the item is contained within this collection
+	 */
+	public default <B> boolean contains(B item, BiPredicate<? super T, ? super B> equals)
+	{
+		return exists(o -> equals.test(o, item));
+	}
+	
+	/**
+	 * Checks whether this collection contains the provided item
+	 * @param item An item
 	 * @return whether the item is contained within this collection
 	 */
 	public default boolean contains(Object item)
 	{
-		return exists(o -> SAFE_EQUALS.test(o, item));
+		return contains(item, SAFE_EQUALS);
 	}
 	
 	/**
@@ -229,13 +282,15 @@ public interface RichIterable<T> extends Iterable<T>
 	/**
 	 * Divides this list into two categories
 	 * @param f The filter function that is used for splitting this list
+	 * @param makeBuilder Function for producing builders for final collections
 	 * @return The filter results. One list for accepted values and one list for not accepted values
 	 */
-	public default ImmutableMap<Boolean, ImmutableList<T>> divideBy(Predicate<? super T> f)
+	public default <R> ImmutableMap<Boolean, R> divideBy(Predicate<? super T> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
 	{
 		// Goes through this iterable, and groups the values
-		ListBuilder<T> trues = new ListBuilder<>();
-		ListBuilder<T> falses = new ListBuilder<>();
+		Builder<? extends R, ?, ? super T> trues = makeBuilder.get();
+		Builder<? extends R, ?, ? super T> falses = makeBuilder.get();
 		
 		forEach(item -> 
 		{
@@ -250,6 +305,135 @@ public interface RichIterable<T> extends Iterable<T>
 			result.put(true, trues.build());
 			result.put(false, falses.build());
 		});
+	}
+	
+	/**
+	 * Maps the items in this collection and adds them to a new collection
+	 * @param f A mapping function
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return Collection with mapped items
+	 */
+	public default <B, R> R map(Function<? super T, ? extends B> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		forEach(a -> builder.add(f.apply(a)));
+		return builder.build();
+	}
+	
+	/**
+	 * Maps the items in this collection and adds them to a new collection
+	 * @param f A mapping function that may return multiple items
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return Collection with mapped items
+	 */
+	public default <B, R> R flatMap(Function<? super T, ? extends Iterable<? extends B>> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		forEach(a -> builder.add(f.apply(a)));
+		return builder.build();
+	}
+	
+	/**
+	 * Maps the items in this collection and adds them to a new collection. Throws on failure.
+	 * @param f A mapping function
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return Collection with mapped items
+	 * @throws E If mapping failed at any point
+	 */
+	public default <B, R, E extends Exception> R mapThrowing(ThrowingFunction<? super T, 
+			? extends B, ? extends E> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder) throws E
+	{
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		forEachThrowing(a -> builder.add(f.throwingApply(a)));
+		return builder.build();
+	}
+	
+	/**
+	 * Maps the items in this collection and adds them to a new collection. Throws on failure.
+	 * @param f A mapping function that may return multiple items
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return Collection with mapped items
+	 * @throws E If mapping failed at any point
+	 */
+	public default <B, R, E extends Exception> R flatMapThrowing(ThrowingFunction<? super T, 
+			? extends Iterable<? extends B>, ? extends E> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder) throws E
+	{
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		forEachThrowing(a -> builder.add(f.throwingApply(a)));
+		return builder.build();
+	}
+	
+	/**
+	 * Maps the items in this collection and adds them to a new collection. Returns a failure 
+	 * if any mapping failed.
+	 * @param f A function for mapping items. Returns success or failure.
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return Collection with mapped items or a failure
+	 * @throws E 
+	 */
+	public default <B, R, E extends Exception> Try<R> tryMap(Function<? super T, 
+			? extends Try<? extends B>> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder) throws E
+	{
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		for (T item : this)
+		{
+			Try<? extends B> mapResult = f.apply(item);
+			if (mapResult.isSuccess())
+				builder.add(mapResult.getSuccess());
+			else
+				return Try.failure(mapResult.getFailure());
+		}
+		return Try.success(builder.build());
+	}
+	
+	/**
+	 * Maps the items in this collection and adds them to a new collection. Returns a failure 
+	 * if any mapping failed.
+	 * @param f A function for mapping items. Returns success or failure.
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return Collection with mapped items or a failure
+	 * @throws E 
+	 */
+	public default <B, R, E extends Exception> Try<R> tryFlatMap(Function<? super T, 
+			? extends Try<? extends Iterable<? extends B>>> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder) throws E
+	{
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		for (T item : this)
+		{
+			Try<? extends Iterable<? extends B>> mapResult = f.apply(item);
+			if (mapResult.isSuccess())
+				builder.add(mapResult.getSuccess());
+			else
+				return Try.failure(mapResult.getFailure());
+		}
+		return Try.success(builder.build());
+	}
+	
+	/**
+	 * Maps only certain items
+	 * @param where A function for determining mapped items
+	 * @param f A mapping function
+	 * @param makeBuilder A function for producing final collection builder
+	 * @return A mapped collection
+	 */
+	public default <R> R mapWhere(Predicate<? super T> where, Function<? super T, ? extends T> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super T> builder = makeBuilder.get();
+		forEach(a -> 
+		{
+			if (where.test(a))
+				builder.add(f.apply(a));
+			else
+				builder.add(a);
+		});
+		return builder.build();
 	}
 	
 	/**
@@ -285,7 +469,8 @@ public interface RichIterable<T> extends Iterable<T>
 	 */
 	public default <B> ImmutableList<B> mapToList(Function<? super T, ? extends B> mapper)
 	{
-		return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
+		return map(mapper, ListBuilder::new);
+		// return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
 	}
 	
 	/**
@@ -294,7 +479,46 @@ public interface RichIterable<T> extends Iterable<T>
 	 */
 	public default <B> ImmutableList<B> flatMapToList(Function<? super T, ? extends Iterable<B>> mapper)
 	{
-		return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
+		return flatMap(mapper, ListBuilder::new);
+		// return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
+	}
+	
+	/**
+	 * Merges this collection with another using a merge function. If the collections have different 
+	 * sizes, only the beginning of one of the larger collection will be used
+	 * @param other Another collection
+	 * @param merge The merge function (left takes elements from this list, right takes elements from the other list and 
+	 * the results are stored in the merged list)
+	 * @param makeBuilder A function for producing builder for the final collection
+	 * @return The merged collection
+	 */
+	public default <B, C, R> R mergedWith(Iterable<? extends B> other, 
+			BiFunction<? super T, ? super B, ? extends C> merge, 
+			Supplier<? extends Builder<? extends R, ?, ? super C>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super C> buffer = makeBuilder.get();
+		RichIterator<T> myIter = iterator();
+		Iterator<? extends B> otherIter = other.iterator();
+		
+		while (myIter.hasNext() && otherIter.hasNext())
+		{
+			buffer.add(merge.apply(myIter.next(), otherIter.next()));
+		}
+		
+		return buffer.build();
+	}
+	
+	/**
+	 * Merges this collection with another. If the collections have different 
+	 * sizes, only the beginning of one of the larger collection will be used
+	 * @param other Another collection
+	 * @param makeBuilder A function for producing builder for the final collection
+	 * @return The merged collection which contains paired items
+	 */
+	public default <B, R> R zip(Iterable<? extends B> other, 
+			Supplier<? extends Builder<? extends R, ?, ? super Pair<T, B>>> makeBuilder)
+	{
+		return mergedWith(other, (a, b) -> new Pair<>(a, b), makeBuilder);
 	}
 	
 	/**
@@ -305,7 +529,8 @@ public interface RichIterable<T> extends Iterable<T>
 	 */
 	public default <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super T, ? extends Pair<Key, Value>> f)
 	{
-		return ImmutableMap.of(mapToList(f));
+		return map(f, MapBuilder::new);
+		// return ImmutableMap.of(mapToList(f));
 	}
 	
 	/**

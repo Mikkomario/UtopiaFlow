@@ -12,18 +12,19 @@ import utopia.flow.structure.Try;
  * @param <T> The type of the first input parameter
  * @param <U> The type of the second input parameter
  * @param <R> The type of a successful output
+ * @param <E> Type of exception thrown
  */
 @FunctionalInterface
-public interface ThrowingBiFunction<T, U, R> extends BiFunction<T, U, Try<R>>
+public interface ThrowingBiFunction<T, U, R, E extends Exception> extends BiFunction<T, U, Try<R>>
 {
 	/**
 	 * Processes a parameter. May fail.
 	 * @param p1 the first input parameter
 	 * @param p2 The second input parameter
 	 * @return The return value for the parameter
-	 * @throws Exception Throws an exception on failure
+	 * @throws E Throws an exception on failure
 	 */
-	public R throwingApply(T p1, U p2) throws Exception;
+	public R throwingApply(T p1, U p2) throws E;
 	
 	@Override
 	public default Try<R> apply(T p1, U p2)

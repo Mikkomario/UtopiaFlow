@@ -3,6 +3,7 @@ package utopia.flow.test;
 import utopia.flow.structure.Duo;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
+import utopia.flow.structure.ListBuilder;
 import utopia.flow.util.Test;
 
 class ListTest
@@ -81,6 +82,10 @@ class ListTest
 		Test.checkEquals(split1.getSecond().size(), 2);
 		Test.checkEquals(split1.getSecond().head(), "y");
 		Test.checkEquals(split1, words3.splitAt(2));
+		
+		// Tests new map style
+		ImmutableList<Integer> mapResult = words3.map(w -> w.length(), ListBuilder::new);
+		Test.checkEquals(mapResult, ImmutableList.withValues(3, 3, 1, 8));
 		
 		System.out.println("Success!");
 	}

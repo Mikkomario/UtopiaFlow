@@ -2,8 +2,6 @@ package utopia.flow.structure;
 
 import java.lang.ref.WeakReference;
 
-import utopia.flow.structure.iterator.FlatIterator;
-import utopia.flow.structure.iterator.MapIterator;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.util.StringRepresentable;
 
@@ -14,7 +12,7 @@ import utopia.flow.util.StringRepresentable;
  * @param <T> The type of item referenced by this list
  * @since 28.6.2018
  */
-public class WeakList<T> implements RichIterable<T>, StringRepresentable
+public class WeakList<T> implements RichIterable<T>, StringRepresentable, Appendable<T, WeakList<T>, WeakListBuilder<T>>
 {
 	// ATTRIBUTES	--------------------
 	
@@ -23,7 +21,11 @@ public class WeakList<T> implements RichIterable<T>, StringRepresentable
 	
 	// CONSTRUCTOR	--------------------
 	
-	private WeakList(ImmutableList<WeakReference<T>> references)
+	/**
+	 * Creates a new weak list with existing references
+	 * @param references References used by this list
+	 */
+	protected WeakList(ImmutableList<WeakReference<T>> references)
 	{
 		this.references = references;
 	}
@@ -73,9 +75,21 @@ public class WeakList<T> implements RichIterable<T>, StringRepresentable
 	// IMPLEMENTED	-------------------
 
 	@Override
+	public WeakListBuilder<T> newBuilder()
+	{
+		return new WeakListBuilder<>();
+	}
+
+	@Override
+	public WeakList<T> self()
+	{
+		return this;
+	}
+	
+	@Override
 	public RichIterator<T> iterator()
 	{
-		return new FlatIterator<>(new MapIterator<>(this.references.iterator(), ref -> new Option<>(ref.get())));
+		return references.iterator().flatMap(ref -> new Option<>(ref.get()));
 	}
 	
 	@Override
@@ -93,31 +107,5 @@ public class WeakList<T> implements RichIterable<T>, StringRepresentable
 	public ImmutableList<T> toStrongList()
 	{
 		return view().force();
-	}
-	
-	/**
-	 * Creates a new list with a reference to an additional item
-	 * @param item The item to be added
-	 * @return A list with an additional reference
-	 */
-	public WeakList<T> plus(T item)
-	{
-		return new WeakList<>(clearMissingReferences().plus(new WeakReference<>(item)));
-	}
-	
-	/**
-	 * Creates a new list with additional references
-	 * @param items The items to be referenced
-	 * @return A list with additional references
-	 */
-	public WeakList<T> plus(Iterable<? extends T> items)
-	{
-		return WeakList.of(toStrongList().plus(items));
-	}
-	
-	private ImmutableList<WeakReference<T>> clearMissingReferences()
-	{
-		this.references = this.references.filter(ref -> ref.get() != null);
-		return this.references;
 	}
 }

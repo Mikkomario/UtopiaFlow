@@ -12,9 +12,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import utopia.flow.function.ThrowingFunction;
 import utopia.flow.function.ThrowingPredicate;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.StringCharIterator;
@@ -26,7 +26,8 @@ import utopia.flow.util.StringRepresentable;
  * @param <T> The type of element stored within this list
  * @since 2.11.2017
  */
-public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
+public class ImmutableList<T> implements RichIterable<T>, StringRepresentable, 
+	Appendable<T, ImmutableList<T>, ListBuilder<T>>
 {
 	// ATTRIBUTES	-------------------
 	
@@ -274,6 +275,18 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	// IMPLEMENTED METHODS	-----------
 	
 	@Override
+	public ImmutableList<T> self()
+	{
+		return this;
+	}
+	
+	@Override
+	public ListBuilder<T> newBuilder()
+	{
+		return new ListBuilder<>();
+	}
+	
+	@Override
 	public int hashCode()
 	{
 		return this.list.hashCode();
@@ -344,13 +357,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	public ArrayList<T> toMutableList()
 	{
 		return new ArrayList<>(this.list);
-	}
-	
-	private ArrayList<T> toMutableList(int extraCapacity)
-	{
-		ArrayList<T> mutable = new ArrayList<>(size() + extraCapacity);
-		mutable.addAll(this.list);
-		return mutable;
 	}
 	
 	/**
@@ -484,178 +490,23 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
-	 * Creates a new list with the element appended
-	 * @param element an element
-	 * @return a list with the element appended
-	 */
-	public ImmutableList<T> plus(T element)
-	{
-		ArrayList<T> mutable = toMutableList(1);
-		mutable.add(element);
-		return new ImmutableList<>(mutable);
-	}
-	
-	/**
-	 * Creates a new list with the element appended
-	 * @param element An element or none
-	 * @return a list with the element appended. This list if there was no element to append.
-	 */
-	public ImmutableList<T> plus(Option<? extends T> element)
-	{
-		if (element.isDefined())
-			return plus(element.get());
-		else
-			return this;
-	}
-	
-	/**
 	 * Creates a new list with the specified element added to a certain index
 	 * @param element The element that is added
 	 * @param index The index the element is added to
 	 * @return A list with the element added
 	 */
-	public ImmutableList<T> plus(T element, int index)
+	public ImmutableList<T> with(T element, int index)
 	{
 		if (index <= 0)
 			return prepend(element);
 		else if (index >= size() - 1)
-			return plus(element);
+			return with(element);
 		else
 		{
 			List<T> mutable = toMutableList();
 			mutable.add(index, element);
 			return new ImmutableList<>(mutable);
 		}
-	}
-	
-	/**
-	 * Creates a new list with the elements appended
-	 * @param elements multiple elements
-	 * @return a list with the elements appended
-	 */
-	public ImmutableList<T> plus(Iterable<? extends T> elements)
-	{	
-		ArrayList<T> mutable = toMutableList();
-		elements.forEach(mutable::add);
-		
-		if (mutable.size() == size())
-			return this;
-		else
-			return new ImmutableList<>(mutable);
-	}
-	
-	/**
-	 * Creates a new list with the elements appended
-	 * @param elements multiple elements
-	 * @return a list with the elements appended
-	 */
-	public ImmutableList<T> plus(ImmutableList<? extends T> elements)
-	{
-		if (elements.isEmpty())
-			return this;
-		else
-		{
-			ArrayList<T> mutable = toMutableList(elements.size());
-			mutable.addAll(elements.list);
-			return new ImmutableList<>(mutable);
-		}		
-	}
-	
-	/**
-	 * Creates a new list with the elements appended
-	 * @param elements an array of elements
-	 * @return a list with the elements appended
-	 */
-	public ImmutableList<T> plus(T[] elements)
-	{
-		return plus(ImmutableList.of(elements));
-	}
-	
-	/**
-	 * Adds multiple elements to this list but keeps it distinct. Doesn't add already existing elements.
-	 * @param elements The new elements
-	 * @param equals method for checking equality
-	 * @return A combined list
-	 */
-	public ImmutableList<T> plusDistinct(RichIterable<? extends T> elements, BiPredicate<? super T, ? super T> equals)
-	{
-		return plus(elements.stream().filter(newElem -> !exists(oldElem -> equals.test(oldElem, newElem))).collect(Collectors.toList()));
-	}
-	
-	/**
-	 * Adds multiple elements to this list but keeps it distinct. Doesn't add already existing elements.
-	 * @param elements The new elements
-	 * @return A combined list
-	 */
-	public ImmutableList<T> plusDistinct(RichIterable<? extends T> elements)
-	{
-		return plusDistinct(elements, SAFE_EQUALS);
-	}
-	
-	/**
-	 * Adds an element to this list but keeps it distinct. Doesn't add already existing elements.
-	 * @param element The new element
-	 * @param equals method for checking equality
-	 * @return A resulting list
-	 */
-	public ImmutableList<T> plusDistinct(T element, BiPredicate<? super T, ? super T> equals)
-	{
-		if (exists(oldElem -> equals.test(oldElem, element)))
-			return this;
-		else
-			return plus(element);
-	}
-	
-	/**
-	 * Adds an element to this list but keeps it distinct. Doesn't add already existing elements.
-	 * @param element The new element
-	 * @return A resulting list
-	 */
-	public ImmutableList<T> plusDistinct(T element)
-	{
-		return plusDistinct(element, SAFE_EQUALS);
-	}
-	
-	/**
-	 * Adds multiple elements to this list but keeps it distinct. Overwrites old elements with new versions.
-	 * @param elements The new elements
-	 * @param equals method for checking equality
-	 * @return A combined list
-	 */
-	public ImmutableList<T> overwrite(RichIterable<? extends T> elements, BiPredicate<? super T, ? super T> equals)
-	{
-		return filter(oldElem -> !elements.exists(newElem -> equals.test(oldElem, newElem))).plus(elements);
-	}
-	
-	/**
-	 * Adds multiple elements to this list but keeps it distinct. Overwrites old elements with new versions.
-	 * @param elements The new elements
-	 * @return A combined list
-	 */
-	public ImmutableList<T> overwrite(RichIterable<? extends T> elements)
-	{
-		return overwrite(elements, SAFE_EQUALS);
-	}
-	
-	/**
-	 * Adds an element to this list but keeps it distinct. Possibly overwrites old element with a new version.
-	 * @param element The new element
-	 * @param equals method for checking equality
-	 * @return A resulting list
-	 */
-	public ImmutableList<T> overwrite(T element, BiPredicate<? super T, ? super T> equals)
-	{
-		return filter(oldElem -> !equals.test(oldElem, element)).plus(element);
-	}
-	
-	/**
-	 * Adds an element to this list but keeps it distinct. Possibly overwrites old element with a new version.
-	 * @param element The new element
-	 * @return A resulting list
-	 */
-	public ImmutableList<T> overwrite(T element)
-	{
-		return overwrite(element, SAFE_EQUALS);
 	}
 	
 	/**
@@ -669,7 +520,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 		if (index < 0)
 			return prepend(element);
 		else if (index >= size())
-			return plus(element);
+			return with(element);
 		else
 		{
 			List<T> mutable = toMutableList();
@@ -682,13 +533,14 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	 * Creates a new list with the element appended. If the element already exists on the list, returns self
 	 * @param element The element that will be included in the list
 	 * @return If this list contains the element, return this list. Otherwise, creates a new list with the element added
+	 * @deprecated Please use {@link #withDistinct(Object)} instead
 	 */
 	public ImmutableList<T> withElement(T element)
 	{
 		if (contains(element))
 			return this;
 		else
-			return plus(element);
+			return with(element);
 	}
 	
 	/**
@@ -725,16 +577,18 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	public <U, R> ImmutableList<R> mergedWith(Iterable<? extends U> other, 
 			BiFunction<? super T, ? super U, ? extends R> merge)
 	{
-		List<R> buffer = new ArrayList<>(size());
-		RichIterator<T> myIter = iterator();
-		Iterator<? extends U> otherIter = other.iterator();
-		
-		while (myIter.hasNext() && otherIter.hasNext())
-		{
-			buffer.add(merge.apply(myIter.next(), otherIter.next()));
-		}
-		
-		return new ImmutableList<>(buffer);
+		return mergedWith(other, merge, ListBuilder::new);
+	}
+	
+	/**
+	 * Merges this list with another by pairing the values. If sizes differ, the size of the shorter 
+	 * collection is used.
+	 * @param other Another collection
+	 * @return A list with paired items
+	 */
+	public <B> ImmutableList<Pair<T, B>> zip(Iterable<? extends B> other)
+	{
+		return zip(other, ListBuilder::new);
 	}
 	
 	/**
@@ -743,48 +597,11 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	 * @param other Another list
 	 * @return The merged list consisting of value pairs (left side value from this list, right side value from the 
 	 * other list)
+	 * @deprecated Please use {@link #zip(Iterable)} instead
 	 */
 	public <U> ImmutableList<Pair<T, U>> mergedWith(Iterable<? extends U> other)
 	{
 		return mergedWith(other, (a, b) -> new Pair<>(a, b));
-	}
-	
-	/**
-	 * Creates a new list without the specified element
-	 * @param element an element to be removed from the list
-	 * @return a copy of this list without the specified element. This list if it didn't contain the element
-	 */
-	public ImmutableList<T> minus(Object element)
-	{
-		ArrayList<T> mutable = toMutableList();
-		if (mutable.remove(element))
-			return new ImmutableList<>(mutable);
-		else
-			return this;
-	}
-	
-	/**
-	 * Creates a new list without the specified elements
-	 * @param elements the elements to be removed from the list
-	 * @return a copy of this list without the specified elements. This list if it didn't contain any of the elements
-	 */
-	public ImmutableList<T> minus(Collection<? extends Object> elements)
-	{
-		ArrayList<T> mutable = toMutableList();
-		if (mutable.removeAll(elements))
-			return new ImmutableList<>(mutable);
-		else
-			return this;
-	}
-	
-	/**
-	 * Creates a new list without the specified elements
-	 * @param elements the elements to be removed from the list
-	 * @return a copy of this list without the specified elements. This list if it didn't contain any of the elements
-	 */
-	public ImmutableList<T> minus(ImmutableList<? extends Object> elements)
-	{
-		return minus(elements.list);
 	}
 	
 	/**
@@ -983,32 +800,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
-	 * Drops items as long as the specified predicate is fulfilled and returns the rest of this list
-	 * @param f A predicate for dropping items from the beginning of this list
-	 * @return A list without the first n items that satisfy the predicate
-	 */
-	public ImmutableList<T> dropWhile(Predicate<? super T> f)
-	{
-		Predicate<? super T> negated = f.negate();
-		
-		if (isEmpty())
-			return this;
-		else
-		{
-			Option<Integer> firstIncludedIndex = indexWhere(negated);
-			if (firstIncludedIndex.isDefined())
-			{
-				if (firstIncludedIndex.get().intValue() == 0)
-					return this;
-				else
-					return dropFirst(firstIncludedIndex.get());
-			}
-			else
-				return empty();
-		}
-	}
-	
-	/**
 	 * @param n The number of elements to be included
 	 * @return The last n elements of this list
 	 */
@@ -1046,36 +837,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
-	 * Creates a filtered copy of this list
-	 * @param f a filter function
-	 * @return a copy of this list with only elements accepted by the filter
-	 */
-	public ImmutableList<T> filter(Predicate<? super T> f)
-	{
-		return new ImmutableList<>(stream().filter(f).collect(Collectors.toList()));
-	}
-	
-	/**
-	 * Filters this list preferring items selected by the provided predicate. However, if there are no such items, 
-	 * returns this list instead
-	 * @param f A filter / preference predicate
-	 * @return A non-empty list of preferred items or this list
-	 */
-	public ImmutableList<T> prefer(Predicate<? super T> f)
-	{
-		if (isEmpty())
-			return this;
-		else
-		{
-			ImmutableList<T> filtered = filter(f);
-			if (filtered.isEmpty())
-				return this;
-			else
-				return filtered;
-		}
-	}
-	
-	/**
 	 * Maps this list
 	 * @param f a mapping function
 	 * @return The mapped list
@@ -1084,6 +845,28 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	{
 		// return new ImmutableList<>(stream().map(f).collect(Collectors.toList()));
 		return mapToList(f);
+	}
+	
+	/**
+	 * Maps values to another type. May fail.
+	 * @param f A function that maps a value, but may also fail.
+	 * @return Mapped values if all conversions succeeded, failure otherwise.
+	 */
+	public <B> Try<ImmutableList<B>> tryMap(Function<? super T, ? extends Try<B>> f)
+	{
+		return tryMap(f, ListBuilder::new);
+	}
+	
+	/**
+	 * Maps items but throws error if mapping fails
+	 * @param f A function for mapping items
+	 * @return Mapped items
+	 * @throws E An error when a mapping fails
+	 */
+	public <B, E extends Exception> ImmutableList<B> mapThrowing(ThrowingFunction<? super T, 
+			? extends B, ? extends E> f) throws E
+	{
+		return mapThrowing(f, ListBuilder::new);
 	}
 	
 	/**
@@ -1130,16 +913,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	 */
 	public ImmutableList<T> mapWhere(Predicate<? super T> where, Function<? super T, ? extends T> map)
 	{
-		ArrayList<T> buffer = new ArrayList<>(size());
-		for (T item : this)
-		{
-			if (where.test(item))
-				buffer.add(map.apply(item));
-			else
-				buffer.add(item);
-		}
-		
-		return new ImmutableList<>(buffer);
+		return mapWhere(where, map, ListBuilder::new);
 	}
 	
 	/**
@@ -1147,38 +921,33 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 	 * @param f a mapping function
 	 * @return The mapped list
 	 */
-	public <B> ImmutableList<B> flatMap(Function<? super T, ? extends RichIterable<? extends B>> f)
+	public <B> ImmutableList<B> flatMap(Function<? super T, ? extends Iterable<? extends B>> f)
 	{
-		return new ImmutableList<>(stream().flatMap(i -> f.apply(i).stream()).collect(Collectors.toList()));
+		return flatMap(f, ListBuilder::new);
+		// return new ImmutableList<>(stream().flatMap(i -> f.apply(i).stream()).collect(Collectors.toList()));
 	}
 	
 	/**
-	 * Filters the list so that it contains only unique elements. When filtering out elements, 
-	 * the leftmost unique item is preserved. For example, when using distinct on [1, 2, 3, 4, 4, 3, 1], the 
-	 * resulting list is [1, 2, 3, 4]
-	 * @param equals A function that is used for checking equality between items
-	 * @return A list containing only a single instance of each unique item from this list.
+	 * Maps items but may fail
+	 * @param f A function for mapping an item to possibly multiple values. May fail.
+	 * @return Mapped items or a failure if any mapping failed.
 	 */
-	public ImmutableList<T> distinct(BiPredicate<? super T, ? super T> equals)
+	public <B> Try<ImmutableList<B>> tryFlatMap(
+			Function<? super T, ? extends Try<? extends Iterable<? extends B>>> f)
 	{
-		List<T> distinctValues = new ArrayList<>();
-		for (T item : this)
-		{
-			boolean isUnique = true;
-			for (T existing : distinctValues)
-			{
-				if (equals.test(item, existing))
-				{
-					isUnique = false;
-					break;
-				}
-			}
-			
-			if (isUnique)
-				distinctValues.add(item);
-		}
-		
-		return new ImmutableList<>(distinctValues);
+		return tryFlatMap(f, ListBuilder::new);
+	}
+	
+	/**
+	 * Maps items in this list to multiple items. May throw
+	 * @param f A mapping function that may throw and returns possibly multiple items
+	 * @return Mapped results
+	 * @throws E If any mapping failed
+	 */
+	public <B, E extends Exception> ImmutableList<B> flatMapThrowing(
+			ThrowingFunction<? super T, ? extends Iterable<? extends B>, ? extends E> f) throws E
+	{
+		return flatMapThrowing(f, ListBuilder::new);
 	}
 	
 	/**
@@ -1191,83 +960,5 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable
 		{
 			f.accept(get(i), i);
 		}
-	}
-	
-	/**
-	 * Filters the list so that it contains only unique elements. When filtering out elements, 
-	 * the leftmost unique item is preserved. For example, when using distinct on [1, 2, 3, 4, 4, 3, 1], the 
-	 * resulting list is [1, 2, 3, 4]
-	 * @return Returns a distict (all values are unique) version of this list. Basic equals method is used for 
-	 * checking equality between elements
-	 */
-	public ImmutableList<T> distinct()
-	{
-		return distinct(SAFE_EQUALS);
-	}
-	
-	/**
-	 * Finds the maximum value from the provided items
-	 * @param items The items the maximum value is searched from
-	 * @param comparator The comparator used for comparing the values
-	 * @return The maximum value from the list. None if list is empty.
-	 * @deprecated Please use {@link #max(Comparator)} instead
-	 */
-	public static <T> Option<T> maxFrom(RichIterable<? extends T> items, Comparator<? super T> comparator)
-	{
-		if (items.isEmpty())
-			return Option.none();
-		
-		T top = items.head();
-		for (T item : items.tailView())
-		{
-			if (comparator.compare(item, top) > 0)
-				top = item;
-		}
-		
-		return Option.some(top);
-	}
-	
-	/**
-	 * Finds the maximum value from the provided items
-	 * @param items The items the maximum value is searched from
-	 * @return The maximum value from the list. None if list is empty.
-	 * @deprecated Please use {@link RichIterable#maxFrom(RichIterable)} instead
-	 */
-	public static <T extends Comparable<? super T>> Option<T> maxFrom(RichIterable<? extends T> items)
-	{
-		return maxFrom(items, (a, b) -> a.compareTo(b));
-	}
-	
-	/**
-	 * Finds the minimum value from the provided items
-	 * @param items The items the minimum value is searched from
-	 * @param comparator The comparator used for comparing the values
-	 * @return The minimum value from the list. None if list is empty.
-	 * @deprecated Please use {@link #min(Comparator)} instead
-	 */
-	public static <T> Option<T> minFrom(RichIterable<? extends T> items, Comparator<? super T> comparator)
-	{
-		if (items.isEmpty())
-			return Option.none();
-		
-		T top = items.head();
-		for (T item : items.tailView())
-		{
-			if (comparator.compare(item, top) < 0)
-				top = item;
-		}
-		
-		return Option.some(top);
-	}
-	
-	/**
-	 * Finds the minimum value from the provided items
-	 * @param items The items the minimum value is searched from
-	 * @return The minimum value from the list. None if list is empty.
-	 * @deprecated Please use {@link RichIterable#minFrom(RichIterable)} instead
-	 */
-	public static <T extends Comparable<? super T>> Option<T> minFrom(RichIterable<? extends T> items)
-	{
-		return minFrom(items, (a, b) -> a.compareTo(b));
 	}
 }

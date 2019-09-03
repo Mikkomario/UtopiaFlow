@@ -1,11 +1,11 @@
 package utopia.flow.structure.iterator;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
+import utopia.flow.structure.Builder;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ListBuilder;
 import utopia.flow.structure.Option;
@@ -53,17 +53,30 @@ public interface RichIterator<T> extends Iterator<T>
 	
 	/**
 	 * @param n The amount of elements to be read
+	 * @param makeBuilder A function for producing the final collection builder.
+	 * @return The next n elements from this iterator. Less if this iterator ran out of items.
+	 */
+	public default <R> R take(int n, Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super T> buffer = makeBuilder.get();
+		for (int i = 0; i < n; i++)
+		{
+			Option<T> item = nextOption();
+			if (item.isEmpty())
+				return buffer.build();
+			else
+				buffer.add(item.get());
+		}
+		return buffer.build();
+	}
+	
+	/**
+	 * @param n The amount of elements to be read
 	 * @return The next n elements from this iterator. Less if this iterator ran out of items.
 	 */
 	public default ImmutableList<T> take(int n)
 	{
-		List<T> buffer = new ArrayList<>(n);
-		for (int i = 0; i < n; i++)
-		{
-			nextOption().forEach(buffer::add);
-		}
-		
-		return ImmutableList.of(buffer);
+		return take(n, ListBuilder::new);
 	}
 	
 	/**
@@ -88,18 +101,27 @@ public interface RichIterator<T> extends Iterator<T>
 	
 	/**
 	 * @param f A predicate
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return A collection of the first n elements in this iterator that satisfy the provided predicate
+	 */
+	public default <R> R takeWhile(Predicate<? super T> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super T> builder = makeBuilder.get();
+		while (pollOption().exists(f))
+		{
+			nextOption().forEach(builder::add);
+		}
+		return builder.build();
+	}
+	
+	/**
+	 * @param f A predicate
 	 * @return A list of the first n elements in this iterator that satisfy the provided predicate
 	 */
 	public default ImmutableList<T> takeWhile(Predicate<? super T> f)
 	{
-		ListBuilder<T> buffer = new ListBuilder<>();
-		
-		while (pollOption().exists(f))
-		{
-			nextOption().forEach(buffer::add);
-		}
-		
-		return buffer.build();
+		return takeWhile(f, ListBuilder::new);
 	}
 	
 	/**

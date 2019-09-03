@@ -23,7 +23,8 @@ import utopia.flow.util.StringRepresentable;
  * @param <Value> The types of the values stored in the map
  * @since 1.11.2017
  */
-public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringRepresentable
+public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringRepresentable, 
+	Appendable<Pair<Key, Value>, ImmutableMap<Key, Value>, MapBuilder<Key, Value>>
 {
 	// ATTRIBUTES	------------------
 	
@@ -159,6 +160,18 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	// IMPLEMENTED METHODS	-------
 	
 	@Override
+	public MapBuilder<Key, Value> newBuilder()
+	{
+		return new MapBuilder<>();
+	}
+
+	@Override
+	public ImmutableMap<Key, Value> self()
+	{
+		return this;
+	}
+	
+	@Override
 	public int hashCode()
 	{
 		return this.map.hashCode();
@@ -265,7 +278,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public ImmutableList<Key> keys()
 	{
-		return this.keys.get();
+		return keys.get();
 	}
 	
 	/**
@@ -273,7 +286,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public ImmutableList<Value> values()
 	{
-		return this.values.get();
+		return values.get();
 	}
 	
 	/**
@@ -281,7 +294,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public int size()
 	{
-		return this.size.get();
+		return size.get();
 	}
 	
 	/**
@@ -291,7 +304,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public Value get(Key key)
 	{
-		return this.map.get(key);
+		return map.get(key);
 	}
 	
 	/**
@@ -301,7 +314,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public Option<Value> getOption(Key key)
 	{
-		return new Option<>(this.map.get(key));
+		return new Option<>(map.get(key));
 	}
 	
 	/**
@@ -357,23 +370,13 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	}
 	
 	/**
-	 * Finds a key value pair from this map
-	 * @param f The function that tests keys & values
-	 * @return the first matching key value pair in the map or none if there were no matches
-	 */
-	public Option<Pair<Key, Value>> find(BiPredicate<? super Key, ? super Value> f)
-	{
-		return find(p -> f.test(p.getFirst(), p.getSecond()));
-	}
-	
-	/**
 	 * Checks whether this map contains a key
 	 * @param key A key
 	 * @return Whether this map contains the key
 	 */
 	public boolean containsKey(Key key)
 	{
-		return this.map.containsKey(key);
+		return map.containsKey(key);
 	}
 	
 	/**
@@ -393,35 +396,22 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param value a value for the key
 	 * @return a new map with the key appended
 	 */
+	public ImmutableMap<Key, Value> with(Key key, Value value)
+	{
+		return with(new Pair<>(key, value));
+	}
+	
+	/**
+	 * Creates a new map with the specified key value pair appended
+	 * @param key a key
+	 * @param value a value for the key
+	 * @return a new map with the key appended
+	 * @deprecated Please convert to using {@link #with(Object, Object)} instead since naming 
+	 * conventions have changed.
+	 */
 	public ImmutableMap<Key, Value> plus(Key key, Value value)
 	{
-		Map<Key, Value> map = toMutableMap(1);
-		map.put(key, value);
-		return new ImmutableMap<>(map);
-	}
-	
-	/**
-	 * Creates a new map with multiple key value pairs appended
-	 * @param data The data that is appended
-	 * @return A map containing both this map's key value pairs and the provided pairs
-	 */
-	public ImmutableMap<Key, Value> plus(Iterable<? extends Pair<? extends Key, ? extends Value>> data)
-	{
-		Map<Key, Value> map = toMutableMap();
-		data.forEach(p -> map.put(p.getFirst(), p.getSecond()));
-		return new ImmutableMap<>(map);
-	}
-	
-	/**
-	 * Creates a new map with multiple key value pairs appended
-	 * @param data The data that is appended
-	 * @return A map containing both this map's key value pairs and the provided pairs
-	 */
-	public ImmutableMap<Key, Value> plus(ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
-	{
-		Map<Key, Value> map = toMutableMap(data.size());
-		data.forEach(p -> map.put(p.getFirst(), p.getSecond()));
-		return new ImmutableMap<>(map);
+		return with(key, value);
 	}
 	
 	/**
@@ -455,7 +445,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	public ImmutableMap<Key, Value> withModifiedValue(Key key, Function<? super Value, ? extends Value> modifier)
 	{
 		if (containsKey(key))
-			return plus(key, modifier.apply(get(key)));
+			return with(key, modifier.apply(get(key)));
 		else
 			return this;
 	}
@@ -471,9 +461,9 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 			Supplier<? extends Value> makeNewValue)
 	{
 		if (containsKey(key))
-			return plus(key, modifier.apply(get(key)));
+			return with(key, modifier.apply(get(key)));
 		else
-			return plus(key, makeNewValue.get());
+			return with(key, makeNewValue.get());
 	}
 	
 	/**
@@ -481,7 +471,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param key A key that is removed
 	 * @return A map without the specified key
 	 */
-	public ImmutableMap<Key, Value> minus(Key key)
+	public ImmutableMap<Key, Value> withoutKey(Key key)
 	{
 		if (containsKey(key))
 		{
@@ -498,7 +488,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param keys The keys to be removed
 	 * @return A map without the specified keys
 	 */
-	public ImmutableMap<Key, Value> minus(Iterable<? extends Key> keys)
+	public ImmutableMap<Key, Value> minusKeys(Iterable<? extends Key> keys)
 	{
 		Map<Key, Value> map = toMutableMap();
 		keys.forEach(map::remove);
@@ -510,9 +500,10 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param f a function that maps key value pairs
 	 * @return A mapped map
 	 */
-	public <K, V> ImmutableMap<K, V> map(BiFunction<? super Key, ? super Value, ? extends Pair<? extends K, ? extends V>> f)
+	public <K, V> ImmutableMap<K, V> map(BiFunction<? super Key, ? super Value, ? extends Pair<K, V>> f)
 	{
-		return new ImmutableMap<>(toList().map(keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())));
+		return map(f, MapBuilder::new);
+		// return new ImmutableMap<>(toList().map(keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())));
 	}
 	
 	/**
@@ -521,9 +512,9 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @return A mapped map
 	 */
 	public <K, V> ImmutableMap<K, V> flatMap(BiFunction<? super Key, ? super Value, 
-			? extends RichIterable<? extends Pair<? extends K, ? extends V>>> f)
+			? extends Iterable<? extends Pair<K, V>>> f)
 	{
-		return new ImmutableMap<>(toList().flatMap(keyValue -> f.apply(keyValue.getFirst(), keyValue.getSecond())));
+		return flatMap(f, MapBuilder::new);
 	}
 	
 	/**
@@ -563,27 +554,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public ImmutableMap<Key, Value> filter(BiPredicate<? super Key, ? super Value> f)
 	{
-		return new ImmutableMap<>(toList().filter(keyValue -> f.test(keyValue.getFirst(), keyValue.getSecond())));
-	}
-	
-	/**
-	 * Maps the key value pairs in this map into list format
-	 * @param f A mapping function
-	 * @return A list of mapped items
-	 */
-	public <B> ImmutableList<B> mapToList(BiFunction<? super Key, ? super Value, ? extends B> f)
-	{
-		return toList().map(p -> f.apply(p.getFirst(), p.getSecond()));
-	}
-	
-	/**
-	 * Maps the key value pairs in this map into a one level deep list format
-	 * @param f A mapping function
-	 * @return A one level deep list of mapped items
-	 */
-	public <B> ImmutableList<B> flatMapToList(BiFunction<? super Key, ? super Value, ? extends RichIterable<? extends B>> f)
-	{
-		return toList().flatMap(p -> f.apply(p.getFirst(), p.getSecond()));
+		return filter(pair -> f.test(pair.getFirst(), pair.getSecond()));
 	}
 	
 	/**
@@ -675,8 +646,8 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> append(
 			ImmutableMap<Key, ImmutableList<Value>> listMap, Key key, Value value)
 	{
-		ImmutableList<Value> newValues = listMap.getOption(key).map(l -> l.plus(value)).getOrElse(
+		ImmutableList<Value> newValues = listMap.getOption(key).map(l -> l.with(value)).getOrElse(
 				() -> ImmutableList.withValue(value));
-		return listMap.plus(key, newValues);
+		return listMap.with(key, newValues);
 	}
 }

@@ -1,8 +1,11 @@
 package utopia.flow.structure;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import utopia.flow.structure.iterator.RichIterator;
 
 /**
  * This class can be used for building an immutable map with buffered data. Map builders are not thread safe.
@@ -12,7 +15,7 @@ import java.util.function.Function;
  * @since 16.4.2018
  */
 public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>, 
-		IterableMapWrapper<Key, Value>, Pair<Key, Value>> implements BiIterable<Key, Value>
+		Map<Key, Value>, Pair<Key, Value>> implements BiIterable<Key, Value>
 {
 	// CONSTRUCTOR	-------------------
 	
@@ -21,7 +24,7 @@ public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>,
 	 */
 	public MapBuilder()
 	{
-		super(new IterableMapWrapper<>(new HashMap<>()));
+		super(new HashMap<>());
 	}
 
 	/**
@@ -31,7 +34,7 @@ public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>,
 	 */
 	public MapBuilder(Key key, Value value)
 	{
-		super(new IterableMapWrapper<>(new HashMap<>()));
+		super(new HashMap<>());
 		put(key, value);
 	}
 	
@@ -39,21 +42,27 @@ public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>,
 	// IMPLEMENTED	--------------------
 	
 	@Override
-	protected ImmutableMap<Key, Value> newResultFrom(IterableMapWrapper<Key, Value> buffer)
+	protected ImmutableMap<Key, Value> newResultFrom(Map<Key, Value> buffer)
 	{
-		return new ImmutableMap<>(buffer.get());
+		return new ImmutableMap<>(buffer);
 	}
 
 	@Override
-	protected IterableMapWrapper<Key, Value> copyBuffer(IterableMapWrapper<Key, Value> old)
+	protected Map<Key, Value> copyBuffer(Map<Key, Value> old)
 	{
-		return new IterableMapWrapper<>(new HashMap<>(old.get()));
+		return new HashMap<>(old);
 	}
 
 	@Override
-	protected void append(IterableMapWrapper<Key, Value> buffer, Pair<Key, Value> newItem)
+	protected void append(Map<Key, Value> buffer, Pair<Key, Value> newItem)
 	{
-		buffer.get().put(newItem.getFirst(), newItem.getSecond());
+		buffer.put(newItem.getFirst(), newItem.getSecond());
+	}
+	
+	@Override
+	protected RichIterator<Pair<Key, Value>> iteratorFrom(Map<Key, Value> buffer)
+	{
+		return ImmutableMap.of(buffer).iterator();
 	}
 	
 	
@@ -75,7 +84,7 @@ public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>,
 	 */
 	public Value get(Key key)
 	{
-		return getBuffer().get().get(key);
+		return getBuffer().get(key);
 	}
 	
 	/**
@@ -117,7 +126,7 @@ public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>,
 	 */
 	public boolean containsKey(Object key)
 	{
-		return getBuffer().get().containsKey(key);
+		return getBuffer().containsKey(key);
 	}
 	
 	/**

@@ -3,7 +3,6 @@ package utopia.flow.structure;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import utopia.flow.function.ThrowingFunction;
@@ -16,7 +15,8 @@ import utopia.flow.util.StringRepresentable;
  * @param <T> The type of the value handled by this option
  * @since 6.9.2017
  */
-public class Option<T> implements RichIterable<T>, StringRepresentable
+public class Option<T> implements RichIterable<T>, StringRepresentable, 
+	Filterable<T, Option<T>, OptionBuilder<T>>
 {
 	// ATTRIBUTES	---------------------
 	
@@ -168,6 +168,18 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	
 	
 	// IMPLEMENTED METHODS	-------------------
+	
+	@Override
+	public OptionBuilder<T> newBuilder()
+	{
+		return new OptionBuilder<>();
+	}
+
+	@Override
+	public Option<T> self()
+	{
+		return this;
+	}
 	
 	@Override
 	public int hashCode()
@@ -346,7 +358,7 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	 * @param f A function that transforms the value in this option
 	 * @return An option wrapping the transformed value or none if this option was empty
 	 */
-	public <B> Option<B> map(Function<? super T, B> f)
+	public <B> Option<B> map(Function<? super T, ? extends B> f)
 	{
 		if (isDefined())
 			return new Option<>(f.apply(this.value));
@@ -355,16 +367,25 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
-	 * Maps this option into a different type of option
-	 * @param f A function that transforms the value of this option but may fail
-	 * @return An option wrapping the transformed value or none if this option was empty or if transform failed
+	 * Maps item in this option. May throw.
+	 * @param f A mapping function
+	 * @return Mapped option
+	 * @throws E If mapping function threw
 	 */
-	public <B> Option<B> tryMap(ThrowingFunction<? super T, B, ?> f)
+	public <B, E extends Exception> Option<B> mapThrowing(ThrowingFunction<? super T, ? extends B, 
+			? extends E> f) throws E
 	{
-		if (isDefined())
-			return f.apply(this.value).success();
-		else
-			return Option.none();
+		return mapThrowing(f, OptionBuilder::new);
+	}
+	
+	/**
+	 * Maps item in this option. May fail.
+	 * @param f A mapping function.
+	 * @return Mapped option. Failure if map failed.
+	 */
+	public <B> Try<Option<B>> tryMap(Function<? super T, ? extends Try<? extends B>> f)
+	{
+		return tryMap(f, OptionBuilder::new);
 	}
 	
 	/**
@@ -372,7 +393,7 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	 * @param f A function that transforms the value in this option but may return None
 	 * @return An option wrapping the transformed value or none if this option was empty
 	 */
-	public <B> Option<B> flatMap(Function<? super T, Option<B>> f)
+	public <B> Option<B> flatMap(Function<? super T, ? extends Option<B>> f)
 	{
 		Option<Option<B>> result = map(f);
 		if (result.isDefined())
@@ -382,21 +403,30 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	}
 	
 	/**
-	 * Maps this option into a different type of option, flattening the result
-	 * @param f A function that transforms the value in this option but may return None and may fail
-	 * @return An option wrapping the transformed value or none if this option was empty or if transform failed
+	 * Maps this option into a different type, flattening the result. May throw.
+	 * @param f A mapping function that may return none
+	 * @return Mapped item, if any
+	 * @throws E If mapping function threw
 	 */
-	public <B> Option<B> tryFlatMap(ThrowingFunction<? super T, Option<B>, ?> f)
+	public <B, E extends Exception> Option<B> flatMapThrowing(ThrowingFunction<? super T, 
+			? extends Option<? extends B>, ? extends E> f) throws E
 	{
-		Option<Option<B>> result = tryMap(f);
-		if (result.isDefined())
-			return result.get();
-		else
-			return Option.none();
+		return flatMapThrowing(f, OptionBuilder::new);
 	}
 	
 	/**
-	 * Checks whether this option has an equal value with anohter option
+	 * Maps this option into a different type of option, flattening the result. May fail.
+	 * @param f A mapping function. May fail.
+	 * @return Mapped option. Failure if mapping function failed.
+	 */
+	public <B> Try<Option<B>> tryFlatMap(
+			Function<? super T, ? extends Try<? extends Option<? extends B>>> f)
+	{
+		return tryFlatMap(f, OptionBuilder::new);
+	}
+	
+	/**
+	 * Checks whether this option has an equal value with another option
 	 * @param other Another option
 	 * @param equals A method for checking equality between values
 	 * @return Whether the two options have equal values
@@ -444,18 +474,6 @@ public class Option<T> implements RichIterable<T>, StringRepresentable
 	public boolean valueEquals(Object other)
 	{
 		return contains(other);
-	}
-	
-	/**
-	 * @param f a filter
-	 * @return This option if it is accepted by the filter. None otherwise
-	 */
-	public Option<T> filter(Predicate<? super T> f)
-	{
-		if (exists(f))
-			return this;
-		else
-			return none();
 	}
 	
 	/**
