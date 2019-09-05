@@ -426,6 +426,27 @@ public class Option<T> implements RichIterable<T>, StringRepresentable,
 	}
 	
 	/**
+	 * Maps the value of this option. Silently catches any thrown exceptions.
+	 * @param f A mapping function
+	 * @return Mapped otpion
+	 */
+	public <B> Option<B> mapCatching(ThrowingFunction<? super T, ? extends B, ?> f)
+	{
+		return mapCatching(f, OptionBuilder::new);
+	}
+	
+	/**
+	 * Maps the value of this option. Silently catches any thrown exceptions.
+	 * @param f A mapping function that may return none
+	 * @return Mapped option
+	 */
+	public <B> Option<B> flatMapCatching(ThrowingFunction<? super T, 
+			? extends Option<? extends B>, ?> f)
+	{
+		return flatMapCatching(f, OptionBuilder::new);
+	}
+	
+	/**
 	 * Checks whether this option has an equal value with another option
 	 * @param other Another option
 	 * @param equals A method for checking equality between values

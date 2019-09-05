@@ -691,6 +691,18 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	}
 	
 	/**
+	 * @param index Index to drop from this list
+	 * @return A copy of this list without the item at specified index
+	 */
+	public ImmutableList<T> dropIndex(int index)
+	{
+		if (index < 0 || index >= size())
+			return this;
+		else
+			return first(index).plus(dropFirst(index + 1));
+	}
+	
+	/**
 	 * Creates a sorted copy of this list
 	 * @param c a comparator that sorts the list
 	 * @return A sorted copy of this list

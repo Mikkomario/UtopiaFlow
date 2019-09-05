@@ -416,6 +416,37 @@ public interface RichIterable<T> extends Iterable<T>
 	}
 	
 	/**
+	 * Maps the items in this collection and adds them to a new collection. Will silently catch 
+	 * all exceptions during mapping
+	 * @param f A function for mapping items. May throw.
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return Collection with successfully mapped items
+	 */
+	public default <B, R> R mapCatching(ThrowingFunction<? super T, ? extends B, ?> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		forEach(item -> f.apply(item).success().forEach(builder::add));
+		return builder.build();
+	}
+	
+	/**
+	 * Maps the items in this collection and adds them to a new collection. Will silently catch 
+	 * all exceptions during mapping
+	 * @param f A function for mapping items. May throw.
+	 * @param makeBuilder A function for producing a builder for the final collection
+	 * @return Collection with successfully mapped items
+	 */
+	public default <B, R> R flatMapCatching(ThrowingFunction<? super T, 
+			? extends Iterable<? extends B>, ?> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder)
+	{
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		forEach(item -> f.apply(item).success().forEach(builder::add));
+		return builder.build();
+	}
+	
+	/**
 	 * Maps only certain items
 	 * @param where A function for determining mapped items
 	 * @param f A mapping function
