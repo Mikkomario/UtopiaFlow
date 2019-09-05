@@ -446,7 +446,7 @@ public class Model<VariableType extends Variable>
 		if (replaceIfExists)
 			this.attributes = this.attributes.overwrite(attribute, VARNAMES_EQUAL);
 		else
-			this.attributes = this.attributes.plusDistinct(attribute, VARNAMES_EQUAL);
+			this.attributes = this.attributes.with(attribute, VARNAMES_EQUAL);
 	}
 	
 	/**
@@ -471,7 +471,7 @@ public class Model<VariableType extends Variable>
 	public void addAttributes(ImmutableList<? extends VariableType> attributes, boolean replaceIfExists)
 	{
 		if (replaceIfExists)
-			this.attributes = this.attributes.overwrite(attributes, VARNAMES_EQUAL);
+			this.attributes = this.attributes.overwriteAll(attributes, VARNAMES_EQUAL);
 		else
 			this.attributes = this.attributes.plusDistinct(attributes, VARNAMES_EQUAL);
 	}
@@ -530,7 +530,7 @@ public class Model<VariableType extends Variable>
 	public void removeAttribute(Variable attribute)
 	{
 		if (attribute != null)
-			this.attributes = this.attributes.minus(attribute);
+			this.attributes = this.attributes.without(attribute);
 	}
 	
 	/**

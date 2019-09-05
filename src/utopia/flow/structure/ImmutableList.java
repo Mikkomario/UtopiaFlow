@@ -495,12 +495,12 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 * @param index The index the element is added to
 	 * @return A list with the element added
 	 */
-	public ImmutableList<T> with(T element, int index)
+	public ImmutableList<T> plus(T element, int index)
 	{
 		if (index <= 0)
 			return prepend(element);
 		else if (index >= size() - 1)
-			return with(element);
+			return plus(element);
 		else
 		{
 			List<T> mutable = toMutableList();
@@ -520,7 +520,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 		if (index < 0)
 			return prepend(element);
 		else if (index >= size())
-			return with(element);
+			return plus(element);
 		else
 		{
 			List<T> mutable = toMutableList();
@@ -533,14 +533,14 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 * Creates a new list with the element appended. If the element already exists on the list, returns self
 	 * @param element The element that will be included in the list
 	 * @return If this list contains the element, return this list. Otherwise, creates a new list with the element added
-	 * @deprecated Please use {@link #withDistinct(Object)} instead
+	 * @deprecated Please use {@link #with(Object)} instead
 	 */
 	public ImmutableList<T> withElement(T element)
 	{
 		if (contains(element))
 			return this;
 		else
-			return with(element);
+			return plus(element);
 	}
 	
 	/**

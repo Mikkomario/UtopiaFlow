@@ -241,6 +241,17 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 		return list.get();
 	}
 	
+	@Override
+	public ImmutableMap<Key, Value> without(Object item)
+	{
+		if (containsKey(item))
+			return withoutKey(item);
+		else if (contains(item))
+			return Appendable.super.without(item);
+		else
+			return this;
+	}
+	
 	
 	// OTHER METHODS	-----------
 
@@ -374,7 +385,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param key A key
 	 * @return Whether this map contains the key
 	 */
-	public boolean containsKey(Key key)
+	public boolean containsKey(Object key)
 	{
 		return map.containsKey(key);
 	}
@@ -396,22 +407,9 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param value a value for the key
 	 * @return a new map with the key appended
 	 */
-	public ImmutableMap<Key, Value> with(Key key, Value value)
-	{
-		return with(new Pair<>(key, value));
-	}
-	
-	/**
-	 * Creates a new map with the specified key value pair appended
-	 * @param key a key
-	 * @param value a value for the key
-	 * @return a new map with the key appended
-	 * @deprecated Please convert to using {@link #with(Object, Object)} instead since naming 
-	 * conventions have changed.
-	 */
 	public ImmutableMap<Key, Value> plus(Key key, Value value)
 	{
-		return with(key, value);
+		return plus(new Pair<>(key, value));
 	}
 	
 	/**
@@ -426,15 +424,16 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 		return new ImmutableMap<>(map);
 	}
 	
-	/**
+	/*
 	 * Creates a new map with the other map's key value pairs appended
 	 * @param other Another map
 	 * @return A map containing both this map's key value pairs and the other map's key value pairs
 	 */
+	/*
 	public ImmutableMap<Key, Value> plus(ImmutableMap<? extends Key, ? extends Value> other)
 	{
 		return plus(other.map);
-	}
+	}*/
 	
 	/**
 	 * Creates a new map with a modified value
@@ -445,7 +444,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	public ImmutableMap<Key, Value> withModifiedValue(Key key, Function<? super Value, ? extends Value> modifier)
 	{
 		if (containsKey(key))
-			return with(key, modifier.apply(get(key)));
+			return plus(key, modifier.apply(get(key)));
 		else
 			return this;
 	}
@@ -461,9 +460,9 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 			Supplier<? extends Value> makeNewValue)
 	{
 		if (containsKey(key))
-			return with(key, modifier.apply(get(key)));
+			return plus(key, modifier.apply(get(key)));
 		else
-			return with(key, makeNewValue.get());
+			return plus(key, makeNewValue.get());
 	}
 	
 	/**
@@ -471,7 +470,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param key A key that is removed
 	 * @return A map without the specified key
 	 */
-	public ImmutableMap<Key, Value> withoutKey(Key key)
+	public ImmutableMap<Key, Value> withoutKey(Object key)
 	{
 		if (containsKey(key))
 		{
@@ -573,6 +572,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * this map while right side parameter is from the provided map parameter
 	 * @return A new map that contains (possibly merged) items from both maps
 	 */
+	@SuppressWarnings("javadoc")
 	public <V2 extends Value> ImmutableMap<Key, Value> mergedWith(ImmutableMap<Key, ? extends V2> other, 
 			BiFunction<? super Value, ? super V2, ? extends Value> merge)
 	{
@@ -646,8 +646,8 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> append(
 			ImmutableMap<Key, ImmutableList<Value>> listMap, Key key, Value value)
 	{
-		ImmutableList<Value> newValues = listMap.getOption(key).map(l -> l.with(value)).getOrElse(
+		ImmutableList<Value> newValues = listMap.getOption(key).map(l -> l.plus(value)).getOrElse(
 				() -> ImmutableList.withValue(value));
-		return listMap.with(key, newValues);
+		return listMap.plus(key, newValues);
 	}
 }

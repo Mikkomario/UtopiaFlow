@@ -494,7 +494,7 @@ public class XmlElement implements XmlElementTemplate<XmlElement>, StringReprese
 	 */
 	public XmlElement withAddedChild(XmlElement child)
 	{
-		return withChildren(this.children.plus(child));
+		return withChildren(children.plus(child));
 	}
 	
 	/**
@@ -522,7 +522,7 @@ public class XmlElement implements XmlElementTemplate<XmlElement>, StringReprese
 	 */
 	public XmlElement withAttributeAdded(String attName, String attValue)
 	{
-		return withAttributes(this.attributes.plus(attName, attValue));
+		return withAttributes(attributes.plus(attName, attValue));
 	}
 	
 	/**

@@ -133,7 +133,18 @@ public class View<T> implements RichIterable<T>
 	 */
 	public ImmutableList<T> force()
 	{
-		return ImmutableList.readWith(iterator());
+		return force(ListBuilder::new);
+	}
+	
+	/**
+	 * @param makeBuilder A function for producing a new builder
+	 * @return A concrete version of this view collected by the specified builder
+	 */
+	public <R> R force(Supplier<? extends Builder<? extends R, ? , ? super T>> makeBuilder)
+	{
+		Builder<? extends R, ? , ? super T> builder = makeBuilder.get();
+		builder.read(iterator());
+		return builder.build();
 	}
 	
 	/**

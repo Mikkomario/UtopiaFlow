@@ -284,7 +284,7 @@ public class XmlElementBuilder implements XmlElementTemplate<XmlElementBuilder>
 	 */
 	public void removeAttribute(String attName)
 	{
-		setAttributes(getAttributes().minus(attName));
+		setAttributes(getAttributes().withoutKey(attName));
 	}
 	
 	/**

@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
+import utopia.flow.structure.Appendable;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.IntRange;
 import utopia.flow.structure.Option;
@@ -23,7 +24,8 @@ import utopia.flow.structure.iterator.StringCharIterator;
  * @author Mikko Hilpinen
  * @since 20.9.2018
  */
-public class RichString implements RichIterable<Character>, StringRepresentable
+public class RichString implements RichIterable<Character>, StringRepresentable, 
+	Appendable<Character, RichString, RichStringBuilder>
 {
 	// ATTRIBUTES	-----------------
 	
@@ -133,9 +135,27 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	// IMPLEMENTED	-----------------
 
 	@Override
+	public RichStringBuilder newBuilder()
+	{
+		return new RichStringBuilder();
+	}
+
+	@Override
+	public RichString self()
+	{
+		return this;
+	}
+	
+	@Override
 	public boolean isEmpty()
 	{
 		return s.isEmpty();
+	}
+	
+	@Override
+	public boolean nonEmpty()
+	{
+		return !isEmpty();
 	}
 	
 	@Override
@@ -415,17 +435,17 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	/**
 	 * @return The basic letters in this string
 	 */
-	public ImmutableList<Character> letters()
+	public RichString letters()
 	{
-		return characters().filter(Character::isLetter);
+		return filter(Character::isLetter);
 	}
 	
 	/**
 	 * @return The digits in this string
 	 */
-	public ImmutableList<Character> digits()
+	public RichString digits()
 	{
-		return characters().filter(Character::isDigit);
+		return filter(Character::isDigit);
 	}
 	
 	/**
@@ -644,6 +664,15 @@ public class RichString implements RichIterable<Character>, StringRepresentable
 	public RichString plus(String s)
 	{
 		return of(this.s + s);
+	}
+	
+	/**
+	 * @param another Another string
+	 * @return A combination of these strings
+	 */
+	public RichString plus(RichString another)
+	{
+		return plus(another.s);
 	}
 	
 	/**

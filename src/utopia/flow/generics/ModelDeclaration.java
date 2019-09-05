@@ -248,6 +248,6 @@ public class ModelDeclaration
 		if (attributeDeclaration == null)
 			return this;
 		
-		return new ModelDeclaration(this.attributeDeclarations.minus(attributeDeclaration));
+		return new ModelDeclaration(this.attributeDeclarations.without(attributeDeclaration));
 	}
 }

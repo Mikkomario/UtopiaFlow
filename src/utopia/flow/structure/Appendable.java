@@ -20,7 +20,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param item Item to add
 	 * @return A copy of this collection with an item added
 	 */
-	public default Repr with(A item)
+	public default Repr plus(A item)
 	{
 		DefaultBuilder builder = newBuilder();
 		builder.add(this);
@@ -72,12 +72,12 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @return A copy of this collection with specified item included. If item already existed 
 	 * in this collection, returns self
 	 */
-	public default Repr withDistinct(A item, BiPredicate<? super A, ? super A> equals)
+	public default Repr with(A item, BiPredicate<? super A, ? super A> equals)
 	{
 		if (contains(item, equals))
 			return self();
 		else
-			return with(item);
+			return plus(item);
 	}
 	
 	/**
@@ -85,9 +85,9 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @return A copy of this collection with specified item included. If item already existed 
 	 * in this collection, returns self
 	 */
-	public default Repr withDistinct(A item)
+	public default Repr with(A item)
 	{
-		return withDistinct(item, SAFE_EQUALS);
+		return with(item, SAFE_EQUALS);
 	}
 	
 	/**
@@ -148,7 +148,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 */
 	public default Repr overwrite(A item, BiPredicate<? super A, ? super A> equals)
 	{
-		return without(item, equals).with(item);
+		return without(item, equals).plus(item);
 	}
 	
 	/**

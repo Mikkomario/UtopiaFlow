@@ -1,5 +1,7 @@
 package utopia.flow.structure;
 
+import java.util.function.Consumer;
+
 import utopia.flow.structure.iterator.FlatIterator;
 import utopia.flow.structure.iterator.RichIterator;
 
@@ -8,7 +10,7 @@ import utopia.flow.structure.iterator.RichIterator;
  * @author Mikko Hilpinen
  * @since 7.6.2019
  */
-public class IntSet implements RichIterable<Integer>
+public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet, IntSetBuilder>
 {
 	// ATTRIBUTES	------------------
 	
@@ -22,9 +24,26 @@ public class IntSet implements RichIterable<Integer>
 	
 	// CONSTRUCTOR	------------------
 	
-	private IntSet(ImmutableList<IntRange> ranges)
+	/**
+	 * Creates an int set from an existing set of sorted ranges. Should only be used inside Flow 
+	 * by appropriate builder(s)
+	 * @param ranges Ranges that form this set
+	 */
+	protected IntSet(ImmutableList<IntRange> ranges)
 	{
 		this.ranges = ranges;
+	}
+	
+	/**
+	 * Builds a new int set by using a buffer
+	 * @param b A function to fill the buffer
+	 * @return build IntSet
+	 */
+	public static IntSet build(Consumer<? super IntSetBuilder> b)
+	{
+		IntSetBuilder newBuilder = new IntSetBuilder();
+		b.accept(newBuilder);
+		return newBuilder.build();
 	}
 	
 	/**
@@ -34,7 +53,7 @@ public class IntSet implements RichIterable<Integer>
 	 */
 	public static IntSet of(ImmutableList<Integer> numbers)
 	{
-		return new IntSet(combine(numbers.sorted().map(IntRange::wrap)));
+		return build(b -> b.add(numbers));
 	}
 	
 	/**
@@ -68,6 +87,18 @@ public class IntSet implements RichIterable<Integer>
 	
 	
 	// IMPLEMENTED	------------------
+	
+	@Override
+	public IntSetBuilder newBuilder()
+	{
+		return new IntSetBuilder();
+	}
+
+	@Override
+	public IntSet self()
+	{
+		return this;
+	}
 	
 	@Override
 	public String toString()
@@ -151,42 +182,6 @@ public class IntSet implements RichIterable<Integer>
 				return Option.some(range.getStart() <= number);
 			
 		}).getOrElse(false);
-	}
-	
-	/**
-	 * @param number A number
-	 * @return A copy of this set with provided number added
-	 */
-	public IntSet plus(int number)
-	{
-		if (contains(number))
-			return this;
-		else
-			return new IntSet(combine(ranges.plus(IntRange.wrap(number)).sorted()));
-	}
-	
-	/**
-	 * @param numbers multiple numbers
-	 * @return A copy of this set with the numbers added
-	 */
-	public IntSet plus(RichIterable<? extends Integer> numbers)
-	{
-		ImmutableList<? extends Integer> newNumbers = View.of(numbers).filter(i -> !contains(i)).force();
-		if (newNumbers.isEmpty())
-			return this;
-		else
-			return new IntSet(combine(ranges.plus(newNumbers.map(IntRange::wrap)).sorted()));
-	}
-	
-	/**
-	 * @param first A number
-	 * @param second Another number
-	 * @param more More numbers
-	 * @return A copy of this set with numbers added
-	 */
-	public IntSet plus(int first, int second, Integer... more)
-	{
-		return plus(ImmutableList.withValues(first, second, more));
 	}
 	
 	/**

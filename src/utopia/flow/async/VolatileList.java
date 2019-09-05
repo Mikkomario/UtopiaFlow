@@ -62,7 +62,7 @@ public class VolatileList<T> extends Volatile<ImmutableList<T>> implements RichI
 	 */
 	public void remove(Object item)
 	{
-		update(l -> l.minus(item));
+		update(l -> l.without(item));
 	}
 	
 	/**

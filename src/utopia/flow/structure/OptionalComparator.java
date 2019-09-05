@@ -164,7 +164,7 @@ public interface OptionalComparator<T> extends Comparator<T>
 	 */
 	public static <T> int compareAll(ImmutableList<? extends Comparable<? super T>> first, ImmutableList<? extends T> second)
 	{
-		return first.mergedWith(second).flatMapFirst(p -> 
+		return first.zip(second).flatMapFirst(p -> 
 		{
 			int result = p.getFirst().compareTo(p.getSecond());
 			if (result == 0)

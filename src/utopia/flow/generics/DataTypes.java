@@ -42,7 +42,7 @@ public class DataTypes implements ValueParser
 		
 		// Initialises the rest of the basic data types, and adds them under the object type
 		this.dataTypes = this.dataTypes.plus(
-				BasicDataType.VALUES.minus(BasicDataType.OBJECT).map(type -> new DataTypeTreeNode(type, objectNode)));
+				BasicDataType.VALUES.without(BasicDataType.OBJECT).map(type -> new DataTypeTreeNode(type, objectNode)));
 		
 		// Connects number types
 		DataTypeTreeNode number = get(BasicDataType.NUMBER);
@@ -301,7 +301,7 @@ public class DataTypes implements ValueParser
 	 */
 	public void addOperator(ValueOperator operator)
 	{
-		this.operators = this.operators.plusDistinct(operator);
+		this.operators = this.operators.with(operator);
 	}
 	
 	/**
