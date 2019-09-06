@@ -192,4 +192,15 @@ public interface Filterable<A, Repr extends RichIterable<? extends A>,
 	{
 		return minus(items, SAFE_EQUALS);
 	}
+	
+	/**
+	 * @return This item but only if not empty
+	 */
+	public default Option<Repr> notEmpty()
+	{
+		if (isEmpty())
+			return Option.none();
+		else
+			return Option.some(self());
+	}
 }

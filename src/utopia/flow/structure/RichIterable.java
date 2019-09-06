@@ -15,6 +15,7 @@ import java.util.stream.StreamSupport;
 import utopia.flow.function.FunctionUtils;
 import utopia.flow.function.ThrowingConsumer;
 import utopia.flow.function.ThrowingFunction;
+import utopia.flow.function.ThrowingPredicate;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.SkipFirstIterator;
 
@@ -238,6 +239,28 @@ public interface RichIterable<T> extends Iterable<T>
 	}
 	
 	/**
+	 * Checks whether this iterable contains all of the specified items
+	 * @param items Searched items
+	 * @param equals Method for checking equality between items
+	 * @return Whether this iterable contains all of the specified items
+	 */
+	public default <B> boolean containsAll(RichIterable<? extends B> items, 
+			BiPredicate<? super T, ? super B> equals)
+	{
+		return items.forAll(item -> contains(item, equals));
+	}
+	
+	/**
+	 * Checks whether this iterable contains all of the specified items
+	 * @param items Searched items
+	 * @return Whether this iterable contains all of the specified items
+	 */
+	public default boolean containsAll(RichIterable<?> items)
+	{
+		return containsAll(items, SAFE_EQUALS);
+	}
+	
+	/**
 	 * Checks if a predicate is true for all elements in the list
 	 * @param f a predicate
 	 * @return Is the predicate true for all of the elements in this list. True if empty.
@@ -253,6 +276,22 @@ public interface RichIterable<T> extends Iterable<T>
 	 * @return The first element that satisfies the predicate
 	 */
 	public default Option<T> find(Predicate<? super T> f)
+	{
+		for (T element : this)
+		{
+			if (f.test(element))
+				return Option.some(element);
+		}
+		return Option.none();
+	}
+	
+	/**
+	 * @param f A predicate
+	 * @return First element in this iterable that satisfied the predicate
+	 * @throws E If predicate throws
+	 */
+	public default <E extends Exception> Option<T> findThrowing(
+			ThrowingPredicate<? super T, ? extends E> f) throws E
 	{
 		for (T element : this)
 		{
@@ -822,5 +861,35 @@ public interface RichIterable<T> extends Iterable<T>
 	public default View<T> view()
 	{
 		return new View<>(this::iterator);
+	}
+	
+	/**
+	 * Creates a string based on the contents of this iterable
+	 * @param separator A separator added between each item
+	 * @return A string from the contents of this iterable
+	 */
+	public default String mkString(String separator)
+	{
+		StringBuilder s = new StringBuilder();
+		appendAsString(separator, s);
+		return s.toString();
+	}
+	
+	/**
+	 * Appends the contents of this iterable into a string builder
+	 * @param separator Separator placed between the items
+	 * @param builder A string builder
+	 */
+	public default void appendAsString(String separator, StringBuilder builder)
+	{
+		if (nonEmpty())
+		{
+			builder.append(head());
+			tailView().forEach(item -> 
+			{
+				builder.append(separator);
+				builder.append(item);
+			});
+		}
 	}
 }

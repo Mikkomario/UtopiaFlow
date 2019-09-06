@@ -2,7 +2,7 @@ package utopia.flow.structure;
 
 import java.util.function.Function;
 
-import utopia.flow.structure.iterator.RichIterator;
+import utopia.flow.structure.iterator.RangeIterator;
 import utopia.flow.util.StringRepresentable;
 
 /**
@@ -149,6 +149,28 @@ public class Range<T extends Comparable<? super T>> implements RichComparable<Ra
 	// OTHER	------------------------
 	
 	/**
+	 * @return The minimum (smallest) value in this range
+	 */
+	public T getMin()
+	{
+		if (first.compareTo(last) <= 0)
+			return first;
+		else
+			return last;
+	}
+	
+	/**
+	 * @return The maximum (largest) value in this range
+	 */
+	public T getMax()
+	{
+		if (first.compareTo(last) <= 0)
+			return last;
+		else
+			return first;
+	}
+	
+	/**
 	 * Checks whether the provided item is contained in this range
 	 * @param item An item
 	 * @return Whether this range contains the specified item
@@ -159,63 +181,41 @@ public class Range<T extends Comparable<? super T>> implements RichComparable<Ra
 	}
 	
 	/**
+	 * @param other Another range
+	 * @return Whether this range contains the whole other range
+	 */
+	public boolean contains(Range<? extends T> other)
+	{
+		return contains(other.getStart()) && contains(other.getEnd());
+	}
+	
+	/**
+	 * @param other Another range
+	 * @return Whether these two ranges overlap
+	 */
+	public boolean overlapsWith(Range<? extends T> other)
+	{
+		return contains(other.getStart()) || contains(other.getEnd());
+	}
+	
+	/**
+	 * Converts this range to a view of items in the range
+	 * @param increment A function used for incrementing the values (Must always move towards the end value)
+	 * @return A view of the items in this range
+	 */
+	public View<T> view(Function<? super T, ? extends T> increment)
+	{
+		return new View<>(() -> new RangeIterator<>(getFirst(), getLast(), increment));
+	}
+	
+	/**
 	 * Converts this range to a view of items in the range
 	 * @param increment A function used for incrementing the values (Must always return a larger value!)
 	 * @return A view of the items in this range
+	 * @deprecated Please use {@link #view(Function)} instead
 	 */
 	public View<T> toView(Function<? super T, ? extends T> increment)
 	{
-		return new View<>(() -> new RangeIterator(increment));
-	}
-	
-	
-	// NESTED CLASSES	----------------
-	
-	/**
-	 * These iterators are used for iterating through a range of items
-	 * @author Mikko Hilpinen
-	 * @since 25.7.2018
-	 */
-	protected class RangeIterator implements RichIterator<T>
-	{
-		// ATTRIBUTES	----------------
-		
-		private Function<? super T, ? extends T> increment;
-		private T nextItem = getFirst();
-		
-		
-		// CONSTRUCTOR	----------------
-		
-		/**
-		 * Creates a new iterator
-		 * @param increment The increment function
-		 */
-		public RangeIterator(Function<? super T, ? extends T> increment)
-		{
-			this.increment = increment;
-		}
-		
-		
-		// IMPLEMENTED	---------------
-		
-		@Override
-		public boolean hasNext()
-		{
-			return nextItem.compareTo(getLast()) <= 0;
-		}
-
-		@Override
-		public T next()
-		{
-			T next = nextItem;
-			nextItem = increment.apply(next);
-			return next;
-		}
-
-		@Override
-		public T poll()
-		{
-			return nextItem;
-		}
+		return new View<>(() -> new RangeIterator<>(getFirst(), getLast(), increment));
 	}
 }

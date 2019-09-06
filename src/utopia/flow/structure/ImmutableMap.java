@@ -200,22 +200,9 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	@Override
 	public String toString()
 	{
-		StringBuilder s = new StringBuilder("");
+		StringBuilder s = new StringBuilder();
 		s.append("{");
-		
-		boolean isFirst = true;
-		for (Pair<Key, Value> keyValuePair : toSet())
-		{
-			if (isFirst)
-				isFirst = false;
-			else
-				s.append(", ");
-			
-			s.append(keyValuePair.getFirst());
-			s.append(":");
-			s.append(keyValuePair.getSecond());
-		}
-		
+		view().map(p -> p.getFirst() + ": " + p.getSecond()).appendAsString(", ", s);
 		s.append("}");
 		return s.toString();
 	}

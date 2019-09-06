@@ -5,9 +5,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -15,7 +13,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import utopia.flow.function.ThrowingFunction;
-import utopia.flow.function.ThrowingPredicate;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.StringCharIterator;
 import utopia.flow.util.StringRepresentable;
@@ -27,7 +24,7 @@ import utopia.flow.util.StringRepresentable;
  * @since 2.11.2017
  */
 public class ImmutableList<T> implements RichIterable<T>, StringRepresentable, 
-	Appendable<T, ImmutableList<T>, ListBuilder<T>>
+	Appendable<T, ImmutableList<T>, ListBuilder<T>>, Sequence<T, ImmutableList<T>, ListBuilder<T>>
 {
 	// ATTRIBUTES	-------------------
 	
@@ -324,13 +321,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	public String toString()
 	{
 		StringBuilder s = new StringBuilder("[");
-		
-		if (!isEmpty())
-		{
-			s.append(head());
-			tail().forEach(item -> s.append(", " + item));
-		}
-		
+		appendAsString(", ", s);
 		s.append("]");
 		
 		return s.toString();
@@ -348,6 +339,18 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 		return this.list.stream();
 	}
 	
+	@Override
+	public int size()
+	{
+		return this.size.get();
+	}
+	
+	@Override
+	public T get(int index) throws IndexOutOfBoundsException
+	{
+		return this.list.get(index);
+	}
+	
 	
 	// OTHER METHODS	--------------
 	
@@ -360,78 +363,12 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	}
 	
 	/**
-	 * @return The size of this list
-	 */
-	public int size()
-	{
-		return this.size.get();
-	}
-	
-	/**
 	 * @return The range of the indices of this list
+	 * @deprecated Please use {@link #indices()} instead
 	 */
 	public IntRange getRange()
 	{
 		return Range.fromUntil(0, size());
-	}
-	
-	/**
-	 * Retrieves a specific index from the list
-	 * @param index an index from the list
-	 * @return The element from the specified index
-	 */
-	public T get(int index)
-	{
-		return this.list.get(index);
-	}
-	
-	/**
-	 * Finds the item at specified index or none if this list doesn't have such an index
-	 * @param index The target index
-	 * @return An item from the specified index
-	 */
-	public Option<T> getOption(int index)
-	{
-		if (index >= 0 && index < size())
-			return Option.some(get(index));
-		else
-			return Option.none();
-	}
-	
-	/**
-	 * Retrieves a range of items from this list
-	 * @param from The minimum index (inclusive)
-	 * @param to The maximum index (inclusive)
-	 * @return Items within the specified range. The size of the list may be smaller than the 
-	 * length of the range if the range was (partially) outside this list's range
-	 */
-	public ImmutableList<T> getInRange(int from, int to)
-	{
-		int realStart = Math.max(from, 0);
-		int realEnd = Math.min(to, size() - 1);
-		
-		if (realEnd <= realStart)
-			return ImmutableList.empty();
-		else
-		{
-			ArrayList<T> buffer = new ArrayList<>(realEnd - realStart);
-			for (int i = realStart; i <= realEnd; i ++)
-			{
-				buffer.add(get(i));
-			}
-			return new ImmutableList<>(buffer);
-		}
-	}
-	
-	/**
-	 * Finds all items within a specified range
-	 * @param range a range
-	 * @return Items within the specified range. The size of the list may be smaller than the 
-	 * length of the range if the range was (partially) outside this list's range
-	 */
-	public ImmutableList<T> get(Range<? extends Integer> range)
-	{
-		return getInRange(range.getStart(), range.getEnd());
 	}
 	
 	/**
@@ -444,51 +381,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 		return this.list.containsAll(elements);
 	}
 	
-	/**
-	 * Checks whether this list contains all of the elements from the specified collection
-	 * @param elements A collection of elements
-	 * @return Whether this list contains all elements from the specified collection
-	 */
-	public boolean containsAll(ImmutableList<?> elements)
-	{
-		return containsAll(elements.list);
-	}
-	
-	/**
-	 * Checks whether this list contains all and only the elements from the other list. The order of the items 
-	 * isn't checked in this operation.
-	 * @param other Another list
-	 * @return Whether this list contains the same elements as the other list, possibly in different order
-	 * @see #equals(Object)
-	 */
-	public boolean containsExactly(ImmutableList<?> other)
-	{
-		return size() == other.size() && containsAll(other);
-	}
-	
-	/**
-	 * Checks whether the contents of this list can be considered equal with another list's contents
-	 * @param other Another list
-	 * @param equalityCheck A function used for checking equality between items
-	 * @return Whether the contents of this list are considered equal with the other list's contents 
-	 * (using specified function)
-	 */
-	public <B> boolean equals(ImmutableList<? extends B> other, BiPredicate<? super T, ? super B> equalityCheck)
-	{
-		if (size() != other.size())
-			return false;
-		else
-		{
-			for (int i = 0; i < size(); i++)
-			{
-				if (!equalityCheck.test(get(i), other.get(i)))
-					return false;
-			}
-			
-			return true;
-		}
-	}
-	
+	// TODO: Move to appendable sequence
 	/**
 	 * Creates a new list with the specified element added to a certain index
 	 * @param element The element that is added
@@ -509,6 +402,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 		}
 	}
 	
+	// TODO: Move to appendable sequence
 	/**
 	 * Overwrites an element at a specified index
 	 * @param element The new element
@@ -543,6 +437,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 			return plus(element);
 	}
 	
+	// TODO: Move to appendable sequence
 	/**
 	 * Creates a new list with the element prepended (to the beginning of the list)
 	 * @param element an element
@@ -556,6 +451,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 		return new ImmutableList<>(mutable);
 	}
 	
+	// TODO: Move to appendable sequence
 	/**
 	 * Creates a new list with the element prepended (to the beginning of the list).
 	 * @param element an element
@@ -602,104 +498,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	public <U> ImmutableList<Pair<T, U>> mergedWith(Iterable<? extends U> other)
 	{
 		return mergedWith(other, (a, b) -> new Pair<>(a, b));
-	}
-	
-	/**
-	 * Finds the index of a specified element in this list
-	 * @param element an element
-	 * @return The index of the element in this list or None if no such element exists
-	 */
-	public Option<Integer> indexOf(Object element)
-	{
-		return Option.positiveInt(list.indexOf(element), true);
-	}
-	
-	/**
-	 * Finds the first index where the predicate is true
-	 * @param f a predicate for finding the index
-	 * @return The first index where the predicate is true or None if no such index exists
-	 */
-	public Option<Integer> indexWhere(Predicate<? super T> f)
-	{
-		for (int i = 0; i < size(); i++)
-		{
-			if (f.test(get(i)))
-				return Option.some(i);
-		}
-		return Option.none();
-	}
-	
-	/**
-	 * Finds the first index where the predicate is true. May throw
-	 * @param f The predicate for finding the index. May throw
-	 * @return The first index where the predicate is true. None if no such index exists
-	 * @throws E If the predicate failed at any point
-	 */
-	public <E extends Exception> Option<Integer> indexWhereThrowing(ThrowingPredicate<? super T, E> f) throws E
-	{
-		for (int i = 0; i < size(); i++)
-		{
-			if (f.test(get(i)))
-				return Option.some(i);
-		}
-		
-		return Option.none();
-	}
-	
-	/**
-	 * Finds the last index where the provided predicate holds true
-	 * @param find A function for testing an instance
-	 * @return The last index in this list where the instance was accepted by the predicate 
-	 * (None if no such index was found)
-	 */
-	public Option<Integer> lastIndexWhere(Predicate<? super T> find)
-	{
-		for (int i = size() - 1; i >= 0; i--)
-		{
-			if (find.test(get(i)))
-				return Option.some(i);
-		}
-		return Option.none();
-	}
-	
-	/**
-	 * Finds the last index for the specified object
-	 * @param element An object
-	 * @return The last index where there is an equal element in this list. None if element didn't 
-	 * exist in this list
-	 */
-	public Option<Integer> lastIndexOf(Object element)
-	{
-		return Option.positiveInt(list.lastIndexOf(element), true);
-	}
-	
-	/**
-	 * Finds the last item that fulfills the provided predicate (starts the check from the end of 
-	 * this list)
-	 * @param find A function for finding the desired item
-	 * @return The searched item if one was found
-	 */
-	public Option<T> lastWhere(Predicate<? super T> find)
-	{
-		for (int i = size() - 1; i >= 0; i--)
-		{
-			T element = get(i);
-			if (find.test(element))
-				return Option.some(element);
-		}
-		return Option.none();
-	}
-	
-	/**
-	 * @param index Index to drop from this list
-	 * @return A copy of this list without the item at specified index
-	 */
-	public ImmutableList<T> dropIndex(int index)
-	{
-		if (index < 0 || index >= size())
-			return this;
-		else
-			return first(index).plus(dropFirst(index + 1));
 	}
 	
 	/**
@@ -754,101 +552,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	}
 	
 	/**
-	 * @return A reversed version of this list
-	 */
-	public ImmutableList<T> reversed()
-	{
-		ArrayList<T> copy = new ArrayList<>(size());
-		for (int i = size() - 1; i >= 0; i--)
-		{
-			copy.add(get(i));
-		}
-		
-		return new ImmutableList<>(copy);
-	}
-	
-	/**
-	 * @param n A number of elements to be dropped
-	 * @return A copy of this list without the first n elements
-	 */
-	public ImmutableList<T> dropFirst(int n)
-	{
-		if (isEmpty())
-			return this;
-		else if (n <= 0)
-			return this;
-		else
-		{
-			ArrayList<T> result = new ArrayList<>(Math.max(size() - n, 0));
-			for (int i = n; i < size(); i++) { result.add(get(i)); }
-			return new ImmutableList<>(result);
-		}
-	}
-	
-	/**
-	 * @return A copy of this list without the first element
-	 */
-	public ImmutableList<T> tail()
-	{
-		return dropFirst(1);
-	}
-	
-	/**
-	 * @param n The number of elements to be dropped
-	 * @return A copy of this list without the last n elements
-	 */
-	public ImmutableList<T> dropLast(int n)
-	{
-		if (isEmpty())
-			return this;
-		else if (n <= 0)
-			return this;
-		else
-		{
-			ArrayList<T> result = new ArrayList<>(Math.max(size() - n, 0));
-			for (int i = 0; i < size() - n; i++) { result.add(get(i)); }
-			return new ImmutableList<>(result);
-		}
-	}
-	
-	/**
-	 * @param n The number of elements to be included
-	 * @return The last n elements of this list
-	 */
-	public ImmutableList<T> last(int n)
-	{
-		if (n <= 0)
-			return empty();
-		else if (n >= size())
-			return this;
-		else
-		{
-			ArrayList<T> result = new ArrayList<>(n);
-			for (int i = size() - n; i < size(); i++) { result.add(get(i)); }
-			return new ImmutableList<>(result);
-		}
-	}
-	
-	/**
-	 * @return The first element in this list. None if the list is empty or the element is null.
-	 */
-	public Option<T> first()
-	{
-		return headOption();
-	}
-	
-	/**
-	 * @return The last element in this list. None if the list is empty or the element is null.
-	 */
-	public Option<T> last()
-	{
-		if (isEmpty())
-			return Option.none();
-		else
-			return new Option<>(get(size() - 1));
-	}
-	
-	/**
 	 * Maps this list
 	 * @param f a mapping function
 	 * @return The mapped list
@@ -888,33 +591,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 */
 	public <B> ImmutableList<B> mapWithIndex(BiFunction<? super T, ? super Integer, ? extends B> f)
 	{
-		ArrayList<B> buffer = new ArrayList<>(size());
-		for (int i = 0; i < size(); i++)
-		{
-			buffer.add(f.apply(get(i), i));
-		}
-		return new ImmutableList<>(buffer);
-	}
-	
-	/**
-	 * Maps only a certain index. If index is out of bounds, returns this list instead.
-	 * @param index The target index
-	 * @param f A map function
-	 * @return A copy of this list with one index mapped
-	 */
-	public ImmutableList<T> mapIndex(int index, Function<? super T, ? extends T> f)
-	{
-		if (index < 0 || index >= size())
-			return this;
-		else
-		{
-			ArrayList<T> buffer = new ArrayList<>(size());
-			for (int i = 0; i < index; i++) { buffer.add(get(i)); }
-			buffer.add(f.apply(get(index)));
-			for (int i = index + 1; i < size(); i++) { buffer.add(get(i)); }
-			
-			return new ImmutableList<>(buffer);
-		}
+		return mapWithIndex(f, ListBuilder::new);
 	}
 	
 	/**
@@ -960,17 +637,5 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 			ThrowingFunction<? super T, ? extends Iterable<? extends B>, ? extends E> f) throws E
 	{
 		return flatMapThrowing(f, ListBuilder::new);
-	}
-	
-	/**
-	 * Performs an operation on each item in this list. The index of each item is also provided for the operation.
-	 * @param f A function that will be performed for each item index pair
-	 */
-	public void forEachWithIndex(BiConsumer<? super T, ? super Integer> f)
-	{
-		for (int i = 0; i < size(); i++)
-		{
-			f.accept(get(i), i);
-		}
 	}
 }

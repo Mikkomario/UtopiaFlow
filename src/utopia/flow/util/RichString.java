@@ -14,7 +14,9 @@ import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.IntRange;
 import utopia.flow.structure.Option;
 import utopia.flow.structure.Range;
+import utopia.flow.structure.RichComparable;
 import utopia.flow.structure.RichIterable;
+import utopia.flow.structure.Sequence;
 import utopia.flow.structure.Try;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.StringCharIterator;
@@ -25,7 +27,8 @@ import utopia.flow.structure.iterator.StringCharIterator;
  * @since 20.9.2018
  */
 public class RichString implements RichIterable<Character>, StringRepresentable, 
-	Appendable<Character, RichString, RichStringBuilder>
+	Appendable<Character, RichString, RichStringBuilder>, RichComparable<RichString>, 
+	Sequence<Character, RichString, RichStringBuilder>
 {
 	// ATTRIBUTES	-----------------
 	
@@ -207,6 +210,24 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 		return this;
 	}
 	
+	@Override
+	public int compareTo(RichString o)
+	{
+		return s.compareTo(o.s);
+	}
+	
+	@Override
+	public int size()
+	{
+		return s.length();
+	}
+
+	@Override
+	public Character get(int index) throws IndexOutOfBoundsException
+	{
+		return s.charAt(index);
+	}
+	
 	
 	// OTHERS	--------------------
 
@@ -215,7 +236,7 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	 */
 	public int length()
 	{
-		return s.length();
+		return size();
 	}
 	
 	/**
@@ -255,16 +276,6 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	
 	/**
 	 * Checks whether this string contains all of the specified strings (case-sensitive)
-	 * @param strings Searched strings
-	 * @return Whether this string containsl all of the specified strings
-	 */
-	public boolean containsAll(RichIterable<? extends String> strings)
-	{
-		return containsAll(strings, true);
-	}
-	
-	/**
-	 * Checks whether this string contains all of the specified strings (case-sensitive)
 	 * @param first First string to search
 	 * @param second Second string to search
 	 * @param more More strings to search
@@ -272,7 +283,7 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	 */
 	public boolean containsAll(String first, String second, String... more)
 	{
-		return containsAll(ImmutableList.withValues(first, second, more));
+		return containsAll(ImmutableList.withValues(first, second, more), true);
 	}
 	
 	/**
@@ -486,14 +497,6 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	}
 	
 	/**
-	 * @return The tail (all but the first character) of this string as a string
-	 */
-	public RichString tail()
-	{
-		return of(characters().tail());
-	}
-	
-	/**
 	 * @return The tail (all but the first character) of this string as a string. None if this string is 0-1 characters
 	 */
 	public Option<RichString> tailOption()
@@ -505,26 +508,9 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	}
 	
 	/**
-	 * @param n The amount of characters to drop
-	 * @return A version of this string with first n characters removed
-	 */
-	public RichString dropFirst(int n)
-	{
-		return of(characters().dropFirst(n));
-	}
-	
-	/**
-	 * @param n The amount of characters to drop
-	 * @return A version of this string with last n characters removed
-	 */
-	public RichString dropLast(int n)
-	{
-		return of(characters().dropLast(n));
-	}
-	
-	/**
 	 * @param range The target range
 	 * @return The part of this string that overlaps with the provided range
+	 * @deprecated Please use {@link #get(Range)} instead
 	 */
 	public RichString range(Range<? extends Integer> range)
 	{
@@ -535,6 +521,7 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	 * @param startInclusive The first included character index
 	 * @param endInclusive The last included character index
 	 * @return The part of this string that overlaps with the provided range
+	 * @deprecated Please use {@link #getInRange(int, int)} instead
 	 */
 	public RichString range(int startInclusive, int endInclusive)
 	{

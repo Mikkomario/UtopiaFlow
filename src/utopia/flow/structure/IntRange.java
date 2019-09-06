@@ -1,5 +1,6 @@
 package utopia.flow.structure;
 
+import utopia.flow.structure.iterator.RangeIterator;
 import utopia.flow.structure.iterator.RichIterator;
 
 /**
@@ -37,7 +38,7 @@ public class IntRange extends Range<Integer> implements RichIterable<Integer>
 	@Override
 	public RichIterator<Integer> iterator()
 	{
-		return new RangeIterator(i -> i + 1);
+		return RangeIterator.forIntegers(getStart(), getEnd());
 	}
 	
 	
@@ -48,6 +49,34 @@ public class IntRange extends Range<Integer> implements RichIterable<Integer>
 	 */
 	public int length()
 	{
-		return getLast() - getFirst() + 1;
+		return Math.abs(getLast() - getFirst()) + 1;
+	}
+	
+	/**
+	 * @return A copy of this range in opposite order
+	 */
+	public IntRange reversed()
+	{
+		return new IntRange(getLast(), getFirst());
+	}
+	
+	/**
+	 * @param start New starting value
+	 * @return A copy of this range with the new starting value. Please note that range order may 
+	 * change.
+	 */
+	public IntRange withStart(int start)
+	{
+		return new IntRange(start, getEnd());
+	}
+	
+	/**
+	 * @param end New ending value
+	 * @return A copy of this range with the new end value. Please note that range order may 
+	 * change.
+	 */
+	public IntRange withEnd(int end)
+	{
+		return new IntRange(getStart(), end);
 	}
 }
