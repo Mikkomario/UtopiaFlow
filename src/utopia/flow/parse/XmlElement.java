@@ -186,7 +186,7 @@ public class XmlElement implements XmlElementTemplate<XmlElement>, StringReprese
 	{
 		XmlListBuilder buffer = new XmlListBuilder();
 		fill.accept(buffer);
-		return new XmlElement(name, buffer.build());
+		return new XmlElement(name, buffer.result());
 	}
 	
 	/*

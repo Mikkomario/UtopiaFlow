@@ -26,6 +26,24 @@ public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>,
 	{
 		super(new HashMap<>());
 	}
+	
+	/**
+	 * Creates an empty buffer
+	 * @param capacity (Initial) capacity for this builder
+	 */
+	public MapBuilder(int capacity)
+	{
+		super(new HashMap<>(capacity));
+	}
+	
+	/**
+	 * Creates an empty buffer
+	 * @param capacity (Initial) capacity for this builder
+	 */
+	public MapBuilder(Option<Integer> capacity)
+	{
+		super(capacity.handleMap(HashMap::new, HashMap::new));
+	}
 
 	/**
 	 * Creates a buffer with an initial value

@@ -16,6 +16,15 @@ public class ListBuilder<T> extends Builder<ImmutableList<T>, ArrayList<T>, T>
 	
 	/**
 	 * Creates a new builder
+	 * @param capacity The (initial) capacity of this builder (optional)
+	 */
+	public ListBuilder(Option<Integer> capacity)
+	{
+		super(capacity.handleMap(ArrayList::new, ArrayList::new));
+	}
+	
+	/**
+	 * Creates a new builder
 	 */
 	public ListBuilder()
 	{
@@ -24,7 +33,7 @@ public class ListBuilder<T> extends Builder<ImmutableList<T>, ArrayList<T>, T>
 	
 	/**
 	 * Creates a new builder
-	 * @param initialCapacity The intial capacity of the buffer
+	 * @param initialCapacity The (initial) capacity of this builder
 	 */
 	public ListBuilder(int initialCapacity)
 	{
@@ -46,7 +55,7 @@ public class ListBuilder<T> extends Builder<ImmutableList<T>, ArrayList<T>, T>
 	 * @param items The initial items in the builder
 	 * @return A builder with first values set
 	 */
-	public static <T> ListBuilder<T> withValues(Iterable<? extends T> items)
+	public static <T> ListBuilder<T> withValues(RichIterable<? extends T> items)
 	{
 		ListBuilder<T> builder = new ListBuilder<>();
 		builder.add(items);

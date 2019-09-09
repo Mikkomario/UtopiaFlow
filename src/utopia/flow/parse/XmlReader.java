@@ -289,7 +289,7 @@ public class XmlReader implements AutoCloseable
 			depth += nextResult.getSecond();
 		}
 		
-		return buffer.build();
+		return buffer.result();
 	}
 	
 	/**

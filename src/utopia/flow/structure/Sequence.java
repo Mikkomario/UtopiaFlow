@@ -5,7 +5,6 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 import utopia.flow.function.ThrowingPredicate;
 
@@ -34,6 +33,15 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 	 * @throws IndexOutOfBoundsException If index was outside this sequence's bounds (0 - size-1)
 	 */
 	public A get(int index) throws IndexOutOfBoundsException;
+	
+	
+	// IMPLEMENTED	----------------
+	
+	@Override
+	public default Option<Integer> estimatedSize()
+	{
+		return Option.some(size());
+	}
 	
 	
 	// OTHER	--------------------
@@ -72,7 +80,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 		int realEnd = Math.min(to, size() - 1);
 		
 		if (realEnd <= realStart)
-			return newBuilder().build();
+			return emptyCopy();
 		else
 		{
 			DefaultBuilder builder = newBuilder();
@@ -80,7 +88,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 			{
 				builder.add(get(i));
 			}
-			return builder.build();
+			return builder.result();
 		}
 	}
 	
@@ -239,9 +247,9 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 	 */
 	public default Repr reversed()
 	{
-		DefaultBuilder builder = newBuilder();
+		DefaultBuilder builder = newBuilder(size());
 		builder.add(reversedView());
-		return builder.build();
+		return builder.result();
 	}
 
 	/**
@@ -253,7 +261,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 		if (isEmpty() || n <= 0)
 			return self();
 		else if (n >= size())
-			return newBuilder().build();
+			return emptyCopy();
 		else
 			return indices().withStart(n).map(this::get, this::newBuilder);
 	}
@@ -275,7 +283,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 		if (isEmpty() || n <= 0)
 			return self();
 		else if (n >= size())
-			return newBuilder().build();
+			return emptyCopy();
 		else
 			return indices().withEnd(size() - n - 1).map(this::get, this::newBuilder);
 	}
@@ -286,7 +294,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 	 */
 	public default Repr dropLastWhile(Predicate<? super A> f)
 	{
-		return lastIndexWhere(f.negate()).map(i -> first(i + 1)).getOrElse(() -> newBuilder().build());
+		return lastIndexWhere(f.negate()).map(i -> first(i + 1)).getOrElse(this::emptyCopy);
 	}
 	
 	/**
@@ -296,7 +304,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 	public default Repr last(int n)
 	{
 		if (n <= 0)
-			return newBuilder().build();
+			return emptyCopy();
 		else if (n >= size())
 			return self();
 		else
@@ -332,10 +340,10 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 			return self();
 		else
 		{
-			DefaultBuilder builder = newBuilder();
+			DefaultBuilder builder = newBuilder(size() - 1);
 			builder.add(first(index));
 			builder.add(dropFirst(index + 1));
-			return builder.build();
+			return builder.result();
 		}
 	}
 	
@@ -346,11 +354,11 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 	 * @return A list with mapped values
 	 */
 	public default <B, R> R mapWithIndex(BiFunction<? super A, ? super Integer, ? extends B> f, 
-			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder)
+			Function<? super Integer, ? extends Builder<? extends R, ?, ? super B>> makeBuilder)
 	{
-		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
+		Builder<? extends R, ?, ? super B> builder = makeBuilder.apply(size());
 		indices().forEach(i -> builder.add(f.apply(get(i), i)));
-		return builder.build();
+		return builder.result();
 	}
 	
 	/**
@@ -365,11 +373,11 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 			return self();
 		else
 		{
-			DefaultBuilder builder = newBuilder();
+			DefaultBuilder builder = newBuilder(size());
 			builder.add(first(index - 1));
 			builder.add(f.apply(get(index)));
 			builder.add(dropFirst(index + 1));
-			return builder.build();
+			return builder.result();
 		}
 	}
 	

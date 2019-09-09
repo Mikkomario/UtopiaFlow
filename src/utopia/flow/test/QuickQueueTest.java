@@ -38,7 +38,7 @@ public class QuickQueueTest
 			WaitUtils.wait(Duration.ofMillis(random.nextInt(10)), genLock);
 		}
 		
-		ImmutableList<Promise<Unit>> completions = completionsBuffer.build();
+		ImmutableList<Promise<Unit>> completions = completionsBuffer.result();
 		Test.check(completions.size() == maxGenItems);
 		
 		System.out.println("All completions created");

@@ -17,9 +17,10 @@ public interface Filterable<A, Repr extends RichIterable<? extends A>,
 	// ABSTRACT	---------------
 	
 	/**
+	 * @param capacity Estimated size of the new collection. None if no estimation could be provided
 	 * @return A new empty builder used for creating items like this one
 	 */
-	public DefaultBuilder newBuilder();
+	public DefaultBuilder newBuilder(Option<Integer> capacity);
 	
 	/**
 	 * @return this collection as "Repr"
@@ -28,6 +29,31 @@ public interface Filterable<A, Repr extends RichIterable<? extends A>,
 	
 	
 	// OTHER	---------------
+	
+	/**
+	 * @return A new empty builder used for creating items like this one
+	 */
+	public default DefaultBuilder newBuilder()
+	{
+		return newBuilder(Option.none());
+	}
+	
+	/**
+	 * @param capacity Estimated size of the new collection
+	 * @return A new empty builder used for creating items like this one
+	 */
+	public default DefaultBuilder newBuilder(int capacity)
+	{
+		return newBuilder(Option.some(capacity));
+	}
+	
+	/**
+	 * @return An empty copy of this collection
+	 */
+	public default Repr emptyCopy()
+	{
+		return newBuilder(0).result();
+	}
 	
 	/**
 	 * The first n items in this iterable
@@ -46,7 +72,7 @@ public interface Filterable<A, Repr extends RichIterable<? extends A>,
 	 */
 	public default Repr takeWhile(Predicate<? super A> f)
 	{
-		return iterator().takeWhile(f, this::newBuilder);
+		return iterator().takeWhile(f, () -> newBuilder(estimatedSize()));
 	}
 	
 	/**
@@ -96,13 +122,13 @@ public interface Filterable<A, Repr extends RichIterable<? extends A>,
 	 */
 	public default Repr filter(Predicate<? super A> f)
 	{
-		DefaultBuilder builder = newBuilder();
+		DefaultBuilder builder = newBuilder(estimatedSize());
 		forEach(a -> 
 		{
 			if (f.test(a))
 				builder.add(a);
 		});
-		return builder.build();
+		return builder.result();
 	}
 	
 	/**
@@ -134,14 +160,14 @@ public interface Filterable<A, Repr extends RichIterable<? extends A>,
 	 */
 	public default Repr distinct(BiPredicate<? super A, ? super A> equals)
 	{
-		DefaultBuilder distinctValues = newBuilder();
+		DefaultBuilder distinctValues = newBuilder(estimatedSize());
 		forEach(item -> 
 		{
 			if (!distinctValues.contains(item, equals))
 				distinctValues.add(item);
 		});
 		
-		return distinctValues.build();
+		return distinctValues.result();
 	}
 	
 	/**

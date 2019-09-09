@@ -35,6 +35,12 @@ public class VolatileList<T> extends Volatile<ImmutableList<T>> implements RichI
 		return get().iterator();
 	}
 	
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return get().estimatedSize();
+	}
+	
 	
 	// OTHER	------------------------
 	
@@ -51,7 +57,7 @@ public class VolatileList<T> extends Volatile<ImmutableList<T>> implements RichI
 	 * Adds multiple items to this list
 	 * @param items The items to add
 	 */
-	public void addAll(Iterable<? extends T> items)
+	public void addAll(RichIterable<? extends T> items)
 	{
 		update(l -> l.plus(items));
 	}

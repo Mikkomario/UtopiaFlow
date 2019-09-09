@@ -1,5 +1,6 @@
 package utopia.flow.structure;
 
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -170,9 +171,15 @@ public class Option<T> implements RichIterable<T>, StringRepresentable,
 	// IMPLEMENTED METHODS	-------------------
 	
 	@Override
-	public OptionBuilder<T> newBuilder()
+	public OptionBuilder<T> newBuilder(Option<Integer> capacity)
 	{
 		return new OptionBuilder<>();
+	}
+
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return Option.some(isDefined() ? 1 : 0);
 	}
 
 	@Override
@@ -375,7 +382,7 @@ public class Option<T> implements RichIterable<T>, StringRepresentable,
 	public <B, E extends Exception> Option<B> mapThrowing(ThrowingFunction<? super T, ? extends B, 
 			? extends E> f) throws E
 	{
-		return mapThrowing(f, OptionBuilder::new);
+		return mapThrowing(f, i -> new OptionBuilder<>());
 	}
 	
 	/**
@@ -385,7 +392,7 @@ public class Option<T> implements RichIterable<T>, StringRepresentable,
 	 */
 	public <B> Try<Option<B>> tryMap(Function<? super T, ? extends Try<? extends B>> f)
 	{
-		return tryMap(f, OptionBuilder::new);
+		return tryMap(f, i -> new OptionBuilder<>());
 	}
 	
 	/**
@@ -432,7 +439,7 @@ public class Option<T> implements RichIterable<T>, StringRepresentable,
 	 */
 	public <B> Option<B> mapCatching(ThrowingFunction<? super T, ? extends B, ?> f)
 	{
-		return mapCatching(f, OptionBuilder::new);
+		return mapCatching(f, i -> new OptionBuilder<>());
 	}
 	
 	/**
@@ -522,6 +529,18 @@ public class Option<T> implements RichIterable<T>, StringRepresentable,
 			return itemMap.apply(value);
 		else
 			return emptyHandler.get();
+	}
+	
+	/**
+	 * Merges this option with another. Produces a value only if both options are defined.
+	 * @param other Another option
+	 * @param merge A merge function
+	 * @return Merged value if both options were non-empty
+	 */
+	public <B, Merge> Option<Merge> mergedWith(Option<? extends B> other, 
+			BiFunction<? super T, ? super B, ? extends Merge> merge)
+	{
+		return mergedWith(other, merge, i -> new OptionBuilder<>());
 	}
 	
 	

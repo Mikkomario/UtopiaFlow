@@ -19,12 +19,30 @@ public class WeakListBuilder<A> extends Builder<WeakList<A>, ListBuilder<WeakRef
 	{
 		super(new ListBuilder<>());
 	}
+	
+	/**
+	 * Creates a new weak list builder
+	 * @param capacity Builder capacity
+	 */
+	public WeakListBuilder(int capacity)
+	{
+		super(new ListBuilder<>(capacity));
+	}
+	
+	/**
+	 * Creates a new weak list builder
+	 * @param capacity Builder capacity
+	 */
+	public WeakListBuilder(Option<Integer> capacity)
+	{
+		super(new ListBuilder<>(capacity));
+	}
 
 	@Override
 	protected WeakList<A> newResultFrom(ListBuilder<WeakReference<A>> buffer)
 	{
 		// Will not include empty references
-		return new WeakList<>(buffer.build().filter(ref -> ref.get() != null));
+		return new WeakList<>(buffer.result().filter(ref -> ref.get() != null));
 	}
 
 	@Override

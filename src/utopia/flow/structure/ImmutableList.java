@@ -24,7 +24,7 @@ import utopia.flow.util.StringRepresentable;
  * @since 2.11.2017
  */
 public class ImmutableList<T> implements RichIterable<T>, StringRepresentable, 
-	Appendable<T, ImmutableList<T>, ListBuilder<T>>, Sequence<T, ImmutableList<T>, ListBuilder<T>>
+	AppendableSequence<T, ImmutableList<T>, ListBuilder<T>>
 {
 	// ATTRIBUTES	-------------------
 	
@@ -265,7 +265,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	{
 		ListBuilder<T> buffer = new ListBuilder<>();
 		fill.accept(buffer);
-		return buffer.build();
+		return buffer.result();
 	}
 
 
@@ -278,9 +278,9 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	}
 	
 	@Override
-	public ListBuilder<T> newBuilder()
+	public ListBuilder<T> newBuilder(Option<Integer> capacity)
 	{
-		return new ListBuilder<>();
+		return new ListBuilder<>(capacity);
 	}
 	
 	@Override
@@ -381,48 +381,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 		return this.list.containsAll(elements);
 	}
 	
-	// TODO: Move to appendable sequence
-	/**
-	 * Creates a new list with the specified element added to a certain index
-	 * @param element The element that is added
-	 * @param index The index the element is added to
-	 * @return A list with the element added
-	 */
-	public ImmutableList<T> plus(T element, int index)
-	{
-		if (index <= 0)
-			return prepend(element);
-		else if (index >= size() - 1)
-			return plus(element);
-		else
-		{
-			List<T> mutable = toMutableList();
-			mutable.add(index, element);
-			return new ImmutableList<>(mutable);
-		}
-	}
-	
-	// TODO: Move to appendable sequence
-	/**
-	 * Overwrites an element at a specified index
-	 * @param element The new element
-	 * @param index The index that is replaced
-	 * @return The new version of the list
-	 */
-	public ImmutableList<T> overwrite(T element, int index)
-	{
-		if (index < 0)
-			return prepend(element);
-		else if (index >= size())
-			return plus(element);
-		else
-		{
-			List<T> mutable = toMutableList();
-			mutable.set(index, element);
-			return new ImmutableList<>(mutable);
-		}
-	}
-	
 	/**
 	 * Creates a new list with the element appended. If the element already exists on the list, returns self
 	 * @param element The element that will be included in the list
@@ -437,31 +395,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 			return plus(element);
 	}
 	
-	// TODO: Move to appendable sequence
-	/**
-	 * Creates a new list with the element prepended (to the beginning of the list)
-	 * @param element an element
-	 * @return a list with the element prepended
-	 */
-	public ImmutableList<T> prepend(T element)
-	{
-		ArrayList<T> mutable = new ArrayList<>(size() + 1);
-		mutable.add(element);
-		mutable.addAll(this.list);
-		return new ImmutableList<>(mutable);
-	}
-	
-	// TODO: Move to appendable sequence
-	/**
-	 * Creates a new list with the element prepended (to the beginning of the list).
-	 * @param element an element
-	 * @return a list with the element prepended. If an empty element was provided, this list is returned
-	 */
-	public ImmutableList<T> prepend(Option<? extends T> element)
-	{
-		return element.map(e -> prepend(e)).getOrElse(this);
-	}
-	
 	/**
 	 * Merges this list with another list using a merge function. If the lists have different sizes, only the 
 	 * beginning of one of the list will be used
@@ -470,7 +403,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 * the results are stored in the merged list)
 	 * @return The merged list
 	 */
-	public <U, R> ImmutableList<R> mergedWith(Iterable<? extends U> other, 
+	public <U, R> ImmutableList<R> mergedWith(RichIterable<? extends U> other, 
 			BiFunction<? super T, ? super U, ? extends R> merge)
 	{
 		return mergedWith(other, merge, ListBuilder::new);
@@ -482,7 +415,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 * @param other Another collection
 	 * @return A list with paired items
 	 */
-	public <B> ImmutableList<Pair<T, B>> zip(Iterable<? extends B> other)
+	public <B> ImmutableList<Pair<T, B>> zip(RichIterable<? extends B> other)
 	{
 		return zip(other, ListBuilder::new);
 	}
@@ -493,9 +426,9 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 * @param other Another list
 	 * @return The merged list consisting of value pairs (left side value from this list, right side value from the 
 	 * other list)
-	 * @deprecated Please use {@link #zip(Iterable)} instead
+	 * @deprecated Please use {@link #zip(RichIterable)} instead
 	 */
-	public <U> ImmutableList<Pair<T, U>> mergedWith(Iterable<? extends U> other)
+	public <U> ImmutableList<Pair<T, U>> mergedWith(RichIterable<? extends U> other)
 	{
 		return mergedWith(other, (a, b) -> new Pair<>(a, b));
 	}
@@ -610,7 +543,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 * @param f a mapping function
 	 * @return The mapped list
 	 */
-	public <B> ImmutableList<B> flatMap(Function<? super T, ? extends Iterable<? extends B>> f)
+	public <B> ImmutableList<B> flatMap(Function<? super T, ? extends RichIterable<? extends B>> f)
 	{
 		return flatMap(f, ListBuilder::new);
 		// return new ImmutableList<>(stream().flatMap(i -> f.apply(i).stream()).collect(Collectors.toList()));
@@ -622,7 +555,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 * @return Mapped items or a failure if any mapping failed.
 	 */
 	public <B> Try<ImmutableList<B>> tryFlatMap(
-			Function<? super T, ? extends Try<? extends Iterable<? extends B>>> f)
+			Function<? super T, ? extends Try<? extends RichIterable<? extends B>>> f)
 	{
 		return tryFlatMap(f, ListBuilder::new);
 	}
@@ -634,7 +567,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 * @throws E If any mapping failed
 	 */
 	public <B, E extends Exception> ImmutableList<B> flatMapThrowing(
-			ThrowingFunction<? super T, ? extends Iterable<? extends B>, ? extends E> f) throws E
+			ThrowingFunction<? super T, ? extends RichIterable<? extends B>, ? extends E> f) throws E
 	{
 		return flatMapThrowing(f, ListBuilder::new);
 	}

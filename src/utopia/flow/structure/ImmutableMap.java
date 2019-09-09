@@ -153,16 +153,36 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	{
 		MapBuilder<Key, Value> buffer = new MapBuilder<>();
 		fill.accept(buffer);
-		return buffer.build();
+		return buffer.result();
+	}
+	
+	/**
+	 * Builds a new map using a function to fill its contents
+	 * @param capacity Capacity for used buffer
+	 * @param fill A fill function
+	 * @return A filled map
+	 */
+	public static <Key, Value> ImmutableMap<Key, Value> build(int capacity, 
+			Consumer<? super MapBuilder<Key, Value>> fill)
+	{
+		MapBuilder<Key, Value> buffer = new MapBuilder<>(capacity);
+		fill.accept(buffer);
+		return buffer.result();
 	}
 	
 	
 	// IMPLEMENTED METHODS	-------
 	
 	@Override
-	public MapBuilder<Key, Value> newBuilder()
+	public Option<Integer> estimatedSize()
 	{
-		return new MapBuilder<>();
+		return Option.some(size());
+	}
+
+	@Override
+	public MapBuilder<Key, Value> newBuilder(Option<Integer> capacity)
+	{
+		return new MapBuilder<>(capacity);
 	}
 
 	@Override
@@ -498,7 +518,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @return A mapped map
 	 */
 	public <K, V> ImmutableMap<K, V> flatMap(BiFunction<? super Key, ? super Value, 
-			? extends Iterable<? extends Pair<K, V>>> f)
+			? extends RichIterable<? extends Pair<K, V>>> f)
 	{
 		return flatMap(f, MapBuilder::new);
 	}

@@ -1,6 +1,7 @@
 package utopia.flow.structure.iterator;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -15,16 +16,16 @@ import utopia.flow.structure.RichIterable;
  * This interface offers some additional methods for all iterators
  * @author Mikko Hilpinen
  * @since 14.5.2018
- * @param <T> The type of item iterated through
+ * @param <A> The type of item iterated through
  */
-public interface RichIterator<T> extends Iterator<T>
+public interface RichIterator<A> extends Iterator<A>
 {
 	// ABSTRACT	---------------------------
 	
 	/**
 	 * @return Checks the next item from this iterator but won't advance.
 	 */
-	public T poll();
+	public A poll();
 	
 	
 	// OTHER METHODS	-------------------
@@ -32,7 +33,7 @@ public interface RichIterator<T> extends Iterator<T>
 	/**
 	 * @return The next item from this iterator. None if there is no such item.
 	 */
-	public default Option<T> nextOption()
+	public default Option<A> nextOption()
 	{
 		if (hasNext())
 			return Option.some(next());
@@ -43,7 +44,7 @@ public interface RichIterator<T> extends Iterator<T>
 	/**
 	 * @return The next item from this iterator without advancing it. None if there are no more items.
 	 */
-	public default Option<T> pollOption()
+	public default Option<A> pollOption()
 	{
 		if (hasNext())
 			return Option.some(poll());
@@ -56,25 +57,26 @@ public interface RichIterator<T> extends Iterator<T>
 	 * @param makeBuilder A function for producing the final collection builder.
 	 * @return The next n elements from this iterator. Less if this iterator ran out of items.
 	 */
-	public default <R> R take(int n, Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
+	public default <R> R take(int n, 
+			Function<? super Integer, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
-		Builder<? extends R, ?, ? super T> buffer = makeBuilder.get();
+		Builder<? extends R, ?, ? super A> buffer = makeBuilder.apply(n);
 		for (int i = 0; i < n; i++)
 		{
-			Option<T> item = nextOption();
+			Option<A> item = nextOption();
 			if (item.isEmpty())
-				return buffer.build();
+				return buffer.result();
 			else
 				buffer.add(item.get());
 		}
-		return buffer.build();
+		return buffer.result();
 	}
 	
 	/**
 	 * @param n The amount of elements to be read
 	 * @return The next n elements from this iterator. Less if this iterator ran out of items.
 	 */
-	public default ImmutableList<T> take(int n)
+	public default ImmutableList<A> take(int n)
 	{
 		return take(n, ListBuilder::new);
 	}
@@ -84,7 +86,7 @@ public interface RichIterator<T> extends Iterator<T>
 	 * @param transform A transform function
 	 * @return A mapped version of this iterator
 	 */
-	public default <B> MapIterator<T, B> map(Function<? super T, ? extends B> transform)
+	public default <B> MapIterator<A, B> map(Function<? super A, ? extends B> transform)
 	{
 		return new MapIterator<>(this, transform);
 	}
@@ -94,7 +96,7 @@ public interface RichIterator<T> extends Iterator<T>
 	 * @param transform A transform function
 	 * @return A flat mapped version of this iterator
 	 */
-	public default <B> FlatIterator<B> flatMap(Function<? super T, ? extends RichIterable<B>> transform)
+	public default <B> FlatIterator<B> flatMap(Function<? super A, ? extends RichIterable<B>> transform)
 	{
 		return new FlatIterator<>(map(transform));
 	}
@@ -104,24 +106,53 @@ public interface RichIterator<T> extends Iterator<T>
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return A collection of the first n elements in this iterator that satisfy the provided predicate
 	 */
-	public default <R> R takeWhile(Predicate<? super T> f, 
-			Supplier<? extends Builder<? extends R, ?, ? super T>> makeBuilder)
+	public default <R> R takeWhile(Predicate<? super A> f, 
+			Supplier<? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
-		Builder<? extends R, ?, ? super T> builder = makeBuilder.get();
+		Builder<? extends R, ?, ? super A> builder = makeBuilder.get();
 		while (pollOption().exists(f))
 		{
 			nextOption().forEach(builder::add);
 		}
-		return builder.build();
+		return builder.result();
 	}
 	
 	/**
 	 * @param f A predicate
 	 * @return A list of the first n elements in this iterator that satisfy the provided predicate
 	 */
-	public default ImmutableList<T> takeWhile(Predicate<? super T> f)
+	public default ImmutableList<A> takeWhile(Predicate<? super A> f)
 	{
 		return takeWhile(f, ListBuilder::new);
+	}
+	
+	/**
+	 * Calls function 'f' for the first 'n' read items (or less if this iterator runs out of items 
+	 * before n items are reached)
+	 * @param n The maximum number of items read
+	 * @param f A function called for the read items
+	 */
+	public default void forFirst(int n, Consumer<? super A> f)
+	{
+		int itemsRead = 0;
+		while (hasNext() && itemsRead < n)
+		{
+			f.accept(next());
+			itemsRead += 1;
+		}
+	}
+	
+	/**
+	 * Skips the next 'n' items in this iterator
+	 * @param n The number of items to be skipped
+	 */
+	public default void skip(int n)
+	{
+		int itemsSkipped = 0;
+		while (hasNext() && itemsSkipped < n)
+		{
+			next();
+		}
 	}
 	
 	/**

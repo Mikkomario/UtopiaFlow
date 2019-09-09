@@ -41,6 +41,12 @@ public class IntRange extends Range<Integer> implements RichIterable<Integer>
 		return RangeIterator.forIntegers(getStart(), getEnd());
 	}
 	
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return Option.some(length());
+	}
+	
 	
 	// OTHER	-----------------------
 	

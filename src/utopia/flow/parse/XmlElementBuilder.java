@@ -4,6 +4,7 @@ import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.Option;
 import utopia.flow.structure.Pair;
+import utopia.flow.structure.RichIterable;
 
 /**
  * This is a mutable version of the xml element class. Used for mutating xml element data
@@ -291,7 +292,7 @@ public class XmlElementBuilder implements XmlElementTemplate<XmlElementBuilder>
 	 * Adds multiple attributes to this element
 	 * @param atts The attributes to add
 	 */
-	public void addAttributes(Iterable<? extends Pair<String, String>> atts)
+	public void addAttributes(RichIterable<? extends Pair<String, String>> atts)
 	{
 		setAttributes(getAttributes().plus(atts));
 	}

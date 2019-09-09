@@ -51,6 +51,12 @@ public class VolatileOption<T> extends Volatile<Option<T>> implements RichIterab
 		return get().iterator();
 	}
 	
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return get().estimatedSize();
+	}
+	
 	
 	// OTHER	----------------------
 	

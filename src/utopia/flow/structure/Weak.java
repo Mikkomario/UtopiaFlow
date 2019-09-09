@@ -51,6 +51,12 @@ public class Weak<T> implements RichIterable<T>, Wrapper<Option<T>>
 		return new WeakIterator();
 	}
 	
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return get().estimatedSize();
+	}
+	
 	
 	// OTHER	------------------------
 	

@@ -1,6 +1,7 @@
 package utopia.flow.util;
 
 import utopia.flow.structure.Builder;
+import utopia.flow.structure.Option;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.StringCharIterator;
 
@@ -19,6 +20,24 @@ public class RichStringBuilder extends Builder<RichString, StringBuilder, Charac
 	public RichStringBuilder()
 	{
 		super(new StringBuilder());
+	}
+	
+	/**
+	 * Creates a new builder
+	 * @param capacity Initial capacity of this builder
+	 */
+	public RichStringBuilder(int capacity)
+	{
+		super(new StringBuilder(capacity));
+	}
+	
+	/**
+	 * Creates a new builder
+	 * @param capacity Initial capacity of this builder
+	 */
+	public RichStringBuilder(Option<Integer> capacity)
+	{
+		super(capacity.handleMap(i -> new StringBuilder(i.intValue()), StringBuilder::new));
 	}
 	
 	

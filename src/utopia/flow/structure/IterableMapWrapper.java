@@ -43,4 +43,10 @@ public class IterableMapWrapper<Key, Value> implements Wrapper<Map<Key, Value>>,
 	{
 		return ImmutableMap.of(wrapped).iterator();
 	}
+
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return Option.some(wrapped.size());
+	}
 }

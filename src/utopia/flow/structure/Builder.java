@@ -3,6 +3,7 @@ package utopia.flow.structure;
 import java.util.Iterator;
 
 import utopia.flow.structure.iterator.RichIterator;
+import utopia.flow.util.Counter;
 
 /**
  * Builders are used for building immutable data structures in mutable fashion
@@ -17,6 +18,7 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer, I
 {
 	// ATTRIBUTES	----------------
 	
+	private Option<Integer> count = Option.some(0);
 	private Option<Result> currentResult = Option.none();
 	private Buffer buffer;
 	
@@ -74,6 +76,12 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer, I
 			return iteratorFrom(buffer);
 	}
 	
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return count;
+	}
+	
 	
 	// ACCESSORS	----------------
 	
@@ -92,7 +100,7 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer, I
 	/**
 	 * @return A new immutable result from this builder
 	 */
-	public Result build()
+	public Result result()
 	{
 		if (currentResult.isDefined())
 			return currentResult.get();
@@ -105,12 +113,22 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer, I
 	}
 	
 	/**
+	 * @return A new immutable result from this builder
+	 * @deprecated Please move to using {@link #result()} instead
+	 */
+	public Result build()
+	{
+		return result();
+	}
+	
+	/**
 	 * Adds a new item to this buffer
 	 * @param item The item to be added
 	 */
 	public void add(Item item)
 	{
 		revalidate();
+		count = count.map(c -> c + 1);
 		append(buffer, item);
 	}
 	
@@ -118,9 +136,10 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer, I
 	 * Adds multiple items to this buffer
 	 * @param items The items to be added
 	 */
-	public void add(Iterable<? extends Item> items)
+	public void add(RichIterable<? extends Item> items)
 	{
 		revalidate();
+		count = count.flatMap(c -> items.estimatedSize().map(s -> c + s));
 		items.forEach(i -> append(buffer, i));
 	}
 	
@@ -143,7 +162,18 @@ public abstract class Builder<Result extends Iterable<? extends Item>, Buffer, I
 	public void read(Iterator<? extends Item> iterator)
 	{
 		revalidate();
-		iterator.forEachRemaining(i -> append(buffer, i));
+		if (count.isDefined())
+		{
+			Counter itemCounter = new Counter(0, 1);
+			iterator.forEachRemaining(i -> 
+			{
+				append(buffer, i);
+				itemCounter.next();
+			});
+			count = count.map(c -> c + itemCounter.next());
+		}
+		else
+			iterator.forEachRemaining(i -> append(buffer, i));
 	}
 	
 	private void revalidate()

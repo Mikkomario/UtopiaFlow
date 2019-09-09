@@ -3,6 +3,7 @@ package utopia.flow.structure;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import utopia.flow.function.ThrowingBiFunction;
@@ -64,7 +65,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 * @return Mapped collection
 	 */
 	public default <R, C> R map(BiFunction<? super A, ? super B, ? extends C> f, 
-			Supplier<? extends Builder<? extends R, ?, ? super C>> makeBuilder)
+			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super C>> makeBuilder)
 	{
 		return map(pair -> f.apply(pair.getFirst(), pair.getSecond()), makeBuilder);
 	}
@@ -75,7 +76,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 * @param makeBuilder A function for creating a builder for final collection
 	 * @return Mapped collection
 	 */
-	public default <R, C> R flatMap(BiFunction<? super A, ? super B, ? extends Iterable<? extends C>> f, 
+	public default <R, C> R flatMap(BiFunction<? super A, ? super B, ? extends RichIterable<? extends C>> f, 
 			Supplier<? extends Builder<? extends R, ?, ? super C>> makeBuilder)
 	{
 		return flatMap(pair -> f.apply(pair.getFirst(), pair.getSecond()), makeBuilder);
@@ -90,7 +91,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 */
 	public default <R, C, E extends Exception> R mapThrowing(
 			ThrowingBiFunction<? super A, ? super B, ? extends C, ? extends E> f, 
-			Supplier<? extends Builder<? extends R, ?, ? super C>> makeBuilder) throws E
+			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super C>> makeBuilder) throws E
 	{
 		return mapThrowing(pair -> f.throwingApply(pair.getFirst(), pair.getSecond()), makeBuilder);
 	}
@@ -103,7 +104,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 * @throws E If mapping failed
 	 */
 	public default <R, C, E extends Exception> R flatMapThrowing(
-			ThrowingBiFunction<? super A, ? super B, ? extends Iterable<? extends C>, ? extends E> f, 
+			ThrowingBiFunction<? super A, ? super B, ? extends RichIterable<? extends C>, ? extends E> f, 
 			Supplier<? extends Builder<? extends R, ?, ? super C>> makeBuilder) throws E
 	{
 		return flatMapThrowing(pair -> f.throwingApply(pair.getFirst(), pair.getSecond()), makeBuilder);
@@ -126,7 +127,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 * @return A one level deep list of mapped items
 	 */
 	public default <C> ImmutableList<C> flatMapToList(BiFunction<? super A, ? super B, 
-			? extends Iterable<? extends C>> f)
+			? extends RichIterable<? extends C>> f)
 	{
 		return flatMap(f, ListBuilder::new);
 		// return toList().flatMap(p -> f.apply(p.getFirst(), p.getSecond()));

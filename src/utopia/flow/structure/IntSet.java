@@ -43,7 +43,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	{
 		IntSetBuilder newBuilder = new IntSetBuilder();
 		b.accept(newBuilder);
-		return newBuilder.build();
+		return newBuilder.result();
 	}
 	
 	/**
@@ -89,9 +89,15 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	// IMPLEMENTED	------------------
 	
 	@Override
-	public IntSetBuilder newBuilder()
+	public IntSetBuilder newBuilder(Option<Integer> capacity)
 	{
-		return new IntSetBuilder();
+		return new IntSetBuilder(capacity);
+	}
+
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return Option.some(size());
 	}
 
 	@Override

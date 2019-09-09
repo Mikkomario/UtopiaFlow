@@ -42,6 +42,12 @@ public class Duo<T> extends Pair<T, T> implements RichIterable<T>
 	{
 		return new Iterator();
 	}
+	
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return Option.some(2);
+	}
 
 	
 	// OTHER	-----------------------

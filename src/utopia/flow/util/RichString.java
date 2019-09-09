@@ -9,14 +9,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
-import utopia.flow.structure.Appendable;
+import utopia.flow.structure.AppendableSequence;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.IntRange;
 import utopia.flow.structure.Option;
 import utopia.flow.structure.Range;
 import utopia.flow.structure.RichComparable;
 import utopia.flow.structure.RichIterable;
-import utopia.flow.structure.Sequence;
 import utopia.flow.structure.Try;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.StringCharIterator;
@@ -27,8 +26,7 @@ import utopia.flow.structure.iterator.StringCharIterator;
  * @since 20.9.2018
  */
 public class RichString implements RichIterable<Character>, StringRepresentable, 
-	Appendable<Character, RichString, RichStringBuilder>, RichComparable<RichString>, 
-	Sequence<Character, RichString, RichStringBuilder>
+	AppendableSequence<Character, RichString, RichStringBuilder>, RichComparable<RichString>
 {
 	// ATTRIBUTES	-----------------
 	
@@ -138,9 +136,9 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	// IMPLEMENTED	-----------------
 
 	@Override
-	public RichStringBuilder newBuilder()
+	public RichStringBuilder newBuilder(Option<Integer> capacity)
 	{
-		return new RichStringBuilder();
+		return new RichStringBuilder(capacity);
 	}
 
 	@Override

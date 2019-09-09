@@ -19,13 +19,31 @@ public class IntSetBuilder extends Builder<IntSet, ListBuilder<Integer>, Integer
 		super(new ListBuilder<>());
 	}
 	
+	/**
+	 * Creates a new builder
+	 * @param capacity Capacity of this builder
+	 */
+	public IntSetBuilder(int capacity)
+	{
+		super(new ListBuilder<>(capacity));
+	}
+	
+	/**
+	 * Creates a new builder
+	 * @param capacity Capacity of this builder
+	 */
+	public IntSetBuilder(Option<Integer> capacity)
+	{
+		super(new ListBuilder<>(capacity));
+	}
+	
 	
 	// IMPLEMENTED	--------------------
 
 	@Override
 	protected IntSet newResultFrom(ListBuilder<Integer> buffer)
 	{
-		return new IntSet(combine(buffer.build().sorted()));
+		return new IntSet(combine(buffer.result().sorted()));
 	}
 
 	@Override

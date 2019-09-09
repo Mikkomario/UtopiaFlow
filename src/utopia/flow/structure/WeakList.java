@@ -75,9 +75,15 @@ public class WeakList<T> implements RichIterable<T>, StringRepresentable, Append
 	// IMPLEMENTED	-------------------
 
 	@Override
-	public WeakListBuilder<T> newBuilder()
+	public WeakListBuilder<T> newBuilder(Option<Integer> capacity)
 	{
-		return new WeakListBuilder<>();
+		return new WeakListBuilder<>(capacity);
+	}
+
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return Option.none();
 	}
 
 	@Override

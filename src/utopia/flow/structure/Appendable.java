@@ -1,6 +1,5 @@
 package utopia.flow.structure;
 
-import java.util.Iterator;
 import java.util.function.BiPredicate;
 
 /**
@@ -22,25 +21,25 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 */
 	public default Repr plus(A item)
 	{
-		DefaultBuilder builder = newBuilder();
+		DefaultBuilder builder = newBuilder(estimatedSize().map(s -> s + 1));
 		builder.add(this);
 		builder.add(item);
-		return builder.build();
+		return builder.result();
 	}
 	
 	/**
 	 * @param items Items to add
 	 * @return A copy of this collection with items added
 	 */
-	public default Repr plus(Iterable<? extends A> items)
+	public default Repr plus(RichIterable<? extends A> items)
 	{
-		Iterator<? extends A> iterator = items.iterator();
-		if (iterator.hasNext())
+		if (items.nonEmpty())
 		{
-			DefaultBuilder builder = newBuilder();
+			DefaultBuilder builder = newBuilder(estimatedSize().flatMap(
+					s1 -> items.estimatedSize().map(s2 -> s1 + s2)));
+			builder.add(items);
 			builder.add(this);
-			builder.read(iterator);
-			return builder.build();
+			return builder.result();
 		}
 		else
 			return self();
@@ -96,16 +95,16 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param equals method for checking equality
 	 * @return A combined collection
 	 */
-	public default Repr plusDistinct(Iterable<? extends A> elements, BiPredicate<? super A, ? super A> equals)
+	public default Repr plusDistinct(RichIterable<? extends A> elements, BiPredicate<? super A, ? super A> equals)
 	{
-		ListBuilder<A> newItemsBuilder = new ListBuilder<>();
+		ListBuilder<A> newItemsBuilder = new ListBuilder<>(elements.estimatedSize());
 		elements.forEach(item -> 
 		{
 			if (!contains(item, equals))
 				newItemsBuilder.add(item);
 		});
 		
-		return plus(newItemsBuilder.build());
+		return plus(newItemsBuilder.result());
 	}
 	
 	/**
@@ -113,7 +112,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param elements The new elements
 	 * @return A combined collection
 	 */
-	public default Repr plusDistinct(Iterable<? extends A> elements)
+	public default Repr plusDistinct(RichIterable<? extends A> elements)
 	{
 		return plusDistinct(elements, SAFE_EQUALS);
 	}

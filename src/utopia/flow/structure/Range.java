@@ -205,7 +205,7 @@ public class Range<T extends Comparable<? super T>> implements RichComparable<Ra
 	 */
 	public View<T> view(Function<? super T, ? extends T> increment)
 	{
-		return new View<>(() -> new RangeIterator<>(getFirst(), getLast(), increment));
+		return new View<>(() -> new RangeIterator<>(getFirst(), getLast(), increment), Option.none());
 	}
 	
 	/**
@@ -216,6 +216,6 @@ public class Range<T extends Comparable<? super T>> implements RichComparable<Ra
 	 */
 	public View<T> toView(Function<? super T, ? extends T> increment)
 	{
-		return new View<>(() -> new RangeIterator<>(getFirst(), getLast(), increment));
+		return new View<>(() -> new RangeIterator<>(getFirst(), getLast(), increment), Option.none());
 	}
 }

@@ -1,12 +1,11 @@
 package utopia.flow.structure;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import utopia.flow.structure.iterator.EmptyIterator;
 import utopia.flow.structure.iterator.FlatIterator;
 import utopia.flow.structure.iterator.MapIterator;
 import utopia.flow.structure.iterator.MergeIterator;
@@ -26,6 +25,7 @@ public class View<T> implements RichIterable<T>
 	// ATTIRUBTES	--------------------
 	
 	private Supplier<? extends RichIterator<T>> newIterator;
+	private Option<Integer> estimatedSize;
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -33,10 +33,23 @@ public class View<T> implements RichIterable<T>
 	/**
 	 * Creates a new view
 	 * @param newIterator A supplier that provides new iterators
+	 * @param estimatedSize The estimated size of the viewed collection. None if no size can be estimated
 	 */
-	public View(Supplier<? extends RichIterator<T>> newIterator)
+	public View(Supplier<? extends RichIterator<T>> newIterator, Option<Integer> estimatedSize)
 	{
 		this.newIterator = newIterator;
+		this.estimatedSize = estimatedSize;
+	}
+	
+	/**
+	 * Creates a new view
+	 * @param newIterator A supplier that provides new iterators
+	 * @param estimatedSize The estimated size of the viewed collection
+	 */
+	public View(Supplier<? extends RichIterator<T>> newIterator, int estimatedSize)
+	{
+		this.newIterator = newIterator;
+		this.estimatedSize = Option.some(estimatedSize);
 	}
 	
 	/**
@@ -44,9 +57,11 @@ public class View<T> implements RichIterable<T>
 	 * @param iterable An iterable element that contains iterable elements
 	 * @return A flattened view of the target element
 	 */
-	public static <T> View<T> flatten(Iterable<? extends RichIterable<? extends T>> iterable)
+	public static <T> View<T> flatten(RichIterable<? extends RichIterable<? extends T>> iterable)
 	{
-		return new View<>(() -> new FlatIterator<>(iterable.iterator()));
+		return new View<>(() -> new FlatIterator<>(iterable.iterator()), 
+				iterable.fold(Option.some(0), (total, items) -> total.flatMap(
+						s1 -> items.estimatedSize().map(s2 -> s1 + s2)))) ;
 	}
 	
 	/**
@@ -70,7 +85,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public static <T> View<T> of(RichIterable<T> iterable)
 	{
-		return new View<T>(iterable::iterator);
+		return new View<T>(iterable::iterator, iterable.estimatedSize());
 	}
 	
 	/**
@@ -80,7 +95,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public static <T> View<T> of(T[] array)
 	{
-		return new View<>(() -> new ArrayIterator<>(array));
+		return new View<>(() -> new ArrayIterator<>(array), array.length);
 	}
 	
 	/**
@@ -90,7 +105,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public static View<Character> of(String string)
 	{
-		return new View<>(() -> new StringCharIterator(string));
+		return new View<>(() -> new StringCharIterator(string), string.length());
 	}
 	
 	/**
@@ -98,7 +113,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public static <T> View<T> empty()
 	{
-		return new View<>(EmptyIterator::new);
+		return new View<>(EmptyIterator::new, 0);
 	}
 	
 	/**
@@ -107,7 +122,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public static <T> View<T> wrap(T item)
 	{
-		return new View<>(() -> new SingleItemIterator<>(item));
+		return new View<>(() -> new SingleItemIterator<>(item), 1);
 	}
 	
 	
@@ -116,12 +131,13 @@ public class View<T> implements RichIterable<T>
 	@Override
 	public RichIterator<T> iterator()
 	{
-		Iterator<T> iter = this.newIterator.get();
-		
-		if (iter instanceof RichIterator)
-			return (RichIterator<T>) iter;
-		else
-			return RichIterator.wrap(iter);
+		return newIterator.get();
+	}
+	
+	@Override
+	public Option<Integer> estimatedSize()
+	{
+		return estimatedSize;
 	}
 	
 	
@@ -137,14 +153,15 @@ public class View<T> implements RichIterable<T>
 	}
 	
 	/**
-	 * @param makeBuilder A function for producing a new builder
+	 * @param makeBuilder A function for producing a new builder. Takes possible size hint.
 	 * @return A concrete version of this view collected by the specified builder
 	 */
-	public <R> R force(Supplier<? extends Builder<? extends R, ? , ? super T>> makeBuilder)
+	public <R> R force(Function<? super Option<Integer>, 
+			? extends Builder<? extends R, ? , ? super T>> makeBuilder)
 	{
-		Builder<? extends R, ? , ? super T> builder = makeBuilder.get();
+		Builder<? extends R, ? , ? super T> builder = makeBuilder.apply(estimatedSize);
 		builder.read(iterator());
-		return builder.build();
+		return builder.result();
 	}
 	
 	/**
@@ -179,7 +196,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public <B> View<B> map(Function<? super T, ? extends B> f)
 	{
-		return new View<>(() -> new MapIterator<>(iterator(), f));
+		return new View<>(() -> new MapIterator<>(iterator(), f), estimatedSize);
 	}
 	
 	/**
@@ -190,7 +207,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public <B> View<B> flatMap(Function<? super T, ? extends RichIterable<? extends B>> f)
 	{
-		return new View<>(() -> new FlatIterator<>(new MapIterator<>(iterator(), f)));
+		return new View<>(() -> new FlatIterator<>(new MapIterator<>(iterator(), f)), Option.none());
 	}
 	
 	/**
@@ -235,7 +252,8 @@ public class View<T> implements RichIterable<T>
 	public <B, Merge> View<Merge> mergedWith(RichIterable<? extends B> other, 
 			BiFunction<? super T, ? super B, ? extends Merge> merge)
 	{
-		return new View<>(() -> new MergeIterator<>(iterator(), other.iterator(), merge));
+		return new View<>(() -> new MergeIterator<>(iterator(), other.iterator(), merge), 
+				estimatedSize.mergedWith(other.estimatedSize(), (s1, s2) -> Math.min(s1, s2)));
 	}
 	
 	/**
@@ -255,16 +273,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public Option<ImmutableList<T>> tryCollect(Predicate<? super T> terminator)
 	{
-		ListBuilder<T> buffer = new ListBuilder<>();
-		for (T item : this)
-		{
-			if (terminator.test(item))
-				return Option.none();
-			else
-				buffer.add(item);
-		}
-		
-		return Option.some(buffer.build());
+		return tryCollect(terminator, ListBuilder::new);
 	}
 	
 	/**
@@ -272,32 +281,11 @@ public class View<T> implements RichIterable<T>
 	 */
 	public View<T> repeating()
 	{
-		return new View<>(() -> new RepeatingIterator<>(newIterator));
+		return new View<>(() -> new RepeatingIterator<>(newIterator), Option.none());
 	}
 	
 	
 	// NESTED CLASSES	-----------------
-	
-	private static class EmptyIterator<T> implements RichIterator<T>
-	{
-		@Override
-		public boolean hasNext()
-		{
-			return false;
-		}
-
-		@Override
-		public T next()
-		{
-			throw new NoSuchElementException("Trying to read value from an empty iterator");
-		}
-
-		@Override
-		public T poll()
-		{
-			return null;
-		}
-	}
 	
 	private static class SingleItemIterator<T> implements RichIterator<T>
 	{
