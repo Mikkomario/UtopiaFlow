@@ -4,7 +4,7 @@ import java.time.Duration;
 
 import utopia.flow.async.RepeatableAction;
 import utopia.flow.async.Volatile;
-import utopia.flow.structure.IntRange;
+import utopia.flow.structure.range.IntRange;
 import utopia.flow.util.Test;
 import utopia.flow.util.WaitUtils;
 
@@ -23,7 +23,7 @@ public class RepeatableActionTest
 		Object creationWaitLock = new Object();
 		
 		// Quickly queues multiple actions, should only complete twice
-		IntRange.fromTo(1, 5).forEach(i -> 
+		IntRange.inclusive(1, 5).forEach(i -> 
 		{
 			System.out.println("Queuing action");
 			action.runAsync();

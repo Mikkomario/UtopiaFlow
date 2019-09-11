@@ -7,6 +7,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import utopia.flow.function.ThrowingPredicate;
+import utopia.flow.structure.range.DefinedRange;
+import utopia.flow.structure.range.ExclusiveIntRange;
+import utopia.flow.structure.range.IntRange;
 
 /**
  * Sequences are collections that have static ordering and can be accessed with index
@@ -43,15 +46,27 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 		return Option.some(size());
 	}
 	
+	@Override
+	public default A head()
+	{
+		return get(0);
+	}
+	
+	@Override
+	public default Option<A> headOption()
+	{
+		return getOption(0);
+	}
+	
 	
 	// OTHER	--------------------
 	
 	/**
 	 * @return The range of the indices of this list
 	 */
-	public default IntRange indices()
+	public default ExclusiveIntRange indices()
 	{
-		return Range.fromUntil(0, size());
+		return IntRange.exclusive(0, size());
 	}
 	
 	/**
@@ -96,9 +111,9 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 	 * @param range Targeted range
 	 * @return All items in this sequence that lay within specified range
 	 */
-	public default Repr get(Range<? extends Integer> range)
+	public default Repr get(DefinedRange<? extends Integer> range)
 	{
-		return getInRange(range.getStart(), range.getEnd());
+		return getInRange(range.first(), range.last());
 	}
 	
 	/**
@@ -263,7 +278,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 		else if (n >= size())
 			return emptyCopy();
 		else
-			return indices().withStart(n).map(this::get, this::newBuilder);
+			return indices().withFirst(n).map(this::get, this::newBuilder);
 	}
 	
 	/**
@@ -285,7 +300,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 		else if (n >= size())
 			return emptyCopy();
 		else
-			return indices().withEnd(size() - n - 1).map(this::get, this::newBuilder);
+			return indices().withEndExclusive(size() - n).map(this::get, this::newBuilder);
 	}
 	
 	/**
@@ -308,7 +323,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 		else if (n >= size())
 			return self();
 		else
-			return indices().withStart(size() - n).map(this::get, this::newBuilder);
+			return indices().withFirst(size() - n).map(this::get, this::newBuilder);
 	}
 	
 	/**

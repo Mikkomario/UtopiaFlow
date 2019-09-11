@@ -16,11 +16,11 @@ import utopia.flow.function.ThrowingConsumer;
 import utopia.flow.function.ThrowingRunnable;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
-import utopia.flow.structure.IntRange;
+import utopia.flow.structure.IntSet;
 import utopia.flow.structure.Option;
-import utopia.flow.structure.Range;
 import utopia.flow.structure.Try;
 import utopia.flow.structure.View;
+import utopia.flow.structure.range.IntRange;
 import utopia.flow.util.Unit;
 
 /**
@@ -38,11 +38,11 @@ public class XmlWriter implements AutoCloseable
 	 */
 	public static final Charset DEFAULT_CHARSET = XmlReader.DEFAULT_CHARSET;
 	
-	private static final ImmutableList<IntRange> INVALID_CHAR_RANGES = 
-			ImmutableList.withValues(Range.fromTo(91, 94), Range.fromTo(123, 191), 
-			Range.fromTo(768, 879), Range.fromTo(8192, 8203), Range.fromTo(8206, 8303), 
-			Range.fromTo(8592, 11263), Range.fromTo(12272, 12288), Range.fromTo(55296, 63743), 
-			Range.fromTo(64976, 65007), Range.fromTo(65534, 1114111));
+	private static final IntSet INVALID_CHAR_RANGES = IntSet.ofRanges(
+			ImmutableList.withValues(IntRange.inclusive(91, 94), IntRange.inclusive(123, 191), 
+			IntRange.inclusive(768, 879), IntRange.inclusive(8192, 8203), IntRange.inclusive(8206, 8303), 
+			IntRange.inclusive(8592, 11263), IntRange.inclusive(12272, 12288), IntRange.inclusive(55296, 63743), 
+			IntRange.inclusive(64976, 65007), IntRange.inclusive(65534, 1114111)));
 	private static final ImmutableList<Integer> INVALID_EXTRA_CHARS = 
 			ImmutableList.withValues(34, 38, 39, 60, 62, 96, 215, 247, 894);
 	
@@ -189,8 +189,7 @@ public class XmlWriter implements AutoCloseable
 	{
 		int i = c;
 		// Character is not allowed if it lies in an invalid char range or is specifically invalid
-		return INVALID_CHAR_RANGES.find(r -> r.getLast() >= i).exists(r -> r.getFirst() <= i) || 
-				INVALID_EXTRA_CHARS.contains(i);
+		return INVALID_CHAR_RANGES.contains(i) || INVALID_EXTRA_CHARS.contains(i);
 	}
 
 	

@@ -4,6 +4,8 @@ import java.util.function.Consumer;
 
 import utopia.flow.structure.iterator.FlatIterator;
 import utopia.flow.structure.iterator.RichIterator;
+import utopia.flow.structure.range.InclusiveIntRange;
+import utopia.flow.structure.range.IntRange;
 
 /**
  * This list implementation is optimized for integers and is always ordered
@@ -19,7 +21,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 */
 	public static final IntSet EMPTY = new IntSet(ImmutableList.empty());
 	
-	private ImmutableList<IntRange> ranges;
+	private ImmutableList<InclusiveIntRange> ranges;
 	
 	
 	// CONSTRUCTOR	------------------
@@ -29,9 +31,22 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 * by appropriate builder(s)
 	 * @param ranges Ranges that form this set
 	 */
-	protected IntSet(ImmutableList<IntRange> ranges)
+	protected IntSet(ImmutableList<InclusiveIntRange> ranges)
 	{
 		this.ranges = ranges;
+	}
+	
+	/**
+	 * Builds a new int set by using a buffer
+	 * @param capacity Capacity for the buffer
+	 * @param b A function to fill the buffer
+	 * @return build IntSet
+	 */
+	public static IntSet build(int capacity, Consumer<? super IntSetBuilder> b)
+	{
+		IntSetBuilder newBuilder = new IntSetBuilder(capacity);
+		b.accept(newBuilder);
+		return newBuilder.result();
 	}
 	
 	/**
@@ -53,7 +68,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 */
 	public static IntSet of(ImmutableList<Integer> numbers)
 	{
-		return build(b -> b.add(numbers));
+		return build(numbers.size(), b -> b.add(numbers));
 	}
 	
 	/**
@@ -62,7 +77,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 */
 	public static IntSet withValue(int number)
 	{
-		return new IntSet(ImmutableList.withValue(IntRange.wrap(number)));
+		return new IntSet(ImmutableList.withValue(new InclusiveIntRange(number, number)));
 	}
 	
 	/**
@@ -80,7 +95,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 * @param ranges A set of integer ranges
 	 * @return An intset from the specified ranges
 	 */
-	public static IntSet ofRanges(ImmutableList<IntRange> ranges)
+	public static IntSet ofRanges(ImmutableList<InclusiveIntRange> ranges)
 	{
 		return new IntSet(combine(ranges.sorted()));
 	}
@@ -153,7 +168,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	/**
 	 * @return The numbers in this list as ranges
 	 */
-	public ImmutableList<IntRange> ranges()
+	public ImmutableList<InclusiveIntRange> ranges()
 	{
 		return ranges;
 	}
@@ -178,14 +193,14 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 		return ranges.flatMapFirst(range -> 
 		{
 			// Case 1: Number at range end
-			if (range.getEnd() == number)
+			if (range.last() == number)
 				return Option.some(true);
 			// Case 2: Not yet correct range
-			else if (range.getEnd() < number)
+			else if (range.last() < number)
 				return Option.none();
 			// Case 3: Correct range
 			else
-				return Option.some(range.getStart() <= number);
+				return Option.some(range.first() <= number);
 			
 		}).getOrElse(false);
 	}
@@ -196,7 +211,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 */
 	public IntSet minus(int number)
 	{
-		Duo<ImmutableList<IntRange>> parts = ranges.splitAt(r -> r.contains(number));
+		Duo<ImmutableList<InclusiveIntRange>> parts = ranges.splitAt(r -> r.contains(number));
 		
 		if (parts.getSecond().isEmpty())
 			return this;
@@ -206,15 +221,15 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 			{
 				b.add(parts.getFirst());
 				
-				IntRange targetRange = parts.getSecond().head();
-				if (targetRange.getStart().equals(number))
-					b.add(new IntRange(number + 1, targetRange.getEnd()));
-				else if (targetRange.getEnd().equals(number))
-					b.add(new IntRange(targetRange.getStart(), number - 1));
+				InclusiveIntRange targetRange = parts.getSecond().head();
+				if (targetRange.first().equals(number))
+					b.add(new InclusiveIntRange(number + 1, targetRange.last()));
+				else if (targetRange.last().equals(number))
+					b.add(new InclusiveIntRange(targetRange.first(), number - 1));
 				else
 				{
-					b.add(new IntRange(targetRange.getStart(), number - 1));
-					b.add(new IntRange(number  + 1, targetRange.getEnd()));
+					b.add(new InclusiveIntRange(targetRange.first(), number - 1));
+					b.add(new InclusiveIntRange(number  + 1, targetRange.last()));
 				}
 					
 				b.add(parts.getSecond().tail());
@@ -222,23 +237,23 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 		}
 	}
 	
-	private static ImmutableList<IntRange> combine(ImmutableList<IntRange> ranges)
+	private static ImmutableList<InclusiveIntRange> combine(ImmutableList<InclusiveIntRange> ranges)
 	{
 		if (ranges.isEmpty())
 			return ranges;
 		else
 			return ImmutableList.build(b -> 
 			{
-				IntRange lastRange = ranges.head();
-				for (IntRange range : ranges.tail())
+				InclusiveIntRange lastRange = ranges.head();
+				for (InclusiveIntRange range : ranges.tail())
 				{
-					if (lastRange.getEnd() < range.getStart() - 1)
+					if (lastRange.last() < range.first() - 1)
 					{
 						b.add(lastRange);
 						lastRange = range;
 					}
 					else
-						lastRange = new IntRange(lastRange.getStart(), range.getEnd());
+						lastRange = IntRange.inclusive(lastRange.first(), range.last());
 				}
 				b.add(lastRange);
 			});

@@ -25,7 +25,7 @@ import utopia.flow.structure.iterator.SkipFirstIterator;
  * @since 14.5.2018
  * @param <A> The type of item in this iterable
  */
-public interface RichIterable<A> extends Iterable<A>
+public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 {
 	// ATTRIBUTES	------------------------
 	
@@ -66,6 +66,15 @@ public interface RichIterable<A> extends Iterable<A>
 	public static <T extends Comparable<? super T>> Option<T> minFrom(RichIterable<T> items)
 	{
 		return items.min((a, b) -> a.compareTo(b));
+	}
+	
+	
+	// IMPLEMENTED	------------------------
+	
+	@Override
+	public default View<A> view()
+	{
+		return new View<>(this::iterator, estimatedSize());
 	}
 	
 	
@@ -895,14 +904,6 @@ public interface RichIterable<A> extends Iterable<A>
 	public default Stream<A> stream()
 	{
 		return StreamSupport.stream(spliterator(), false);
-	}
-	
-	/**
-	 * @return A view for this iterable
-	 */
-	public default View<A> view()
-	{
-		return new View<>(this::iterator, estimatedSize());
 	}
 	
 	/**

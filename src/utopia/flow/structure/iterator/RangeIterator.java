@@ -14,8 +14,9 @@ public class RangeIterator<A extends Comparable<? super A>> implements RichItera
 	
 	private Function<? super A, ? extends A> increment;
 	private A nextItem;
-	private A last;
-	private int defaultCompare;
+	private A end;
+	private boolean isInclusive;
+	private int direction;
 	
 	
 	// CONSTRUCTOR	----------------
@@ -23,28 +24,96 @@ public class RangeIterator<A extends Comparable<? super A>> implements RichItera
 	/**
 	 * Creates a new iterator
 	 * @param first The first returned item
-	 * @param last The last returned item
+	 * @param end The end item
 	 * @param increment An increment function (must move the value towards the last value or 
 	 * else this iterator will never complete)
+	 * @param inclusive Whether the end value should be included
 	 */
-	public RangeIterator(A first, A last, Function<? super A, ? extends A> increment)
+	public RangeIterator(A first, A end, Function<? super A, ? extends A> increment, boolean inclusive)
 	{
 		this.increment = increment;
 		this.nextItem = first;
-		this.last = last;
-		this.defaultCompare = first.compareTo(last);
+		this.end = end;
+		this.direction = end.compareTo(first);
+		this.isInclusive = inclusive;
+	}
+	
+	/**
+	 * Creates a new iterator
+	 * @param first First returned item
+	 * @param last Last returned item
+	 * @param increment An increment function (must move the value towards the last value or 
+	 * else this iterator will never complete)
+	 * @return A new iterator
+	 */
+	public static <A extends Comparable<? super A>> RangeIterator<A> inclusive(A first, A last, 
+			Function<? super A, ? extends A> increment)
+	{
+		return new RangeIterator<>(first, last, increment, true);
+	}
+	
+	/**
+	 * Creates a new iterator
+	 * @param first First returned item
+	 * @param end end value (exclusive)
+	 * @param increment An increment function (must move the value towards the end value or 
+	 * else this iterator will never complete)
+	 * @return A new iterator
+	 */
+	public static <A extends Comparable<? super A>> RangeIterator<A> exclusive(A first, A end, 
+			Function<? super A, ? extends A> increment)
+	{
+		return new RangeIterator<>(first, end, increment, false);
 	}
 	
 	/**
 	 * Creates a new iterator that iterates through integers
 	 * @param start First returned integer
 	 * @param end Last returned integer
-	 * @param by Increment (should go towards end value)
+	 * @param by Increment (towards end value)
+	 * @param inclusive Whether the end value should be included
 	 * @return Iterator
 	 */
-	public static RangeIterator<Integer> forIntegers(int start, int end, int by)
+	public static RangeIterator<Integer> forIntegers(int start, int end, int by, boolean inclusive)
 	{
-		return new RangeIterator<>(start, end, i -> i + by);
+		int realBy = end >= start ? Math.abs(by) : -Math.abs(by);
+		return new RangeIterator<>(start, end, i -> i + realBy, inclusive);
+	}
+	
+	/**
+	 * Creates a new iterator that iterates through integers
+	 * @param start First returned integer
+	 * @param end Last returned integer
+	 * @param by Increment (towards end value)
+	 * @return Iterator
+	 */
+	public static RangeIterator<Integer> forIntegersInclusive(int start, int end, int by)
+	{
+		return forIntegers(start, end, by, true);
+	}
+	
+	/**
+	 * Creates a new iterator that iterates through integers
+	 * @param start First returned integer
+	 * @param end Last returned integer
+	 * @param by Increment (towards end value)
+	 * @return Iterator
+	 */
+	public static RangeIterator<Integer> forIntegersExclusive(int start, int end, int by)
+	{
+		return forIntegers(start, end, by, false);
+	}
+	
+	/**
+	 * Creates a new iterator that iterates through integers
+	 * @param start First returned integer
+	 * @param end Last returned integer
+	 * @param inclusive Whether the end value should be included
+	 * @return An iterator that traverses from start to end by changing the value by 1 each iteration
+	 */
+	public static RangeIterator<Integer> forIntegers(int start, int end, boolean inclusive)
+	{
+		return forIntegers(start, end, 1, inclusive);
 	}
 	
 	/**
@@ -53,12 +122,20 @@ public class RangeIterator<A extends Comparable<? super A>> implements RichItera
 	 * @param end Last returned integer
 	 * @return An iterator that traverses from start to end by changing the value by 1 each iteration
 	 */
-	public static RangeIterator<Integer> forIntegers(int start, int end)
+	public static RangeIterator<Integer> forIntegersInclusive(int start, int end)
 	{
-		if (start <= end)
-			return forIntegers(start, end, 1);
-		else
-			return forIntegers(start, end, -1);
+		return forIntegers(start, end, 1, true);
+	}
+	
+	/**
+	 * Creates a new iterator that iterates through integers
+	 * @param start First returned integer
+	 * @param end Last returned integer
+	 * @return An iterator that traverses from start to end by changing the value by 1 each iteration
+	 */
+	public static RangeIterator<Integer> forIntegersExclusive(int start, int end)
+	{
+		return forIntegers(start, end, 1, false);
 	}
 	
 	
@@ -67,8 +144,11 @@ public class RangeIterator<A extends Comparable<? super A>> implements RichItera
 	@Override
 	public boolean hasNext()
 	{
-		int compare = nextItem.compareTo(last);
-		return compare == defaultCompare || compare == 0;
+		int compare = end.compareTo(nextItem);
+		if (isInclusive)
+			return compare == direction || compare == 0;
+		else
+			return compare != 0 && compare == direction;
 	}
 
 	@Override

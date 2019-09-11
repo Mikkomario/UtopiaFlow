@@ -1,7 +1,7 @@
 package utopia.flow.test;
 
-import utopia.flow.structure.IntRange;
 import utopia.flow.structure.IntSet;
+import utopia.flow.structure.range.IntRange;
 import utopia.flow.util.Test;
 
 /**
@@ -19,7 +19,7 @@ public class IntSetTest
 		
 		Test.checkEquals(a.size(), 3);
 		Test.checkEquals(a.ranges().size(), 2);
-		Test.checkEquals(a.ranges().head(), IntRange.fromTo(2, 3));
+		Test.checkEquals(a.ranges().head(), IntRange.inclusive(2, 3));
 		Test.check(a.contains(2));
 		Test.check(a.contains(3));
 		Test.check(a.contains(5));
@@ -30,7 +30,7 @@ public class IntSetTest
 		
 		Test.checkEquals(b.size(), 4);
 		Test.checkEquals(b.ranges().size(), 1);
-		Test.checkEquals(b.ranges().head(), IntRange.fromTo(2, 5));
+		Test.checkEquals(b.ranges().head(), IntRange.inclusive(2, 5));
 		Test.check(b.contains(2));
 		Test.check(b.contains(3));
 		Test.check(b.contains(4));
@@ -44,7 +44,7 @@ public class IntSetTest
 		
 		Test.checkEquals(c.size(), 3);
 		Test.checkEquals(c.ranges().size(), 2);
-		Test.checkEquals(c.ranges().head(), IntRange.wrap(2));
+		Test.checkEquals(c.ranges().head(), IntRange.inclusive(2, 2));
 		
 		Test.checkEquals(a.minus(10), a);
 		

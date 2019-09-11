@@ -363,15 +363,6 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	}
 	
 	/**
-	 * @return The range of the indices of this list
-	 * @deprecated Please use {@link #indices()} instead
-	 */
-	public IntRange getRange()
-	{
-		return Range.fromUntil(0, size());
-	}
-	
-	/**
 	 * Checks whether this list contains all of the elements from the specified collection
 	 * @param elements A collection of elements
 	 * @return Whether this list contains all elements from the specified collection

@@ -6,7 +6,7 @@ import utopia.flow.async.Completion;
 import utopia.flow.async.Promise;
 import utopia.flow.async.ActionQueue;
 import utopia.flow.structure.ImmutableList;
-import utopia.flow.structure.IntRange;
+import utopia.flow.structure.range.IntRange;
 import utopia.flow.util.Unit;
 import utopia.flow.util.WaitUtils;
 
@@ -24,7 +24,7 @@ public class ActionQueueTest
 		ActionQueue queue = new ActionQueue(1);
 		
 		// Creates actions
-		ImmutableList<Runnable> actions = IntRange.fromTo(1, 5).toList().map(i -> () -> 
+		ImmutableList<Runnable> actions = IntRange.inclusive(1, 5).mapToList(i -> () -> 
 		{
 			System.out.println("Starting action " + i);
 			WaitUtils.wait(Duration.ofSeconds(1), new Object());

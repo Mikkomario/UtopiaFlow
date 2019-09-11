@@ -1,6 +1,8 @@
 package utopia.flow.structure;
 
 import utopia.flow.structure.iterator.RichIterator;
+import utopia.flow.structure.range.InclusiveIntRange;
+import utopia.flow.structure.range.IntRange;
 
 /**
  * Used for building int sets
@@ -67,12 +69,12 @@ public class IntSetBuilder extends Builder<IntSet, ListBuilder<Integer>, Integer
 	}
 	
 	// Expects a sorted input
-	private static ImmutableList<IntRange> combine(ImmutableList<Integer> numbers)
+	private static ImmutableList<InclusiveIntRange> combine(ImmutableList<Integer> numbers)
 	{
 		if (numbers.isEmpty())
 			return ImmutableList.empty();
 		else if (numbers.size() < 2)
-			return ImmutableList.withValue(IntRange.wrap(numbers.head()));
+			return ImmutableList.withValue(IntRange.inclusive(numbers.head(), numbers.head()));
 		else
 			return ImmutableList.build(b -> 
 			{
@@ -84,13 +86,13 @@ public class IntSetBuilder extends Builder<IntSet, ListBuilder<Integer>, Integer
 				{
 					if (number > lastNumber + 1)
 					{
-						b.add(IntRange.fromTo(lastStart, lastNumber));
+						b.add(IntRange.inclusive(lastStart, lastNumber));
 						lastStart = number;
 					}
 					lastNumber = number;
 				}
 				
-				b.add(IntRange.fromTo(lastStart, lastNumber));
+				b.add(IntRange.inclusive(lastStart, lastNumber));
 			});
 	}
 	

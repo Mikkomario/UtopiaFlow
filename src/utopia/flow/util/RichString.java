@@ -11,9 +11,7 @@ import java.util.stream.Collectors;
 
 import utopia.flow.structure.AppendableSequence;
 import utopia.flow.structure.ImmutableList;
-import utopia.flow.structure.IntRange;
 import utopia.flow.structure.Option;
-import utopia.flow.structure.Range;
 import utopia.flow.structure.RichComparable;
 import utopia.flow.structure.RichIterable;
 import utopia.flow.structure.Try;
@@ -503,27 +501,6 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 			return Option.some(tail());
 		else
 			return Option.none();
-	}
-	
-	/**
-	 * @param range The target range
-	 * @return The part of this string that overlaps with the provided range
-	 * @deprecated Please use {@link #get(Range)} instead
-	 */
-	public RichString range(Range<? extends Integer> range)
-	{
-		return of(characters().get(range));
-	}
-	
-	/**
-	 * @param startInclusive The first included character index
-	 * @param endInclusive The last included character index
-	 * @return The part of this string that overlaps with the provided range
-	 * @deprecated Please use {@link #getInRange(int, int)} instead
-	 */
-	public RichString range(int startInclusive, int endInclusive)
-	{
-		return range(new IntRange(startInclusive, endInclusive));
 	}
 	
 	/**

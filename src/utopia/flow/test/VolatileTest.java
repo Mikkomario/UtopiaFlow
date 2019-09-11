@@ -6,7 +6,7 @@ import utopia.flow.async.BackgroundProcessUtils;
 import utopia.flow.async.Completion;
 import utopia.flow.async.Volatile;
 import utopia.flow.async.VolatileFlag;
-import utopia.flow.structure.IntRange;
+import utopia.flow.structure.range.IntRange;
 import utopia.flow.util.Test;
 import utopia.flow.util.WaitUtils;
 
@@ -47,7 +47,7 @@ public class VolatileTest
 		});
 		
 		Volatile<Integer> counter = new Volatile<>(0);
-		IntRange.fromUntil(0, 50).toList().forEach(i -> BackgroundProcessUtils.runInBackground(() -> 
+		IntRange.exclusive(0, 50).forEach(i -> BackgroundProcessUtils.runInBackground(() -> 
 		{
 			int totalIncrease = 0;
 			while (totalIncrease < 50)
