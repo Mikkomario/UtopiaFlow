@@ -92,13 +92,18 @@ public class ExclusiveRange<A extends Comparable<? super A>> implements RangeWit
 		else
 			return startCompare;
 	}
+	
+	@Override
+	public String toString()
+	{
+		return first + " until " + end;
+	}
 
 	@Override
 	public int hashCode()
 	{
 		return Objects.hash(end, first);
 	}
-
 
 	@Override
 	public boolean equals(Object obj)

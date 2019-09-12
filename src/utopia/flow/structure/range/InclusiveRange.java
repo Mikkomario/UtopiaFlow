@@ -43,6 +43,11 @@ public class InclusiveRange<A extends Comparable<? super A>> implements DefinedR
 		return last;
 	}
 
+	@Override
+	public String toString()
+	{
+		return first + "-" + last;
+	}
 
 	@Override
 	public int hashCode()

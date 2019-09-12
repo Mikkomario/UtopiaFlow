@@ -34,6 +34,15 @@ public interface IntRange<Repr extends IntRange<Repr>> extends RangeWithBeginnin
 		return new ExclusiveIntRange(first, end);
 	}
 	
+	/**
+	 * @param size The size / length of a sequence
+	 * @return Indices for a sequence of specific size
+	 */
+	public static ExclusiveIntRange indices(int size)
+	{
+		return exclusive(0, size);
+	}
+	
 	
 	// ABSTRACT	--------------------
 	

@@ -66,7 +66,7 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 	 */
 	public default ExclusiveIntRange indices()
 	{
-		return IntRange.exclusive(0, size());
+		return IntRange.indices(size());
 	}
 	
 	/**

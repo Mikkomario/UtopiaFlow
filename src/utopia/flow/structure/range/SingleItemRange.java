@@ -46,4 +46,10 @@ public class SingleItemRange<A extends Comparable<? super A>> implements Defined
 	{
 		return View.wrap(item);
 	}
+	
+	@Override
+	public String toString()
+	{
+		return item.toString();
+	}
 }

@@ -44,4 +44,10 @@ public class EmptyRange<A extends Comparable<? super A>> implements Range<A>, Vi
 	{
 		return View.empty();
 	}
+	
+	@Override
+	public String toString()
+	{
+		return "---";
+	}
 }
