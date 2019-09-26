@@ -60,9 +60,9 @@ class ListTest
 		System.out.println(sortedByLength);
 		System.out.println(sortedByLengthAndLetters);
 		Test.checkEquals(sortedByLetters.head(), "aakkonen");
-		Test.check(sortedByLetters.last().valueEquals("y"));
+		Test.check(sortedByLetters.last() == "y");
 		Test.checkEquals(sortedByLength.head(), "y");
-		Test.check(sortedByLength.last().valueEquals("aakkonen"));
+		Test.check(sortedByLength.last() == "aakkonen");
 		Test.checkEquals(sortedByLengthAndLetters, ImmutableList.withValues("y", "abc", "ant", "aakkonen"));
 		
 		Test.checkEquals(words3.dropWhile(s -> s.length() == 3).size(), 2);

@@ -146,14 +146,26 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	
 	/**
 	 * Builds a new map using a function to fill its contents
+	 * @param capacity Capacity for used buffer (optional)
+	 * @param fill A fill function
+	 * @return A filled map
+	 */
+	public static <Key, Value> ImmutableMap<Key, Value> build(Option<Integer> capacity, 
+			Consumer<? super MapBuilder<Key, Value>> fill)
+	{
+		MapBuilder<Key, Value> buffer = new MapBuilder<>(capacity);
+		fill.accept(buffer);
+		return buffer.result();
+	}
+	
+	/**
+	 * Builds a new map using a function to fill its contents
 	 * @param fill A fill function
 	 * @return A filled map
 	 */
 	public static <Key, Value> ImmutableMap<Key, Value> build(Consumer<? super MapBuilder<Key, Value>> fill)
 	{
-		MapBuilder<Key, Value> buffer = new MapBuilder<>();
-		fill.accept(buffer);
-		return buffer.result();
+		return build(Option.none(), fill);
 	}
 	
 	/**
@@ -165,9 +177,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	public static <Key, Value> ImmutableMap<Key, Value> build(int capacity, 
 			Consumer<? super MapBuilder<Key, Value>> fill)
 	{
-		MapBuilder<Key, Value> buffer = new MapBuilder<>(capacity);
-		fill.accept(buffer);
-		return buffer.result();
+		return build(Option.positiveInt(capacity, true), fill);
 	}
 	
 	

@@ -153,12 +153,12 @@ public class XmlElement implements XmlElementTemplate<XmlElement>, StringReprese
 		{
 			// Adds child elements from bottom to top until all parts have been used
 			// The last 2 parts represent element name + text while earlier parts represent element names
-			XmlElement lastElement = new XmlElement(parts.get(parts.size() - 2), parts.last().get());
+			XmlElement lastElement = new XmlElement(parts.get(parts.size() - 2), parts.last());
 			ImmutableList<String> remainingParts = parts.dropLast(2);
 			
 			while (!remainingParts.isEmpty())
 			{
-				lastElement = new XmlElement(remainingParts.last().get(), lastElement);
+				lastElement = new XmlElement(remainingParts.last(), lastElement);
 				remainingParts = remainingParts.dropLast(1);
 			}
 			

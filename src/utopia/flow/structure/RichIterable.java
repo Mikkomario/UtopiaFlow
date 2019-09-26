@@ -672,7 +672,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 */
 	public default <Key, Value> ImmutableMap<Key, ImmutableList<Value>> toListMap(Function<? super A, Pair<Key, Value>> f)
 	{
-		return ImmutableMap.<Key, ListBuilder<Value>>build(buffer -> 
+		return ImmutableMap.<Key, ListBuilder<Value>>build(estimatedSize(), buffer -> 
 		{
 			forEach (item -> 
 			{

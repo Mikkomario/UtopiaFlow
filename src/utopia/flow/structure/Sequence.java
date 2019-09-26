@@ -327,22 +327,40 @@ public interface Sequence<A, Repr extends RichIterable<? extends A>,
 	}
 	
 	/**
+	 * @return The first element in this sequence
+	 * @throws IndexOutOfBoundsException If this sequence was empty
+	 */
+	public default A first() throws IndexOutOfBoundsException
+	{
+		return head();
+	}
+	
+	/**
 	 * @return The first element in this sequence. None if the list is empty or the element is null.
 	 */
-	public default Option<A> first()
+	public default Option<A> firstOption()
 	{
 		return headOption();
 	}
 	
 	/**
+	 * @return The last element in this sequence
+	 * @throws IndexOutOfBoundsException If this sequence was empty
+	 */
+	public default A last() throws IndexOutOfBoundsException
+	{
+		return get(size() - 1);
+	}
+	
+	/**
 	 * @return The last element in this sequence. None if the list is empty or the element is null.
 	 */
-	public default Option<A> last()
+	public default Option<A> lastOption()
 	{
 		if (isEmpty())
 			return Option.none();
 		else
-			return new Option<>(get(size() - 1));
+			return new Option<>(last());
 	}
 	
 	/**
