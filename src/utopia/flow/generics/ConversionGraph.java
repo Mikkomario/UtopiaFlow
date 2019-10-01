@@ -86,7 +86,7 @@ public class ConversionGraph
 			GraphEdge<DataType, Pair<ValueParser, ConversionReliability>> previousConnection = 
 					fromNode.getConnectingEdge(toNode);
 			if (previousConnection == null || 
-					!previousConnection.getContent().getSecond().isBetterThan(reliability))
+					!previousConnection.getContent().second().isBetterThan(reliability))
 				fromNode.addEdge(createEdge(parser, reliability, toNode));
 		}
 	}
@@ -156,7 +156,7 @@ public class ConversionGraph
 	{
 		// Finds the optimal target data type (lowest defined cost)
 		return ImmutableList.of(to).flatMap(type -> getConversionCost(from, type).map(
-				cost -> new Pair<>(type, cost))).sortedBy(p -> p.getSecond()).headOption().map(p -> p.getFirst());
+				cost -> new Pair<>(type, cost))).sortedBy(p -> p.second()).headOption().map(p -> p.first());
 	}
 	
 	/**
@@ -228,7 +228,7 @@ public class ConversionGraph
 				node.getLeavingEdges())
 			{
 				conversions.add(new Conversion(startType, edge.getEndNode().getContent(), 
-						edge.getContent().getSecond()));
+						edge.getContent().second()));
 			}
 		}
 		
@@ -324,7 +324,7 @@ public class ConversionGraph
 		{
 			DataType nextType = edge.getEndNode().getContent();
 			parsed.add(new Pair<>(new Conversion(lastType, nextType, 
-					edge.getContent().getSecond()), edge.getContent().getFirst()));
+					edge.getContent().second()), edge.getContent().first()));
 			lastType = nextType;
 		}
 		
@@ -337,7 +337,7 @@ public class ConversionGraph
 		int cost = 0;
 		for (GraphEdge<DataType, Pair<ValueParser, ConversionReliability>> edge : route)
 		{
-			cost += edge.getContent().getSecond().getCost();
+			cost += edge.getContent().second().getCost();
 		}
 		
 		return cost;
@@ -391,7 +391,7 @@ public class ConversionGraph
 			Value castValue = value;
 			for (Pair<Conversion, ValueParser> step : this.steps)
 			{
-				castValue = step.getSecond().cast(castValue, step.getFirst().getTargetType());
+				castValue = step.second().cast(castValue, step.first().getTargetType());
 			}
 			
 			return castValue;
@@ -402,7 +402,7 @@ public class ConversionGraph
 			ConversionReliability reliability = ConversionReliability.NO_CONVERSION;
 			for (Pair<Conversion, ValueParser> step : steps)
 			{
-				ConversionReliability stepReliability = step.getFirst().getReliability();
+				ConversionReliability stepReliability = step.first().getReliability();
 				if (reliability.isBetterThan(stepReliability))
 				{
 					reliability = stepReliability;
@@ -416,7 +416,7 @@ public class ConversionGraph
 		
 		private static int calculateCostFrom(ImmutableList<Pair<Conversion, ValueParser>> steps)
 		{
-			return steps.map(s -> s.getFirst().getReliability().getCost()).reduceOption(
+			return steps.map(s -> s.first().getReliability().getCost()).reduceOption(
 					(total, cost) -> total + cost).getOrElse(0);
 		}
 	}

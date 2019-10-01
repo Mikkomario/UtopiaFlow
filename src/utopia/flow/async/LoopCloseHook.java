@@ -67,8 +67,9 @@ public class LoopCloseHook
 	
 	/**
 	 * Stops down all linked resources. Blocks until the resources have closed
+	 * @return Completions of shutdowns that didn't complete in maximum shutdown duration
 	 */
-	public void shutdown()
+	public ImmutableList<Completion> shutdown()
 	{
 		// Breaks all loops, may need to wait
 		ImmutableList<Completion> shutdownCompletions = loops.toStrongList().map(l -> l.stop());
@@ -82,6 +83,11 @@ public class LoopCloseHook
 			allCompleted.waitFor(maxShutdownTimeout);
 			
 			WaitUtils.wait(ADDITIONAL_SHUTDOWN_TIME, new Object());
+			
+			// Returns failed shutdowns, if there are any
+			return shutdownCompletions.filter(c -> c.isEmpty());
 		}
+		else
+			return ImmutableList.empty();
 	}
 }

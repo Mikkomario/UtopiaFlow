@@ -60,7 +60,7 @@ public interface RichIterator<A> extends Iterator<A>
 	public default <R> R take(int n, 
 			Function<? super Integer, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
-		Builder<? extends R, ?, ? super A> buffer = makeBuilder.apply(n);
+		Builder<? extends R, ?, ? super A> buffer = makeBuilder.apply(Math.max(n, 0));
 		for (int i = 0; i < n; i++)
 		{
 			Option<A> item = nextOption();

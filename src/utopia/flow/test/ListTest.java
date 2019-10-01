@@ -4,6 +4,7 @@ import utopia.flow.structure.Duo;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.ListBuilder;
+import utopia.flow.structure.Option;
 import utopia.flow.util.Test;
 
 class ListTest
@@ -78,15 +79,43 @@ class ListTest
 		
 		Duo<ImmutableList<String>> split1 = words3.splitAt(w -> !w.startsWith("a"));
 		
-		Test.checkEquals(split1.getFirst().size(), 2);
-		Test.checkEquals(split1.getSecond().size(), 2);
-		Test.checkEquals(split1.getSecond().head(), "y");
+		Test.checkEquals(split1.first().size(), 2);
+		Test.checkEquals(split1.second().size(), 2);
+		Test.checkEquals(split1.second().head(), "y");
 		Test.checkEquals(split1, words3.splitAt(2));
 		
 		// Tests new map style
 		ImmutableList<Integer> mapResult = words3.map(w -> w.length(), ListBuilder::new);
 		Test.checkEquals(mapResult, ImmutableList.withValues(3, 3, 1, 8));
 		
+		// Tests recursive dropping
+		System.out.println(iter(numbers));
+		
 		System.out.println("Success!");
+	}
+	
+	private static ImmutableList<Integer> iter(ImmutableList<Integer> remaining)
+	{
+		System.out.println(remaining);
+		if (remaining.size() < 2)
+			return remaining;
+		else
+		{
+			// Tests all possible combinations
+			for (int i : remaining.indices())
+			{
+				int first = remaining.get(i);
+				for (int second : remaining.dropFirst(i + 1))
+				{
+					int result = first + second;
+					
+					// Will recursively repeat whole process every time a connection is made
+					ImmutableList<Integer> newData = remaining.dropIndex(i).without(second).plus(result);
+					// System.out.println("Combination successful: Now at " + newData.size() + " items");
+					return iter(newData);
+				}
+			}
+			return remaining;
+		}
 	}
 }

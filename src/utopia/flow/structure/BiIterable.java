@@ -25,7 +25,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 */
 	public default void forEach(BiConsumer<? super A, ? super B> f)
 	{
-		forEach(p -> f.accept(p.getFirst(), p.getSecond()));
+		forEach(p -> f.accept(p.first(), p.second()));
 	}
 	
 	/**
@@ -35,7 +35,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 */
 	public default boolean forAll(BiPredicate<? super A, ? super B> f)
 	{
-		return forAll(p -> f.test(p.getFirst(), p.getSecond()));
+		return forAll(p -> f.test(p.first(), p.second()));
 	}
 	
 	/**
@@ -45,7 +45,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 */
 	public default boolean exists(BiPredicate<? super A, ? super B> f)
 	{
-		return exists(p -> f.test(p.getFirst(), p.getSecond()));
+		return exists(p -> f.test(p.first(), p.second()));
 	}
 	
 	/**
@@ -55,7 +55,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	 */
 	public default Option<Pair<A, B>> find(BiPredicate<? super A, ? super B> f)
 	{
-		return find(p -> f.test(p.getFirst(), p.getSecond()));
+		return find(p -> f.test(p.first(), p.second()));
 	}
 	
 	/**
@@ -67,7 +67,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	public default <R, C> R map(BiFunction<? super A, ? super B, ? extends C> f, 
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super C>> makeBuilder)
 	{
-		return map(pair -> f.apply(pair.getFirst(), pair.getSecond()), makeBuilder);
+		return map(pair -> f.apply(pair.first(), pair.second()), makeBuilder);
 	}
 	
 	/**
@@ -79,7 +79,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 	public default <R, C> R flatMap(BiFunction<? super A, ? super B, ? extends RichIterable<? extends C>> f, 
 			Supplier<? extends Builder<? extends R, ?, ? super C>> makeBuilder)
 	{
-		return flatMap(pair -> f.apply(pair.getFirst(), pair.getSecond()), makeBuilder);
+		return flatMap(pair -> f.apply(pair.first(), pair.second()), makeBuilder);
 	}
 	
 	/**
@@ -93,7 +93,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 			ThrowingBiFunction<? super A, ? super B, ? extends C, ? extends E> f, 
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super C>> makeBuilder) throws E
 	{
-		return mapThrowing(pair -> f.throwingApply(pair.getFirst(), pair.getSecond()), makeBuilder);
+		return mapThrowing(pair -> f.throwingApply(pair.first(), pair.second()), makeBuilder);
 	}
 	
 	/**
@@ -107,7 +107,7 @@ public interface BiIterable<A, B> extends RichIterable<Pair<A, B>>
 			ThrowingBiFunction<? super A, ? super B, ? extends RichIterable<? extends C>, ? extends E> f, 
 			Supplier<? extends Builder<? extends R, ?, ? super C>> makeBuilder) throws E
 	{
-		return flatMapThrowing(pair -> f.throwingApply(pair.getFirst(), pair.getSecond()), makeBuilder);
+		return flatMapThrowing(pair -> f.throwingApply(pair.first(), pair.second()), makeBuilder);
 	}
 	
 	/**

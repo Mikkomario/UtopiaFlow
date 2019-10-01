@@ -125,8 +125,8 @@ public class Volatile<T>
 	public synchronized <B> B pop(Function<? super T, ? extends Pair<B, T>> update)
 	{
 		Pair<B, T> result = update.apply(value);
-		value = result.getSecond();
-		return result.getFirst();
+		value = result.second();
+		return result.first();
 	}
 	
 	/**

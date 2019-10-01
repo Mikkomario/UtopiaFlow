@@ -15,7 +15,7 @@ import utopia.flow.structure.iterator.RangeIterator;
  * @param <A> Type of range end points
  */
 public class ExclusiveRange<A extends Comparable<? super A>> implements RangeWithBeginning<A>, 
-		RichComparable<ExclusiveRange<A>>
+		RangeWithExclusiveEnd<A>, RichComparable<ExclusiveRange<A>>
 {
 	// ATTRIBUTES	--------------
 	
@@ -37,23 +37,18 @@ public class ExclusiveRange<A extends Comparable<? super A>> implements RangeWit
 	}
 	
 	
-	// ACCESSORS	----------------
-	
-	/**
-	 * @return The end value of this range (exclusive)
-	 */
-	public A end()
-	{
-		return end;
-	}
-	
-	
 	// IMPLEMENTED	--------------
 	
 	@Override
 	public A first()
 	{
 		return first;
+	}
+	
+	@Override
+	public A end()
+	{
+		return end;
 	}
 	
 	@Override

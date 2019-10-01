@@ -31,7 +31,7 @@ public class Duo<T> extends Pair<T, T> implements RichIterable<T>
 	 */
 	public static <T> Duo<T> of(Pair<? extends T, ? extends T> pair)
 	{
-		return new Duo<>(pair.getFirst(), pair.getSecond());
+		return new Duo<>(pair.first(), pair.second());
 	}
 	
 	
@@ -59,7 +59,7 @@ public class Duo<T> extends Pair<T, T> implements RichIterable<T>
 	 */
 	public <B> Duo<B> map(Function<? super T, ? extends B> f)
 	{
-		return new Duo<>(f.apply(getFirst()), f.apply(getSecond()));
+		return new Duo<>(f.apply(first()), f.apply(second()));
 	}
 	
 	
@@ -86,7 +86,7 @@ public class Duo<T> extends Pair<T, T> implements RichIterable<T>
 		@Override
 		public T poll()
 		{
-			return nextIndex == 0 ? getFirst() : getSecond();
+			return nextIndex == 0 ? first() : second();
 		}
 	}
 }

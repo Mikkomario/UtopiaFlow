@@ -677,8 +677,8 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 			forEach (item -> 
 			{
 				Pair<Key, Value> keyValue = f.apply(item);
-				Key category = keyValue.getFirst();
-				Value value = keyValue.getSecond();
+				Key category = keyValue.first();
+				Value value = keyValue.second();
 				
 				if (buffer.containsKey(category))
 					buffer.get(category).add(value);

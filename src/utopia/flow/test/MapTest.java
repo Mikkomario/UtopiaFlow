@@ -1,6 +1,9 @@
 package utopia.flow.test;
 
+import utopia.flow.structure.Duo;
+import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
+import utopia.flow.structure.Pair;
 import utopia.flow.util.Test;
 
 /**
@@ -39,6 +42,20 @@ public class MapTest
 		Test.checkEquals(merged.get("A"), 4);
 		Test.checkEquals(merged.get("B"), 2);
 		Test.checkEquals(merged.get("C"), 5);
+		
+		ImmutableList<Duo<Integer>> i1 = ImmutableList.withValues(1, 2, 3, 4, 5, 6, 7).map(
+				i -> new Duo<>(i, i));
+		ImmutableList<Duo<Integer>> i2 = ImmutableList.withValues(5, 7, 9, 11, 13).map(
+				i -> new Duo<>(i, i * 2));
+		ImmutableMap<Integer, ImmutableList<Integer>> timesMap = i1.plus(i2)
+				.toListMap(s -> new Pair<>(s.first(), s.second()));
+				
+		ImmutableList<Duo<Integer>> schedule = timesMap.mapToList((day, times) -> times.size() > 1 ? 
+				i1.find(d -> d.first() == day.intValue()).get() : new Duo<>(day, times.head()))
+				.sortedBy(d -> d.first());
+		
+		Test.checkEquals(schedule.map(i -> i.second()), 
+				ImmutableList.withValues(1, 2, 3, 4, 5, 6, 7, 18, 22, 26));
 		
 		System.out.println("DONE");
 	}

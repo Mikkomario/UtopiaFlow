@@ -74,7 +74,7 @@ public class MapBuilder<Key, Value> extends Builder<ImmutableMap<Key, Value>,
 	@Override
 	protected void append(Map<Key, Value> buffer, Pair<Key, Value> newItem)
 	{
-		buffer.put(newItem.getFirst(), newItem.getSecond());
+		buffer.put(newItem.first(), newItem.second());
 	}
 	
 	@Override

@@ -166,7 +166,7 @@ public interface OptionalComparator<T> extends Comparator<T>
 	{
 		return first.zip(second).flatMapFirst(p -> 
 		{
-			int result = p.getFirst().compareTo(p.getSecond());
+			int result = p.first().compareTo(p.second());
 			if (result == 0)
 				return Option.none();
 			else

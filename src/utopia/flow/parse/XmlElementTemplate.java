@@ -158,7 +158,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	public default Model<Variable> toModel()
 	{
 		Model<Variable> model = Model.createBasicModel();
-		model.addAttributes(toMap().toList().map(p -> new Variable(p.getFirst(), p.getSecond())), true);
+		model.addAttributes(toMap().toList().map(p -> new Variable(p.first(), p.second())), true);
 		
 		return model;
 	}

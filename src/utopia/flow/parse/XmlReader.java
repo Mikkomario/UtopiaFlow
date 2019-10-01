@@ -267,7 +267,7 @@ public class XmlReader implements AutoCloseable
 		if (isAtDocumentEnd())
 			return Option.none();
 		else
-			return Option.some(_readElement().getFirst().toXmlElement());
+			return Option.some(_readElement().first().toXmlElement());
 	}
 	
 	/**
@@ -285,8 +285,8 @@ public class XmlReader implements AutoCloseable
 		while (depth >= 0 && !isAtDocumentEnd())
 		{
 			Pair<UnfinishedElement, Integer> nextResult = _readElement();
-			buffer.add(nextResult.getFirst().toXmlElement());
-			depth += nextResult.getSecond();
+			buffer.add(nextResult.first().toXmlElement());
+			depth += nextResult.second();
 		}
 		
 		return buffer.result();
@@ -553,8 +553,8 @@ public class XmlReader implements AutoCloseable
 		while (depthChange > 0)
 		{
 			Pair<UnfinishedElement, Integer> nextResult = _readElement();
-			element.addChild(nextResult.getFirst());
-			depthChange += nextResult.getSecond();
+			element.addChild(nextResult.first());
+			depthChange += nextResult.second();
 		}
 		
 		return new Pair<>(element, depthChange);

@@ -1,10 +1,9 @@
 package utopia.flow.structure;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -45,28 +44,26 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	{
 		this.map = new HashMap<>(0);
 		
-		this.keys = new Lazy<>(() -> ImmutableList.of(this.map.keySet()));
-		this.values = new Lazy<>(() -> ImmutableList.of(this.map.values()));
-		this.list = new Lazy<>(() -> ImmutableList.of(toSet()));
-		this.size = new Lazy<>(() -> this.map.size());
+		this.keys = new Lazy<>(ImmutableList::empty);
+		this.values = new Lazy<>(ImmutableList::empty);
+		this.list = new Lazy<>(ImmutableList::empty);
+		this.size = new Lazy<>(() -> 0);
 	}
 	
 	/**
 	 * Creates a new map with existing data
 	 * @param data The key value pairs stored in the map
 	 */
-	public ImmutableMap(ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
+	public ImmutableMap(RichIterable<? extends Pair<? extends Key, ? extends Value>> data)
 	{
-		this.map = new HashMap<>(data.size());
-		for (Pair<? extends Key, ? extends Value> pair : data)
-		{
-			this.map.put(pair.getFirst(), pair.getSecond());
-		}
+		map = data.estimatedSize().handleMap(HashMap::new, HashMap::new);
+		data.forEach(p -> map.put(p.first(), p.second()));
 		
-		this.keys = new Lazy<>(() -> ImmutableList.of(this.map.keySet()));
-		this.values = new Lazy<>(() -> ImmutableList.of(this.map.values()));
-		this.size = new Lazy<>(() -> this.map.size());
-		this.list = new Lazy<>(() -> ImmutableList.of(toSet()));
+		keys = new Lazy<>(() -> ImmutableList.of(map.keySet()));
+		values = new Lazy<>(() -> ImmutableList.of(map.values()));
+		size = new Lazy<>(map::size);
+		list = new Lazy<>(() -> ImmutableList.build(size(), 
+				b -> keys().forEach(k -> b.add(new Pair<>(k, get(k))))));
 	}
 	
 	/**
@@ -77,11 +74,11 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	protected ImmutableMap(Map<Key, Value> map)
 	{
 		this.map = map;
-		
-		this.keys = new Lazy<>(() -> ImmutableList.of(this.map.keySet()));
-		this.values = new Lazy<>(() -> ImmutableList.of(this.map.values()));
-		this.size = new Lazy<>(() -> this.map.size());
-		this.list = new Lazy<>(() -> ImmutableList.of(toSet()));
+		keys = new Lazy<>(() -> ImmutableList.of(this.map.keySet()));
+		values = new Lazy<>(() -> ImmutableList.of(this.map.values()));
+		size = new Lazy<>(this.map::size);
+		list = new Lazy<>(() -> ImmutableList.build(size(), 
+				b -> keys().forEach(k -> b.add(new Pair<>(k, get(k))))));
 	}
 	
 	/**
@@ -118,9 +115,10 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	/**
 	 * @param data key value pairs
 	 * @return A map of the key value pairs
-	 * @see #listMap(ImmutableList)
+	 * @see #listMap(RichIterable)
 	 */
-	public static <Key, Value> ImmutableMap<Key, Value> of(ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
+	public static <Key, Value> ImmutableMap<Key, Value> of(
+			RichIterable<? extends Pair<? extends Key, ? extends Value>> data)
 	{
 		return new ImmutableMap<>(data);
 	}
@@ -131,17 +129,25 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @return A list map containing the provided data
 	 */
 	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> listMap(
-			ImmutableList<? extends Pair<? extends Key, ? extends Value>> data)
+			RichIterable<? extends Pair<? extends Key, ? extends Value>> data)
 	{
-		Map<Key, List<Value>> map = new HashMap<>(data.size());
-		data.forEach(p -> 
+		Option<Integer> dataCount = data.estimatedSize();
+		ImmutableMap<Key, ListBuilder<Value>> buffer = build(dataCount, b -> 
 		{
-			if (!map.containsKey(p.getFirst()))
-				map.put(p.getFirst(), new ArrayList<>());
-			map.get(p.getFirst()).add(p.getSecond());
+			data.forEach(p -> 
+			{
+				if (b.containsKey(p.first()))
+					b.get(p.first()).add(p.second());
+				else
+				{
+					ListBuilder<Value> newBuilder = new ListBuilder<>(dataCount);
+					newBuilder.add(p.second());
+					b.add(new Pair<>(p.first(), newBuilder));
+				}
+			});
 		});
 		
-		return new ImmutableMap<>(map).mapValues(ImmutableList::of);
+		return buffer.mapValues(b -> b.result());
 	}
 	
 	/**
@@ -232,7 +238,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	{
 		StringBuilder s = new StringBuilder();
 		s.append("{");
-		view().map(p -> p.getFirst() + ": " + p.getSecond()).appendAsString(", ", s);
+		view().map(p -> p.first() + ": " + p.second()).appendAsString(", ", s);
 		s.append("}");
 		return s.toString();
 	}
@@ -240,7 +246,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	@Override
 	public RichIterator<Pair<Key, Value>> iterator()
 	{
-		return RichIterator.wrap(toSet().iterator());
+		return toList().iterator();
 	}
 	
 	/**
@@ -277,7 +283,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public HashMap<Key, Value> toMutableMap()
 	{
-		return new HashMap<>(this.map);
+		return new HashMap<>(map);
 	}
 	
 	private HashMap<Key, Value> toMutableMap(int extraCapacity)
@@ -289,6 +295,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	
 	/**
 	 * @return This map as a set of key value pairs
+	 * @deprecated This method may be removed in future
 	 */
 	public Set<Pair<Key, Value>> toSet()
 	{
@@ -328,11 +335,15 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	/**
 	 * Retrieves a value from the map
 	 * @param key A key
-	 * @return A value from the map. Null if no such key exists
+	 * @return A value from the map
+	 * @throws NoSuchElementException If no such key exists
 	 */
-	public Value get(Key key)
+	public Value get(Key key) throws NoSuchElementException
 	{
-		return map.get(key);
+		if (containsKey(key))
+			return map.get(key);
+		else
+			throw new NoSuchElementException("No value for key '" + key + "' in map " + description());
 	}
 	
 	/**
@@ -382,6 +393,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param key The target key
 	 * @return The target value
 	 * @throws EmptyResultException if there was no value available
+	 * @deprecated {@link #get(Object)} now functions like this method
 	 */
 	public Value getOrFail(Key key) throws EmptyResultException
 	{
@@ -570,7 +582,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 */
 	public ImmutableMap<Key, Value> filter(BiPredicate<? super Key, ? super Value> f)
 	{
-		return filter(pair -> f.test(pair.getFirst(), pair.getSecond()));
+		return filter(pair -> f.test(pair.first(), pair.second()));
 	}
 	
 	/**

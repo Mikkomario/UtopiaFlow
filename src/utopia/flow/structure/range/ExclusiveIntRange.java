@@ -1,9 +1,5 @@
 package utopia.flow.structure.range;
 
-import utopia.flow.structure.View;
-import utopia.flow.structure.iterator.RangeIterator;
-import utopia.flow.structure.iterator.RichIterator;
-
 /**
  * An exclusive implementation of int range
  * @author Mikko Hilpinen
@@ -25,25 +21,6 @@ public class ExclusiveIntRange extends ExclusiveRange<Integer> implements IntRan
 	
 	
 	// IMPLEMENTED	-----------------
-
-	@Override
-	public RichIterator<Integer> iterator()
-	{
-		return RangeIterator.forIntegersExclusive(first(), end());
-	}
-
-	@Override
-	public int length()
-	{
-		return Math.abs(end() -  first());
-	}
-
-	@Override
-	public View<Integer> by(int increment)
-	{
-		return new View<>(() -> RangeIterator.forIntegersExclusive(first(), end(), increment), 
-				length());
-	}
 
 	@Override
 	public ExclusiveIntRange reversed()

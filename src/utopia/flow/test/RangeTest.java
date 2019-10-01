@@ -1,7 +1,10 @@
 package utopia.flow.test;
 
+import java.time.LocalDate;
+
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.range.ExclusiveIntRange;
+import utopia.flow.structure.range.InclusiveDateRange;
 import utopia.flow.structure.range.InclusiveIntRange;
 import utopia.flow.structure.range.IntRange;
 import utopia.flow.util.Test;
@@ -27,6 +30,17 @@ public class RangeTest
 		
 		Test.checkEquals(chars.get(r1), ImmutableList.of("oir"));
 		
-		System.out.println("Done");
+		InclusiveDateRange r3 = new InclusiveDateRange(LocalDate.now(), LocalDate.now().plusDays(3));
+		InclusiveDateRange r4 = new InclusiveDateRange(LocalDate.now().plusDays(1), LocalDate.now().plusDays(2));
+		InclusiveDateRange r5 = new InclusiveDateRange(LocalDate.now().plusDays(4), LocalDate.now().plusDays(6));
+		
+		Test.checkEquals(r3.length(), 3);
+		Test.check(r3.contains(r4));
+		Test.check(r3.overlapsWith(r4));
+		Test.check(r4.overlapsWith(r3));
+		Test.checkEquals(r3.overlapLength(r4).get(), 1);
+		Test.checkEquals(r3.distanceFrom(r5).get(), 1);
+		
+		System.out.println("Success!");
 	}
 }

@@ -1,5 +1,7 @@
 package utopia.flow.structure;
 
+import java.util.Objects;
+
 import utopia.flow.util.StringRepresentable;
 
 /**
@@ -58,11 +60,7 @@ public class Pair<T1, T2> implements StringRepresentable
 	@Override
 	public int hashCode()
 	{
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((getFirst() == null) ? 0 : getFirst().hashCode());
-		result = prime * result + ((getSecond() == null) ? 0 : getSecond().hashCode());
-		return result;
+		return Objects.hash(first, second);
 	}
 
 	@Override
@@ -75,22 +73,7 @@ public class Pair<T1, T2> implements StringRepresentable
 		if (!(obj instanceof Pair))
 			return false;
 		Pair<?, ?> other = (Pair<?, ?>) obj;
-		if (getFirst() == null)
-		{
-			if (other.getFirst() != null)
-				return false;
-		}
-		else if (!getFirst().equals(other.getFirst()))
-			return false;
-		if (getSecond() == null)
-		{
-			if (other.getSecond() != null)
-				return false;
-		}
-		else if (!getSecond().equals(other.getSecond()))
-			return false;
-		
-		return true;
+		return Objects.equals(first, other.first) && Objects.equals(second, other.second);
 	}
 	
 	@Override
@@ -103,7 +86,24 @@ public class Pair<T1, T2> implements StringRepresentable
 	// ACCESSORS	--------------------
 
 	/**
+	 * @return The first value in this pair
+	 */
+	public T1 first() 
+	{
+		return first;
+	}
+	
+	/**
+	 * @return The second value in this pair
+	 */
+	public T2 second()
+	{
+		return second;
+	}
+	
+	/**
 	 * @return The first value in the pair
+	 * @deprecated Renamed to {@link #first()}
 	 */
 	public T1 getFirst()
 	{
@@ -112,6 +112,7 @@ public class Pair<T1, T2> implements StringRepresentable
 	
 	/**
 	 * @return The second value in the pair
+	 * @deprecated Renamed to {@link #second()}
 	 */
 	public T2 getSecond()
 	{
@@ -128,7 +129,7 @@ public class Pair<T1, T2> implements StringRepresentable
 	 */
 	public <K> Pair<K, T2> withFirst(K newFirst)
 	{
-		return new Pair<>(newFirst, getSecond());
+		return new Pair<>(newFirst, second());
 	}
 	
 	/**
@@ -138,6 +139,6 @@ public class Pair<T1, T2> implements StringRepresentable
 	 */
 	public <K> Pair<T1, K> withSecond(K newSecond)
 	{
-		return new Pair<>(getFirst(), newSecond);
+		return new Pair<>(first(), newSecond);
 	}
 }

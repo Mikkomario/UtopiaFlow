@@ -233,7 +233,7 @@ public class XmlWriter implements AutoCloseable
 	{
 		// Writes element start, attributes & text
 		this.writer.writeStartElement(elementName);
-		attributes.forEachThrowing(p -> this.writer.writeAttribute(p.getFirst(), p.getSecond()));
+		attributes.forEachThrowing(p -> this.writer.writeAttribute(p.first(), p.second()));
 		text.forEachThrowing(this::writeCharacters);
 		
 		// Writes other content

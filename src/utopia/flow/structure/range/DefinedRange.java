@@ -90,8 +90,9 @@ public interface DefinedRange<A extends Comparable<? super A>> extends Range<A>,
 	 * @param other Another range
 	 * @return Whether these two ranges overlap
 	 */
-	public default boolean overlapsWith(DefinedRange<? extends A> other)
+	public default boolean overlapsWith(DefinedRange<A> other)
 	{
-		return contains(other.first()) || contains(other.last());
+		return contains(other.first()) || contains(other.last()) || 
+				other.contains(first()) || other.contains(last());
 	}
 }

@@ -213,15 +213,15 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	{
 		Duo<ImmutableList<InclusiveIntRange>> parts = ranges.splitAt(r -> r.contains(number));
 		
-		if (parts.getSecond().isEmpty())
+		if (parts.first().isEmpty())
 			return this;
 		else
 		{
 			return new IntSet(ImmutableList.build(b -> 
 			{
-				b.add(parts.getFirst());
+				b.add(parts.first());
 				
-				InclusiveIntRange targetRange = parts.getSecond().head();
+				InclusiveIntRange targetRange = parts.second().head();
 				if (targetRange.first().equals(number))
 					b.add(new InclusiveIntRange(number + 1, targetRange.last()));
 				else if (targetRange.last().equals(number))
@@ -232,7 +232,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 					b.add(new InclusiveIntRange(number  + 1, targetRange.last()));
 				}
 					
-				b.add(parts.getSecond().tail());
+				b.add(parts.second().tail());
 			})); 
 		}
 	}

@@ -1,15 +1,12 @@
 package utopia.flow.structure.range;
 
-import utopia.flow.structure.View;
-import utopia.flow.structure.iterator.RangeIterator;
-import utopia.flow.structure.iterator.RichIterator;
-
 /**
  * An inclusive implementation of integer range
  * @author Mikko Hilpinen
  * @since 11.9.2019
  */
-public class InclusiveIntRange extends InclusiveRange<Integer> implements IntRange<InclusiveIntRange>
+public class InclusiveIntRange extends InclusiveRange<Integer> 
+	implements IntRange<InclusiveIntRange>, RangeWithLength<Integer, Integer>
 {
 	// CONSTRUCTOR	--------------------
 	
@@ -27,22 +24,12 @@ public class InclusiveIntRange extends InclusiveRange<Integer> implements IntRan
 	// IMPLEMENTED	-------------------
 
 	@Override
-	public RichIterator<Integer> iterator()
+	public Integer end()
 	{
-		return RangeIterator.forIntegersInclusive(first(), last());
-	}
-
-	@Override
-	public int length()
-	{
-		return Math.abs(last() - first()) + 1;
-	}
-
-	@Override
-	public View<Integer> by(int increment)
-	{
-		return new View<>(() -> RangeIterator.forIntegersInclusive(first(), last(), increment), 
-				length());
+		if (last() >= first())
+			return last() + 1;
+		else
+			return last() - 1;
 	}
 
 	@Override
@@ -61,5 +48,29 @@ public class InclusiveIntRange extends InclusiveRange<Integer> implements IntRan
 	public boolean isEmpty()
 	{
 		return super.isEmpty();
+	}
+
+	@Override
+	public Integer increase(Integer a, Integer amount)
+	{
+		return a + amount;
+	}
+
+	@Override
+	public Integer decrease(Integer a, Integer amount)
+	{
+		return a - amount;
+	}
+
+	@Override
+	public Integer distanceBetween(Integer min, Integer max)
+	{
+		return max - min;
+	}
+
+	@Override
+	public Integer length()
+	{
+		return IntRange.super.length();
 	}
 }

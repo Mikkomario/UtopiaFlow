@@ -258,14 +258,34 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	}
 	
 	/**
+	 * @param capacity Capacity of builder
+	 * @param fill A function for filling list contents
+	 * @return A filled list
+	 */
+	public static <T> ImmutableList<T> build(Option<Integer> capacity, Consumer<? super ListBuilder<T>> fill)
+	{
+		ListBuilder<T> buffer = new ListBuilder<>(capacity);
+		fill.accept(buffer);
+		return buffer.result();
+	}
+	
+	/**
 	 * @param fill A function for filling list contents
 	 * @return A filled list
 	 */
 	public static <T> ImmutableList<T> build(Consumer<? super ListBuilder<T>> fill)
 	{
-		ListBuilder<T> buffer = new ListBuilder<>();
-		fill.accept(buffer);
-		return buffer.result();
+		return build(Option.none(), fill);
+	}
+	
+	/**
+	 * @param capacity Capacity of builder
+	 * @param fill A function for filling list contents
+	 * @return A filled list
+	 */
+	public static <T> ImmutableList<T> build(int capacity, Consumer<? super ListBuilder<T>> fill)
+	{
+		return build(Option.some(capacity), fill);
 	}
 
 

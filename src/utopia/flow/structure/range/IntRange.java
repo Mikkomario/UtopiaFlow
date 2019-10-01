@@ -3,6 +3,8 @@ package utopia.flow.structure.range;
 import utopia.flow.structure.Option;
 import utopia.flow.structure.RichIterable;
 import utopia.flow.structure.View;
+import utopia.flow.structure.iterator.IntRangeIterator;
+import utopia.flow.structure.iterator.RichIterator;
 
 /**
  * Common interface for ranges that consist of integers
@@ -10,7 +12,8 @@ import utopia.flow.structure.View;
  * @param <Repr> A concrete implementation of this interface
  * @since 11.9.2019
  */
-public interface IntRange<Repr extends IntRange<Repr>> extends RangeWithBeginning<Integer>, RichIterable<Integer>
+public interface IntRange<Repr extends IntRange<Repr>> extends RangeWithBeginning<Integer>, 
+		RangeWithExclusiveEnd<Integer>, RichIterable<Integer>
 {
 	// STATIC	--------------------
 	
@@ -47,18 +50,6 @@ public interface IntRange<Repr extends IntRange<Repr>> extends RangeWithBeginnin
 	// ABSTRACT	--------------------
 	
 	/**
-	 * @return The length of this range
-	 */
-	public int length();
-	
-	/**
-	 * @param increment How many integers are passed each step 
-	 * (Eg. 2 would iterate through every second number in this range)
-	 * @return A view of this range that uses specified increment
-	 */
-	public View<Integer> by(int increment);
-	
-	/**
 	 * @return A copy of this range that goes the opposite direction
 	 */
 	public Repr reversed();
@@ -90,8 +81,32 @@ public interface IntRange<Repr extends IntRange<Repr>> extends RangeWithBeginnin
 		return Option.some(length());
 	}
 	
+	@Override
+	public default RichIterator<Integer> iterator()
+	{
+		return IntRangeIterator.fromUntil(first(), end());
+	}
+	
 	
 	// OTHER	--------------------
+	
+	/**
+	 * @return The length of this range
+	 */
+	public default Integer length()
+	{
+		return Math.abs(end() - first());
+	}
+	
+	/**
+	 * @param increment How many integers are passed each step 
+	 * (Eg. 2 would iterate through every second number in this range)
+	 * @return A view of this range that uses specified increment
+	 */
+	public default View<Integer> by(int increment)
+	{
+		return new View<>(() -> IntRangeIterator.fromUntil(first(), end(), increment), length());
+	}
 	
 	/**
 	 * @param newLast New last value for this range (inclusive)
