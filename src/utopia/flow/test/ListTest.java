@@ -4,7 +4,6 @@ import utopia.flow.structure.Duo;
 import utopia.flow.structure.ImmutableList;
 import utopia.flow.structure.ImmutableMap;
 import utopia.flow.structure.ListBuilder;
-import utopia.flow.structure.Option;
 import utopia.flow.util.Test;
 
 class ListTest
