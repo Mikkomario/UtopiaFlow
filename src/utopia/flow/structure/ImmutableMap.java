@@ -186,6 +186,46 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 		return build(Option.positiveInt(capacity, true), fill);
 	}
 	
+	/**
+	 * Builds a list map
+	 * @param keyCapacity Capacity for keys
+	 * @param valueCapacity Capacity for values per key
+	 * @param fill A function for filling the map
+	 * @return Resulting list map
+	 */
+	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> buildListMap(
+			Option<Integer> keyCapacity, Option<Integer> valueCapacity, 
+			Consumer<? super ListMapBuilder<Key, Value>> fill)
+	{
+		ListMapBuilder<Key, Value> builder = new ListMapBuilder<>(keyCapacity, valueCapacity);
+		fill.accept(builder);
+		return builder.result();
+	}
+	
+	/**
+	 * Builds a list map
+	 * @param keyCapacity Capacity for keys
+	 * @param valueCapacity Capacity for values per key
+	 * @param fill A function for filling the map
+	 * @return Resulting list map
+	 */
+	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> buildListMap(
+			int keyCapacity, int valueCapacity, Consumer<? super ListMapBuilder<Key, Value>> fill)
+	{
+		return buildListMap(Option.some(keyCapacity), Option.some(valueCapacity), fill);
+	}
+	
+	/**
+	 * Builds a list map
+	 * @param fill A function for filling the map
+	 * @return Resulting list map
+	 */
+	public static <Key, Value> ImmutableMap<Key, ImmutableList<Value>> buildListMap(
+			Consumer<? super ListMapBuilder<Key, Value>> fill)
+	{
+		return buildListMap(Option.none(), Option.none(), fill);
+	}
+	
 	
 	// IMPLEMENTED METHODS	-------
 	
@@ -338,7 +378,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @return A value from the map
 	 * @throws NoSuchElementException If no such key exists
 	 */
-	public Value get(Key key) throws NoSuchElementException
+	public Value get(Object key) throws NoSuchElementException
 	{
 		if (containsKey(key))
 			return map.get(key);
@@ -351,7 +391,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param key A key
 	 * @return A value from the map. None if no such key / value exists
 	 */
-	public Option<Value> getOption(Key key)
+	public Option<Value> getOption(Object key)
 	{
 		return new Option<>(map.get(key));
 	}
@@ -362,7 +402,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param defaultValue The default value that is used if no such key is available
 	 * @return A value from the map, or the default value
 	 */
-	public Value getOrElse(Key key, Supplier<? extends Value> defaultValue)
+	public Value getOrElse(Object key, Supplier<? extends Value> defaultValue)
 	{
 		return getOption(key).getOrElse(defaultValue);
 	}
@@ -373,7 +413,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @param defaultValue The default value that is used if no such key is available
 	 * @return A value from the map, or the default value
 	 */
-	public Value getOrElse(Key key, Value defaultValue)
+	public Value getOrElse(Object key, Value defaultValue)
 	{
 		return getOption(key).getOrElse(defaultValue);
 	}
@@ -384,7 +424,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @return The target value
 	 * @throws E An exception if there was no value available
 	 */
-	public <E extends Exception> Value getOrFail(Key key, Supplier<? extends E> errorSupplier) throws E
+	public <E extends Exception> Value getOrFail(Object key, Supplier<? extends E> errorSupplier) throws E
 	{
 		return getOption(key).getOrFail(errorSupplier);
 	}
@@ -395,7 +435,7 @@ public class ImmutableMap<Key, Value> implements BiIterable<Key, Value>, StringR
 	 * @throws EmptyResultException if there was no value available
 	 * @deprecated {@link #get(Object)} now functions like this method
 	 */
-	public Value getOrFail(Key key) throws EmptyResultException
+	public Value getOrFail(Object key) throws EmptyResultException
 	{
 		return getOrFail(key, () -> new EmptyResultException("No value for key: " + key));
 	}

@@ -88,4 +88,25 @@ public class ListBuilder<T> extends Builder<ImmutableList<T>, ArrayList<T>, T>
 	{
 		return RichIterator.wrap(buffer.iterator());
 	}
+	
+	
+	// OTHER	-------------------
+	
+	/**
+	 * Removes specified item from this builder
+	 * @param item Item to remove
+	 */
+	public void remove(Object item)
+	{
+		getBuffer().remove(item);
+	}
+	
+	/**
+	 * Removes specified index from this builder
+	 * @param index Index to remove
+	 */
+	public void removeIndex(int index)
+	{
+		getBuffer().remove(index);
+	}
 }

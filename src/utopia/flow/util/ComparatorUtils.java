@@ -1,5 +1,7 @@
 package utopia.flow.util;
 
+import utopia.flow.structure.Option;
+
 /**
  * This is a static collection of methods to be used with comparables
  * @author Mikko Hilpinen
@@ -38,5 +40,35 @@ public class ComparatorUtils
 			return second;
 		else
 			return first;
+	}
+	
+	/**
+	 * @param first first optional value
+	 * @param second Second optional value
+	 * @return Minimum between these values. None if no values were provided.
+	 */
+	public static <A extends Comparable<? super A>> Option<A> min(Option<A> first, Option<A> second)
+	{
+		if (first.isEmpty())
+			return second;
+		else if (second.isEmpty())
+			return first;
+		else
+			return Option.some(min(first.get(), second.get()));
+	}
+	
+	/**
+	 * @param first First optional value
+	 * @param second Second optional value
+	 * @return Maximum between these values. None if no values were provided.
+	 */
+	public static <A extends Comparable<? super A>> Option<A> max(Option<A> first, Option<A> second)
+	{
+		if (first.isEmpty())
+			return second;
+		else if (second.isEmpty())
+			return first;
+		else
+			return Option.some(max(first.get(), second.get()));
 	}
 }

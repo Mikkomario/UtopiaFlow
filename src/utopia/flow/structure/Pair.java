@@ -1,6 +1,7 @@
 package utopia.flow.structure;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 import utopia.flow.util.StringRepresentable;
 
@@ -140,5 +141,23 @@ public class Pair<T1, T2> implements StringRepresentable
 	public <K> Pair<T1, K> withSecond(K newSecond)
 	{
 		return new Pair<>(first(), newSecond);
+	}
+	
+	/**
+	 * @param f A mapping function
+	 * @return A copy of this pair with first value mapped
+	 */
+	public <B> Pair<B, T2> mapFirst(Function<? super T1, ? extends B> f)
+	{
+		return withFirst(f.apply(first()));
+	}
+	
+	/**
+	 * @param f A mapping function
+	 * @return A copy of this pair with second value mapped
+	 */
+	public <B> Pair<T1, B> mapSecond(Function<? super T2, ? extends B> f)
+	{
+		return withSecond(f.apply(second()));
 	}
 }

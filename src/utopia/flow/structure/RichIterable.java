@@ -18,6 +18,7 @@ import utopia.flow.function.ThrowingFunction;
 import utopia.flow.function.ThrowingPredicate;
 import utopia.flow.structure.iterator.RichIterator;
 import utopia.flow.structure.iterator.SkipFirstIterator;
+import utopia.flow.util.Unit;
 
 /**
  * Classes implementing this interface will have access to methods additional to normal iterables
@@ -803,6 +804,38 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	}
 	
 	/**
+	 * Finds the smallest value(s) in this group
+	 * @param comparator A value comparator
+	 * @return The smallest value(s) in this group
+	 */
+	public default ImmutableList<A> minimums(Comparator<? super A> comparator)
+	{
+		ListBuilder<A> builder = new ListBuilder<>(estimatedSize());
+		forEach(item -> 
+		{
+			ImmutableList<Integer> compareResults = builder.mapToList(
+					existing -> comparator.compare(item, existing));
+			if (compareResults.forAll(r -> r >= 0))
+			{
+				compareResults.indexWhere(r -> r < 0).forEach(builder::removeIndex);
+				builder.add(item);
+			}
+		});
+		
+		return builder.result();
+	}
+	
+	/**
+	 * Finds the largest value(s) in this group
+	 * @param comparator A value comparator
+	 * @return The largest value(s) in this group
+	 */
+	public default ImmutableList<A> maximums(Comparator<? super A> comparator)
+	{
+		return minimums((a, b) -> comparator.compare(b, a));
+	}
+	
+	/**
 	 * Maps the items and finds the smallest mapped value
 	 * @param map A mapping function
 	 * @param comparator A comparator for mapped values
@@ -886,6 +919,32 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 		{
 			f.accept(item);
 		}
+	}
+	
+	/**
+	 * Performs a number of operations, catches exceptions
+	 * @param f A function performed on each item
+	 * @return Exceptions that occurred during iteration
+	 */
+	public default ImmutableList<Exception> foreachCatching(ThrowingConsumer<? super A, ?> f)
+	{
+		return flatMapToList(item -> f.tryAccept(item).failure());
+	}
+	
+	/**
+	 * Iterates as long as the target operation is successful or end of items is reached
+	 * @param f A function that handles items but may fail
+	 * @return Whether all items were successfully handled or the first failure
+	 */
+	public default Try<Unit> foreachTrying(Function<? super A, ? extends Try<?>> f)
+	{
+		for (A item : this)
+		{
+			Try<?> result = f.apply(item);
+			if (result.isFailure())
+				return Try.failure(result.getFailure());
+		}
+		return Try.SUCCESS;
 	}
 	
 	/*

@@ -42,11 +42,22 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 * @param b A function to fill the buffer
 	 * @return build IntSet
 	 */
-	public static IntSet build(int capacity, Consumer<? super IntSetBuilder> b)
+	public static IntSet build(Option<Integer> capacity, Consumer<? super IntSetBuilder> b)
 	{
 		IntSetBuilder newBuilder = new IntSetBuilder(capacity);
 		b.accept(newBuilder);
 		return newBuilder.result();
+	}
+	
+	/**
+	 * Builds a new int set by using a buffer
+	 * @param capacity Capacity for the buffer
+	 * @param b A function to fill the buffer
+	 * @return build IntSet
+	 */
+	public static IntSet build(int capacity, Consumer<? super IntSetBuilder> b)
+	{
+		return build(Option.some(capacity), b);
 	}
 	
 	/**
@@ -56,9 +67,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 */
 	public static IntSet build(Consumer<? super IntSetBuilder> b)
 	{
-		IntSetBuilder newBuilder = new IntSetBuilder();
-		b.accept(newBuilder);
-		return newBuilder.result();
+		return build(Option.none(), b);
 	}
 	
 	/**
@@ -66,9 +75,9 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	 * @param numbers Numbers list
 	 * @return An int list
 	 */
-	public static IntSet of(ImmutableList<Integer> numbers)
+	public static IntSet of(RichIterable<Integer> numbers)
 	{
-		return build(numbers.size(), b -> b.add(numbers));
+		return build(numbers.estimatedSize(), b -> b.add(numbers));
 	}
 	
 	/**
