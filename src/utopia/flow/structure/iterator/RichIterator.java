@@ -25,7 +25,7 @@ public interface RichIterator<A> extends Iterator<A>
 	/**
 	 * @return Checks the next item from this iterator but won't advance.
 	 */
-	public A poll();
+	A poll();
 	
 	
 	// OTHER METHODS	-------------------
@@ -33,7 +33,7 @@ public interface RichIterator<A> extends Iterator<A>
 	/**
 	 * @return The next item from this iterator. None if there is no such item.
 	 */
-	public default Option<A> nextOption()
+	default Option<A> nextOption()
 	{
 		if (hasNext())
 			return Option.some(next());
@@ -44,7 +44,7 @@ public interface RichIterator<A> extends Iterator<A>
 	/**
 	 * @return The next item from this iterator without advancing it. None if there are no more items.
 	 */
-	public default Option<A> pollOption()
+	default Option<A> pollOption()
 	{
 		if (hasNext())
 			return Option.some(poll());
@@ -57,8 +57,8 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @param makeBuilder A function for producing the final collection builder.
 	 * @return The next n elements from this iterator. Less if this iterator ran out of items.
 	 */
-	public default <R> R take(int n, 
-			Function<? super Integer, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
+	default <R> R take(int n,
+					   Function<? super Integer, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super A> buffer = makeBuilder.apply(Math.max(n, 0));
 		for (int i = 0; i < n; i++)
@@ -76,7 +76,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @param n The amount of elements to be read
 	 * @return The next n elements from this iterator. Less if this iterator ran out of items.
 	 */
-	public default ImmutableList<A> take(int n)
+	default ImmutableList<A> take(int n)
 	{
 		return take(n, ListBuilder::new);
 	}
@@ -86,7 +86,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @param transform A transform function
 	 * @return A mapped version of this iterator
 	 */
-	public default <B> MapIterator<A, B> map(Function<? super A, ? extends B> transform)
+	default <B> MapIterator<A, B> map(Function<? super A, ? extends B> transform)
 	{
 		return new MapIterator<>(this, transform);
 	}
@@ -96,7 +96,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @param transform A transform function
 	 * @return A flat mapped version of this iterator
 	 */
-	public default <B> FlatIterator<B> flatMap(Function<? super A, ? extends RichIterable<B>> transform)
+	default <B> FlatIterator<B> flatMap(Function<? super A, ? extends RichIterable<B>> transform)
 	{
 		return new FlatIterator<>(map(transform));
 	}
@@ -106,8 +106,8 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return A collection of the first n elements in this iterator that satisfy the provided predicate
 	 */
-	public default <R> R takeWhile(Predicate<? super A> f, 
-			Supplier<? extends Builder<? extends R, ?, ? super A>> makeBuilder)
+	default <R> R takeWhile(Predicate<? super A> f,
+							Supplier<? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super A> builder = makeBuilder.get();
 		while (pollOption().exists(f))
@@ -121,7 +121,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @param f A predicate
 	 * @return A list of the first n elements in this iterator that satisfy the provided predicate
 	 */
-	public default ImmutableList<A> takeWhile(Predicate<? super A> f)
+	default ImmutableList<A> takeWhile(Predicate<? super A> f)
 	{
 		return takeWhile(f, ListBuilder::new);
 	}
@@ -132,7 +132,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @param n The maximum number of items read
 	 * @param f A function called for the read items
 	 */
-	public default void forFirst(int n, Consumer<? super A> f)
+	default void forFirst(int n, Consumer<? super A> f)
 	{
 		int itemsRead = 0;
 		while (hasNext() && itemsRead < n)
@@ -146,7 +146,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 * Skips the next 'n' items in this iterator
 	 * @param n The number of items to be skipped
 	 */
-	public default void skip(int n)
+	default void skip(int n)
 	{
 		int itemsSkipped = 0;
 		while (hasNext() && itemsSkipped < n)
@@ -160,7 +160,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @param iterator A normal iterator
 	 * @return A wrapped iterator
 	 */
-	public static <T> RichIterator<T> wrap(Iterator<? extends T> iterator)
+	static <T> RichIterator<T> wrap(Iterator<? extends T> iterator)
 	{
 		return new Wrapper<>(iterator);
 	}
@@ -174,7 +174,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 * @since 14.5.2018
 	 * @param <T> The type of iterated item
 	 */
-	static class Wrapper<T> implements RichIterator<T>
+	class Wrapper<T> implements RichIterator<T>
 	{
 		// ATTRIBUTES	---------------------
 		

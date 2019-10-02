@@ -33,18 +33,18 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	/**
 	 * A check for whether two objects are equal. Null safe
 	 */
-	public static final BiPredicate<Object, Object> SAFE_EQUALS = FunctionUtils.SAFE_EQUALS;
+	BiPredicate<Object, Object> SAFE_EQUALS = FunctionUtils.SAFE_EQUALS;
 	
 	
 	// ABSTRACT METHODS	--------------------
 	
 	@Override
-	public RichIterator<A> iterator();
+	RichIterator<A> iterator();
 	
 	/**
 	 * @return The estimated size / length of this iterable item. None if no length can be estimated.
 	 */
-	public Option<Integer> estimatedSize();
+	Option<Integer> estimatedSize();
 	
 	
 	// STATIC	----------------------------
@@ -54,9 +54,9 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param items The items the maximum value is searched from
 	 * @return The maximum value from the list. None if list is empty.
 	 */
-	public static <T extends Comparable<? super T>> Option<T> maxFrom(RichIterable<T> items)
+	static <T extends Comparable<? super T>> Option<T> maxFrom(RichIterable<T> items)
 	{
-		return items.max((a, b) -> a.compareTo(b));
+		return items.max(Comparator.naturalOrder());
 	}
 	
 	/**
@@ -64,16 +64,16 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param items The items the minimum value is searched from
 	 * @return The minimum value from the list. None if list is empty.
 	 */
-	public static <T extends Comparable<? super T>> Option<T> minFrom(RichIterable<T> items)
+	static <T extends Comparable<? super T>> Option<T> minFrom(RichIterable<T> items)
 	{
-		return items.min((a, b) -> a.compareTo(b));
+		return items.min(Comparator.naturalOrder());
 	}
 	
 	
 	// IMPLEMENTED	------------------------
 	
 	@Override
-	public default View<A> view()
+	default View<A> view()
 	{
 		return new View<>(this::iterator, estimatedSize());
 	}
@@ -84,7 +84,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	/**
 	 * @return Whether this iterable contains any items
 	 */
-	public default boolean nonEmpty()
+	default boolean nonEmpty()
 	{
 		return iterator().hasNext();
 	}
@@ -92,7 +92,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	/**
 	 * @return Whether this iterable is empty (contains no items)
 	 */
-	public default boolean isEmpty()
+	default boolean isEmpty()
 	{
 		return !nonEmpty();
 	}
@@ -102,7 +102,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @throws NoSuchElementException If the iterable is empty
 	 * @see #headOption()
 	 */
-	public default A head() throws NoSuchElementException
+	default A head() throws NoSuchElementException
 	{
 		RichIterator<A> iterator = iterator();
 		if (iterator.hasNext())
@@ -114,7 +114,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	/**
 	 * @return The first element in this iterable. None if this iterable is empty.
 	 */
-	public default Option<A> headOption()
+	default Option<A> headOption()
 	{
 		return iterator().nextOption();
 	}
@@ -125,7 +125,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing builder for the final collection. Takes a size hint.
 	 * @return Up to the first n items from this iterable
 	 */
-	public default <R> R first(int n, Function<? super Integer, 
+	default <R> R first(int n, Function<? super Integer,
 			? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		return iterator().take(n, makeBuilder);
@@ -137,8 +137,8 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing builder for the final collection
 	 * @return The first n items that satisfy the provided predicate
 	 */
-	public default <R> R takeWhile(Predicate<? super A> f, 
-			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
+	default <R> R takeWhile(Predicate<? super A> f,
+							Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		return iterator().takeWhile(f, () -> makeBuilder.apply(estimatedSize()));
 	}
@@ -149,8 +149,8 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return A collection without the first n items that satisfy the predicate
 	 */
-	public default <R> R dropWhile(Predicate<? super A> f, 
-			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
+	default <R> R dropWhile(Predicate<? super A> f,
+							Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super A> builder = makeBuilder.apply(estimatedSize());
 		RichIterator<A> iter = iterator();
@@ -172,7 +172,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing builders for the final collections. Takes a possible size hint.
 	 * @return First the items before the split, then the rest of the items (including specified index)
 	 */
-	public default <R> Duo<R> splitAt(int index, Function<? super Option<Integer>, 
+	default <R> Duo<R> splitAt(int index, Function<? super Option<Integer>,
 			? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		RichIterator<A> iterator = iterator();
@@ -190,7 +190,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing builders for final collections
 	 * @return First the items before the split, then the rest of the items (including search result)
 	 */
-	public default <R> Duo<R> splitAt(Predicate<? super A> find, 
+	default <R> Duo<R> splitAt(Predicate<? super A> find,
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		RichIterator<A> iterator = iterator();
@@ -206,7 +206,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param n The amount of elements to skip
 	 * @return A view of the latter portion of this iterable
 	 */
-	public default View<A> dropFirstView(int n)
+	default View<A> dropFirstView(int n)
 	{
 		return new View<>(() -> new SkipFirstIterator<>(iterator(), n), estimatedSize().map(s -> s - n));
 	}
@@ -214,7 +214,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	/**
 	 * @return A view of all but the first item in this iterable
 	 */
-	public default View<A> tailView()
+	default View<A> tailView()
 	{
 		return dropFirstView(1);
 	}
@@ -224,7 +224,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f a predicate
 	 * @return Is the predicate true for any of the elements in this list. False if empty.
 	 */
-	public default boolean exists(Predicate<? super A> f)
+	default boolean exists(Predicate<? super A> f)
 	{
 		for (A element : this)
 		{
@@ -240,7 +240,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param equals A function for checking equality
 	 * @return whether the item is contained within this collection
 	 */
-	public default <B> boolean contains(B item, BiPredicate<? super A, ? super B> equals)
+	default <B> boolean contains(B item, BiPredicate<? super A, ? super B> equals)
 	{
 		return exists(o -> equals.test(o, item));
 	}
@@ -250,7 +250,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param item An item
 	 * @return whether the item is contained within this collection
 	 */
-	public default boolean contains(Object item)
+	default boolean contains(Object item)
 	{
 		return contains(item, SAFE_EQUALS);
 	}
@@ -261,7 +261,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param equals Method for checking equality between items
 	 * @return Whether this iterable contains all of the specified items
 	 */
-	public default <B> boolean containsAll(RichIterable<? extends B> items, 
+	default <B> boolean containsAll(RichIterable<? extends B> items,
 			BiPredicate<? super A, ? super B> equals)
 	{
 		return items.forAll(item -> contains(item, equals));
@@ -272,7 +272,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param items Searched items
 	 * @return Whether this iterable contains all of the specified items
 	 */
-	public default boolean containsAll(RichIterable<?> items)
+	default boolean containsAll(RichIterable<?> items)
 	{
 		return containsAll(items, SAFE_EQUALS);
 	}
@@ -282,7 +282,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f a predicate
 	 * @return Is the predicate true for all of the elements in this list. True if empty.
 	 */
-	public default boolean forAll(Predicate<? super A> f)
+	default boolean forAll(Predicate<? super A> f)
 	{
 		return !exists(f.negate());
 	}
@@ -292,7 +292,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A predicate
 	 * @return The first element that satisfies the predicate
 	 */
-	public default Option<A> find(Predicate<? super A> f)
+	default Option<A> find(Predicate<? super A> f)
 	{
 		for (A element : this)
 		{
@@ -307,7 +307,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @return First element in this iterable that satisfied the predicate
 	 * @throws E If predicate throws
 	 */
-	public default <E extends Exception> Option<A> findThrowing(
+	default <E extends Exception> Option<A> findThrowing(
 			ThrowingPredicate<? super A, ? extends E> f) throws E
 	{
 		for (A element : this)
@@ -323,7 +323,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A predicate
 	 * @return The number of items that satisfy the provided predicate
 	 */
-	public default int count(Predicate<? super A> f)
+	default int count(Predicate<? super A> f)
 	{
 		int total = 0;
 		for (A element : this)
@@ -341,7 +341,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder Function for producing builders for final collections
 	 * @return The filter results. One list for accepted values and one list for not accepted values
 	 */
-	public default <R> ImmutableMap<Boolean, R> divideBy(Predicate<? super A> f, 
+	default <R> ImmutableMap<Boolean, R> divideBy(Predicate<? super A> f,
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		// Goes through this iterable, and groups the values
@@ -369,7 +369,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return Collection with mapped items
 	 */
-	public default <B, R> R map(Function<? super A, ? extends B> f, 
+	default <B, R> R map(Function<? super A, ? extends B> f,
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super B>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super B> builder = makeBuilder.apply(estimatedSize());
@@ -383,7 +383,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return Collection with mapped items
 	 */
-	public default <B, R> R flatMap(Function<? super A, ? extends RichIterable<? extends B>> f, 
+	default <B, R> R flatMap(Function<? super A, ? extends RichIterable<? extends B>> f,
 			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
@@ -398,7 +398,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @return Collection with mapped items
 	 * @throws E If mapping failed at any point
 	 */
-	public default <B, R, E extends Exception> R mapThrowing(ThrowingFunction<? super A, 
+	default <B, R, E extends Exception> R mapThrowing(ThrowingFunction<? super A,
 			? extends B, ? extends E> f, Function<? super Option<Integer>, 
 					? extends Builder<? extends R, ?, ? super B>> makeBuilder) throws E
 	{
@@ -414,7 +414,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @return Collection with mapped items
 	 * @throws E If mapping failed at any point
 	 */
-	public default <B, R, E extends Exception> R flatMapThrowing(ThrowingFunction<? super A, 
+	default <B, R, E extends Exception> R flatMapThrowing(ThrowingFunction<? super A,
 			? extends RichIterable<? extends B>, ? extends E> f, 
 			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder) throws E
 	{
@@ -429,11 +429,10 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A function for mapping items. Returns success or failure.
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return Collection with mapped items or a failure
-	 * @throws E 
 	 */
-	public default <B, R, E extends Exception> Try<R> tryMap(Function<? super A, 
+	default <B, R> Try<R> tryMap(Function<? super A,
 			? extends Try<? extends B>> f, 
-			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super B>> makeBuilder) throws E
+			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super B>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super B> builder = makeBuilder.apply(estimatedSize());
 		for (A item : this)
@@ -453,11 +452,10 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A function for mapping items. Returns success or failure.
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return Collection with mapped items or a failure
-	 * @throws E 
 	 */
-	public default <B, R, E extends Exception> Try<R> tryFlatMap(Function<? super A, 
+	default <B, R> Try<R> tryFlatMap(Function<? super A,
 			? extends Try<? extends RichIterable<? extends B>>> f, 
-			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder) throws E
+			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super B> builder = makeBuilder.get();
 		for (A item : this)
@@ -478,7 +476,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return Collection with successfully mapped items
 	 */
-	public default <B, R> R mapCatching(ThrowingFunction<? super A, ? extends B, ?> f, 
+	default <B, R> R mapCatching(ThrowingFunction<? super A, ? extends B, ?> f,
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super B>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super B> builder = makeBuilder.apply(estimatedSize());
@@ -493,7 +491,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing a builder for the final collection
 	 * @return Collection with successfully mapped items
 	 */
-	public default <B, R> R flatMapCatching(ThrowingFunction<? super A, 
+	default <B, R> R flatMapCatching(ThrowingFunction<? super A,
 			? extends RichIterable<? extends B>, ?> f, 
 			Supplier<? extends Builder<? extends R, ?, ? super B>> makeBuilder)
 	{
@@ -509,7 +507,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing final collection builder
 	 * @return A mapped collection
 	 */
-	public default <R> R mapWhere(Predicate<? super A> where, Function<? super A, ? extends A> f, 
+	default <R> R mapWhere(Predicate<? super A> where, Function<? super A, ? extends A> f,
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super A> builder = makeBuilder.apply(estimatedSize());
@@ -530,7 +528,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @return The first transformation result where the transformation is defined. None if none of this list's items 
 	 * could be transformed.
 	 */
-	public default <B> Option<B> flatMapFirst(Function<? super A, Option<B>> f)
+	default <B> Option<B> flatMapFirst(Function<? super A, Option<B>> f)
 	{
 		for (A item : this)
 		{
@@ -547,7 +545,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing final collection builder. Takes possible size hint.
 	 * @return The copied collection
 	 */
-	public default <R> R collect(Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
+	default <R> R collect(Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super A> builder = makeBuilder.apply(estimatedSize());
 		builder.add(this);
@@ -560,7 +558,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for making a builder for the final collection
 	 * @return A list of the items in this view or none if the process was terminated
 	 */
-	public default <R> Option<R> tryCollect(Predicate<? super A> terminator, 
+	default <R> Option<R> tryCollect(Predicate<? super A> terminator,
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super A>> makeBuilder)
 	{
 		Builder<? extends R, ?, ? super A> builder = makeBuilder.apply(estimatedSize());
@@ -578,7 +576,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	/**
 	 * @return An immutable list based on the values of this iterable
 	 */
-	public default ImmutableList<A> toList()
+	default ImmutableList<A> toList()
 	{
 		return collect(ListBuilder::new);
 	}
@@ -587,7 +585,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param mapper A mapper function that transforms the values
 	 * @return An immutable list based on transformed values of this iterable
 	 */
-	public default <B> ImmutableList<B> mapToList(Function<? super A, ? extends B> mapper)
+	default <B> ImmutableList<B> mapToList(Function<? super A, ? extends B> mapper)
 	{
 		return map(mapper, ListBuilder::new);
 		// return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
@@ -597,7 +595,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param mapper A mapper function that transforms the values into zero or more items
 	 * @return An immutable list with all transformed results in sequential order
 	 */
-	public default <B> ImmutableList<B> flatMapToList(Function<? super A, ? extends RichIterable<B>> mapper)
+	default <B> ImmutableList<B> flatMapToList(Function<? super A, ? extends RichIterable<B>> mapper)
 	{
 		return flatMap(mapper, ListBuilder::new);
 		// return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
@@ -612,7 +610,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing builder for the final collection
 	 * @return The merged collection
 	 */
-	public default <B, C, R> R mergedWith(RichIterable<? extends B> other, 
+	default <B, C, R> R mergedWith(RichIterable<? extends B> other,
 			BiFunction<? super A, ? super B, ? extends C> merge, 
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super C>> makeBuilder)
 	{
@@ -637,7 +635,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param makeBuilder A function for producing builder for the final collection
 	 * @return The merged collection which contains paired items
 	 */
-	public default <B, R> R zip(RichIterable<? extends B> other, 
+	default <B, R> R zip(RichIterable<? extends B> other,
 			Function<? super Option<Integer>, ? extends Builder<? extends R, ?, ? super Pair<A, B>>> makeBuilder)
 	{
 		return mergedWith(other, (a, b) -> new Pair<>(a, b), makeBuilder);
@@ -649,7 +647,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @return A map based on this list's contents. If multiple items are mapped to the same key, only the last 
 	 * item is included
 	 */
-	public default <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super A, ? extends Pair<Key, Value>> f)
+	default <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super A, ? extends Pair<Key, Value>> f)
 	{
 		return map(f, MapBuilder::new);
 		// return ImmutableMap.of(mapToList(f));
@@ -660,7 +658,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param pair A function that pairs items with values
 	 * @return A new map based on the pairs
 	 */
-	public default <Value> ImmutableMap<A, Value> pairValues(Function<? super A, ? extends Value> pair)
+	default <Value> ImmutableMap<A, Value> pairValues(Function<? super A, ? extends Value> pair)
 	{
 		return toMap(v -> new Pair<>(v, pair.apply(v)));
 	}
@@ -671,7 +669,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f a function that maps the items in this list to key value pairs
 	 * @return A map with values of mapped items
 	 */
-	public default <Key, Value> ImmutableMap<Key, ImmutableList<Value>> toListMap(Function<? super A, Pair<Key, Value>> f)
+	default <Key, Value> ImmutableMap<Key, ImmutableList<Value>> toListMap(Function<? super A, Pair<Key, Value>> f)
 	{
 		return ImmutableMap.<Key, ListBuilder<Value>>build(estimatedSize(), buffer -> 
 		{
@@ -687,7 +685,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 					buffer.put(category, ListBuilder.withValue(value));
 			});
 			
-		}).mapValues(b -> b.result());
+		}).mapValues(Builder::result);
 	}
 	
 	/**
@@ -695,7 +693,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A mapping function
 	 * @return The contents of this list grouped to categories based on the mapping function results
 	 */
-	public default <Key> ImmutableMap<Key, ImmutableList<A>> groupBy(Function<? super A, ? extends Key> f)
+	default <Key> ImmutableMap<Key, ImmutableList<A>> groupBy(Function<? super A, ? extends Key> f)
 	{
 		return toListMap(item -> new Pair<>(f.apply(item), item));
 	}
@@ -706,7 +704,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A function that folds items into the result value
 	 * @return The resulting value
 	 */
-	public default <B> B fold(B start, BiFunction<? super B, ? super A, ? extends B> f)
+	default <B> B fold(B start, BiFunction<? super B, ? super A, ? extends B> f)
 	{
 		B result = start;
 		for (A item : this)
@@ -723,7 +721,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @return The reduce result
 	 * @throws NoSuchElementException If the list is empty
 	 */
-	public default A reduce(BiFunction<? super A, ? super A, ? extends A> f) throws NoSuchElementException
+	default A reduce(BiFunction<? super A, ? super A, ? extends A> f) throws NoSuchElementException
 	{
 		A result = null;
 		for (A item : this)
@@ -742,7 +740,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f The reduce function
 	 * @return The reduce result. None if the list was empty
 	 */
-	public default Option<A> reduceOption(BiFunction<? super A, ? super A, ? extends A> f)
+	default Option<A> reduceOption(BiFunction<? super A, ? super A, ? extends A> f)
 	{
 		if (isEmpty())
 			return Option.none();
@@ -754,7 +752,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param comparator A comparator
 	 * @return The maximum value in this iterable, using the specified comparator
 	 */
-	public default Option<A> max(Comparator<? super A> comparator)
+	default Option<A> max(Comparator<? super A> comparator)
 	{
 		Option<A> first = headOption();
 		if (first.isEmpty())
@@ -776,7 +774,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param comparator A comparator
 	 * @return The minimum value in this iterable, using the specified comparator
 	 */
-	public default Option<A> min(Comparator<? super A> comparator)
+	default Option<A> min(Comparator<? super A> comparator)
 	{
 		return max(comparator.reversed());
 	}
@@ -787,9 +785,9 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @return The maximum item in the list based on the mapped value. None if list is empty.
 	 * @see #maxFrom(RichIterable)
 	 */
-	public default <K extends Comparable<? super K>> Option<A> maxBy(Function<? super A, ? extends K> f)
+	default <K extends Comparable<? super K>> Option<A> maxBy(Function<? super A, ? extends K> f)
 	{
-		return max((a, b) -> f.apply(a).compareTo(f.apply(b)));
+		return max(Comparator.comparing(f));
 	}
 	
 	/**
@@ -798,9 +796,9 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @return The minimum item in the list based on the mapped value. None if list is empty.
 	 * @see #minFrom(RichIterable)
 	 */
-	public default <K extends Comparable<? super K>> Option<A> minBy(Function<? super A, ? extends K> f)
+	default <K extends Comparable<? super K>> Option<A> minBy(Function<? super A, ? extends K> f)
 	{
-		return min((a, b) -> f.apply(a).compareTo(f.apply(b)));
+		return min(Comparator.comparing(f));
 	}
 	
 	/**
@@ -808,7 +806,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param comparator A value comparator
 	 * @return The smallest value(s) in this group
 	 */
-	public default ImmutableList<A> minimums(Comparator<? super A> comparator)
+	default ImmutableList<A> minimums(Comparator<? super A> comparator)
 	{
 		ListBuilder<A> builder = new ListBuilder<>(estimatedSize());
 		forEach(item -> 
@@ -830,7 +828,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param comparator A value comparator
 	 * @return The largest value(s) in this group
 	 */
-	public default ImmutableList<A> maximums(Comparator<? super A> comparator)
+	default ImmutableList<A> maximums(Comparator<? super A> comparator)
 	{
 		return minimums((a, b) -> comparator.compare(b, a));
 	}
@@ -841,7 +839,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param comparator A comparator for mapped values
 	 * @return The smallest mapped value
 	 */
-	public default <B> Option<B> mapMin(Function<? super A, ? extends B> map, Comparator<? super B> comparator)
+	default <B> Option<B> mapMin(Function<? super A, ? extends B> map, Comparator<? super B> comparator)
 	{
 		Option<A> first = headOption();
 		if (first.isEmpty())
@@ -865,9 +863,9 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param map A mapping function
 	 * @return The smallest mapped value
 	 */
-	public default <B extends Comparable<? super B>> Option<B> mapMin(Function<? super A, ? extends B> map)
+	default <B extends Comparable<? super B>> Option<B> mapMin(Function<? super A, ? extends B> map)
 	{
-		return mapMin(map, (a, b) -> a.compareTo(b));
+		return mapMin(map, Comparator.naturalOrder());
 	}
 	
 	/**
@@ -876,7 +874,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param comparator A comparator for mapped values
 	 * @return The largest mapped value
 	 */
-	public default <B> Option<B> mapMax(Function<? super A, ? extends B> map, Comparator<? super B> comparator)
+	default <B> Option<B> mapMax(Function<? super A, ? extends B> map, Comparator<? super B> comparator)
 	{
 		return mapMin(map, comparator.reversed());
 	}
@@ -886,9 +884,9 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param map A mapping function
 	 * @return The largest mapped value
 	 */
-	public default <B extends Comparable<? super B>> Option<B> mapMax(Function<? super A, ? extends B> map)
+	default <B extends Comparable<? super B>> Option<B> mapMax(Function<? super A, ? extends B> map)
 	{
-		return mapMax(map, (a, b) -> a.compareTo(b));
+		return mapMax(map, Comparator.naturalOrder());
 	}
 	
 	/**
@@ -897,7 +895,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A function that operates on two values at the same time. The left values come from this list. 
 	 * The right values come from the other list.
 	 */
-	public default <U> void forEachSimultaneouslyWith(Iterable<? extends U> other, BiConsumer<? super A, ? super U> f)
+	default <U> void forEachSimultaneouslyWith(Iterable<? extends U> other, BiConsumer<? super A, ? super U> f)
 	{
 		RichIterator<A> myIter = iterator();
 		Iterator<? extends U> otherIter = other.iterator();
@@ -911,9 +909,9 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	/**
 	 * Performs a throwing operation on each of the elements in this collection. Stops iterating on the first exception.
 	 * @param f The function that is performed for each element in the list
-	 * @throws Exception The first exception thrown by the function
+	 * @throws E The first exception thrown by the function
 	 */
-	public default <E extends Exception> void forEachThrowing(ThrowingConsumer<? super A, ? extends E> f) throws E
+	default <E extends Exception> void forEachThrowing(ThrowingConsumer<? super A, ? extends E> f) throws E
 	{
 		for (A item : this)
 		{
@@ -926,7 +924,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A function performed on each item
 	 * @return Exceptions that occurred during iteration
 	 */
-	public default ImmutableList<Exception> foreachCatching(ThrowingConsumer<? super A, ?> f)
+	default ImmutableList<Exception> foreachCatching(ThrowingConsumer<? super A, ?> f)
 	{
 		return flatMapToList(item -> f.tryAccept(item).failure());
 	}
@@ -936,7 +934,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param f A function that handles items but may fail
 	 * @return Whether all items were successfully handled or the first failure
 	 */
-	public default Try<Unit> foreachTrying(Function<? super A, ? extends Try<?>> f)
+	default Try<Unit> foreachTrying(Function<? super A, ? extends Try<?>> f)
 	{
 		for (A item : this)
 		{
@@ -948,7 +946,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	}
 	
 	/*
-	public default <U, R extends Iterable<? extends U>> R map(
+	default <U, R extends Iterable<? extends U>> R map(
 			Supplier<? extends Builder<? extends R, ?, ? super U>> newBuffer, Function<? super T, ? extends U> map)
 	{
 		Builder<? extends R, ?, ? super U> buffer = newBuffer.get();
@@ -960,7 +958,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	/**
 	 * @return A stream from this object's contents
 	 */
-	public default Stream<A> stream()
+	default Stream<A> stream()
 	{
 		return StreamSupport.stream(spliterator(), false);
 	}
@@ -970,7 +968,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param separator A separator added between each item
 	 * @return A string from the contents of this iterable
 	 */
-	public default String mkString(String separator)
+	default String mkString(String separator)
 	{
 		StringBuilder s = new StringBuilder();
 		appendAsString(separator, s);
@@ -982,7 +980,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 * @param separator Separator placed between the items
 	 * @param builder A string builder
 	 */
-	public default void appendAsString(String separator, StringBuilder builder)
+	default void appendAsString(String separator, StringBuilder builder)
 	{
 		if (nonEmpty())
 		{

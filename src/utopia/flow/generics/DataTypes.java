@@ -21,7 +21,7 @@ public class DataTypes implements ValueParser
 {
 	// ATTRIBUTES	------------------
 	
-	private static final Lazy<DataTypes> INSTANCE = new Lazy<>(() -> new DataTypes());
+	private static final Lazy<DataTypes> INSTANCE = new Lazy<>(DataTypes::new);
 	
 	private ImmutableList<DataTypeTreeNode> dataTypes = ImmutableList.empty();
 	private ConversionGraph graph = new ConversionGraph();
@@ -119,7 +119,7 @@ public class DataTypes implements ValueParser
 	public Value operate(Value first, ValueOperation operation, Value second) throws ValueOperationException
 	{
 		if (first == null)
-			throw new ValueOperationException(operation, first, second);
+			throw new ValueOperationException(operation, null, second);
 		if (second == null)
 			return first;
 		
@@ -153,7 +153,7 @@ public class DataTypes implements ValueParser
 		}
 		
 		// Casts the second value to a compatible data type
-		Value casted = null;
+		Value casted;
 		try
 		{
 			casted = cast(second, targetTypes);
@@ -206,7 +206,7 @@ public class DataTypes implements ValueParser
 	 */
 	public ImmutableList<DataType> getIntroducedDataTypes()
 	{
-		return this.dataTypes.map(n -> n.getContent());
+		return this.dataTypes.map(TreeNode::getContent);
 	}
 	
 	/**
@@ -221,7 +221,7 @@ public class DataTypes implements ValueParser
 	{
 		DataTypeTreeNode node = get(type);
 		// TODO: Refactor once treenode has been refactored
-		ImmutableList<DataType> lowerTypes = ImmutableList.of(node.getLowerNodes()).map(n -> n.getContent());
+		ImmutableList<DataType> lowerTypes = ImmutableList.of(node.getLowerNodes()).map(TreeNode::getContent);
 		
 		if (includeType)
 			return lowerTypes.prepend(type);
@@ -241,7 +241,7 @@ public class DataTypes implements ValueParser
 		DataTypeTreeNode node = get(type);
 		
 		// TODO: Refactor after treenode refactored
-		ImmutableList<DataType> higherTypes = ImmutableList.of(node.getHigherNodes()).map(n -> n.getContent());
+		ImmutableList<DataType> higherTypes = ImmutableList.of(node.getHigherNodes()).map(TreeNode::getContent);
 		
 		if (includeType)
 			return higherTypes.prepend(type);
@@ -323,7 +323,7 @@ public class DataTypes implements ValueParser
 	public static Option<DataType> typeFor(String s)
 	{
 		return DataTypes.getInstance().dataTypes.find(n -> n.getContent().toString().equalsIgnoreCase(s)).map(
-				n -> n.getContent());
+				TreeNode::getContent);
 	}
 	
 	/**

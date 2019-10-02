@@ -85,7 +85,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public static <T> View<T> of(RichIterable<T> iterable)
 	{
-		return new View<T>(iterable::iterator, iterable.estimatedSize());
+		return new View<>(iterable::iterator, iterable.estimatedSize());
 	}
 	
 	/**
@@ -253,7 +253,7 @@ public class View<T> implements RichIterable<T>
 			BiFunction<? super T, ? super B, ? extends Merge> merge)
 	{
 		return new View<>(() -> new MergeIterator<>(iterator(), other.iterator(), merge), 
-				estimatedSize.mergedWith(other.estimatedSize(), (s1, s2) -> Math.min(s1, s2)));
+				estimatedSize.mergedWith(other.estimatedSize(), Math::min));
 	}
 	
 	/**
