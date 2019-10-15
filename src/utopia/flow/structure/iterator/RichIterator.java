@@ -156,6 +156,33 @@ public interface RichIterator<A> extends Iterator<A>
 	}
 	
 	/**
+	 * Skips items in this iterator until either end is reached or provided predicate returns false
+	 * @param f A predicate
+	 * @return Number of items skipped
+	 */
+	public default int skipWhile(Predicate<? super A> f)
+	{
+		int skipCount = 0;
+		while (hasNext() && f.test(poll()))
+		{
+			next();
+			skipCount += 1;
+		}
+		
+		return skipCount;
+	}
+	
+	/**
+	 * Skips items in this iterator until either end is reached or provided predicate returns true
+	 * @param f A predicate
+	 * @return Number of items skipped
+	 */
+	public default int skipUntil(Predicate<? super A> f)
+	{
+		return skipWhile(f.negate());
+	}
+	
+	/**
 	 * Wraps a normal iterator into a rich iterator
 	 * @param iterator A normal iterator
 	 * @return A wrapped iterator

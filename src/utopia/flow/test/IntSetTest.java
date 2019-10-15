@@ -54,6 +54,18 @@ public class IntSetTest
 		Test.checkEquals(d.size(), 7);
 		Test.checkEquals(d.ranges().size(), 3);
 		
+		Test.checkEquals(a.dropAfter(5), a);
+		Test.checkEquals(a.dropAfter(4), IntSet.withValues(2, 3));
+		Test.checkEquals(a.dropAfter(3), IntSet.withValues(2, 3));
+		Test.checkEquals(a.dropAfter(2), IntSet.withValue(2));
+		Test.checkEquals(a.dropAfter(1), IntSet.EMPTY);
+		
+		Test.checkEquals(a.dropUntil(6), IntSet.EMPTY);
+		Test.checkEquals(a.dropUntil(5), IntSet.withValue(5));
+		Test.checkEquals(a.dropUntil(4), IntSet.withValue(5));
+		Test.checkEquals(a.dropUntil(3), IntSet.withValues(3, 5));
+		Test.checkEquals(a.dropUntil(2), a);
+		
 		System.out.println("Success!");
 	}
 }
