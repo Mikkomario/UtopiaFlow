@@ -222,7 +222,7 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 	{
 		Duo<ImmutableList<InclusiveIntRange>> parts = ranges.splitAt(r -> r.contains(number));
 		
-		if (parts.first().isEmpty())
+		if (parts.second().isEmpty())
 			return this;
 		else
 		{
@@ -231,14 +231,21 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 				b.add(parts.first());
 				
 				InclusiveIntRange targetRange = parts.second().head();
-				if (targetRange.first().equals(number))
-					b.add(new InclusiveIntRange(number + 1, targetRange.last()));
-				else if (targetRange.last().equals(number))
-					b.add(new InclusiveIntRange(targetRange.first(), number - 1));
-				else
+				// If range only contains specified number, it is ignored
+				if (!targetRange.first().equals(number) || !targetRange.last().equals(number))
 				{
-					b.add(new InclusiveIntRange(targetRange.first(), number - 1));
-					b.add(new InclusiveIntRange(number  + 1, targetRange.last()));
+					// Case: Number at range beginning
+					if (targetRange.first().equals(number))
+						b.add(new InclusiveIntRange(number + 1, targetRange.last()));
+					// Case: Number at range end
+					else if (targetRange.last().equals(number))
+						b.add(new InclusiveIntRange(targetRange.first(), number - 1));
+					// Case: Number in the middle of range
+					else
+					{
+						b.add(new InclusiveIntRange(targetRange.first(), number - 1));
+						b.add(new InclusiveIntRange(number  + 1, targetRange.last()));
+					}
 				}
 					
 				b.add(parts.second().tail());
@@ -246,6 +253,56 @@ public class IntSet implements RichIterable<Integer>, Appendable<Integer, IntSet
 		}
 	}
 	
+	/**
+	 * Drops all numbers that are smaller than specified number
+	 * @param number Target number
+	 * @return A set without numbers smaller than one provided
+	 */
+	public IntSet dropUntil(int number)
+	{
+		RichIterator<InclusiveIntRange> iter = ranges.iterator();
+		int skipped = iter.skipWhile(r -> r.last() < number);
+		if (iter.hasNext())
+		{
+			ImmutableList<InclusiveIntRange> newRanges = ImmutableList.build(ranges.size() - skipped, b ->
+			{
+				// First included range may be smaller
+				InclusiveIntRange first = iter.next();
+				if (first.first() < number)
+					b.add(new InclusiveIntRange(number, first.last()));
+				else
+					b.add(first);
+				b.read(iter);
+			});
+			return new IntSet(newRanges);
+		}
+		else
+			return IntSet.EMPTY;
+	}
+
+	/**
+	 * Drops all numbers that are larger than specified number
+	 * @param number Target number
+	 * @return A set without numbers larger than one provided
+	 */
+	public IntSet dropAfter(int number)
+	{
+		RichIterator<InclusiveIntRange> iter = ranges.iterator();
+		ImmutableList<InclusiveIntRange> autoTake = iter.takeWhile(r -> r.last() <= number);
+
+		// Checks whether part of the next range should also be taken
+		if (iter.hasNext())
+		{
+			InclusiveIntRange proposedRange = iter.next();
+			if (proposedRange.first() <= number)
+				return new IntSet(autoTake.plus(proposedRange.withLastInclusive(number)));
+			else
+				return new IntSet(autoTake);
+		}
+		else
+			return new IntSet(autoTake);
+	}
+
 	private static ImmutableList<InclusiveIntRange> combine(ImmutableList<InclusiveIntRange> ranges)
 	{
 		if (ranges.isEmpty())

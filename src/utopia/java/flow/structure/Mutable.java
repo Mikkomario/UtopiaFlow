@@ -1,5 +1,7 @@
 package utopia.java.flow.structure;
 
+import java.util.function.Function;
+
 import utopia.java.flow.util.StringRepresentable;
 
 /**
@@ -52,5 +54,14 @@ public class Mutable<T> implements Wrapper<T>, StringRepresentable
 	public void set(T value)
 	{
 		this.value = value;
+	}
+
+	/**
+	 * Updates the value in this mutable based on previous value
+	 * @param f A mutating function
+	 */
+	public void update(Function<? super T, ? extends T> f)
+	{
+		value = f.apply(value);
 	}
 }
