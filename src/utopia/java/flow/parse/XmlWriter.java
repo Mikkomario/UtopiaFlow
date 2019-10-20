@@ -12,8 +12,8 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import utopia.flow.function.ThrowingConsumer;
-import utopia.flow.function.ThrowingRunnable;
+import utopia.java.flow.function.ThrowingConsumer;
+import utopia.java.flow.function.ThrowingRunnable;
 import utopia.java.flow.structure.range.IntRange;
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.structure.ImmutableMap;

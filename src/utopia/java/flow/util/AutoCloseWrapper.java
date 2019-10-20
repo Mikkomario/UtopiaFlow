@@ -1,6 +1,6 @@
 package utopia.java.flow.util;
 
-import utopia.flow.function.ThrowingConsumer;
+import utopia.java.flow.function.ThrowingConsumer;
 import utopia.java.flow.structure.Wrapper;
 
 /**

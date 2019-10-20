@@ -1,4 +1,4 @@
-package utopia.flow.function;
+package utopia.java.flow.function;
 
 import java.util.function.BiFunction;
 

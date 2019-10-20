@@ -2,10 +2,10 @@ package utopia.java.flow.test;
 
 import java.time.Duration;
 
-import utopia.flow.async.BackgroundProcessUtils;
-import utopia.flow.async.Completion;
-import utopia.flow.async.Volatile;
-import utopia.flow.async.VolatileFlag;
+import utopia.java.flow.async.BackgroundProcessUtils;
+import utopia.java.flow.async.Completion;
+import utopia.java.flow.async.Volatile;
+import utopia.java.flow.async.VolatileFlag;
 import utopia.java.flow.structure.range.IntRange;
 import utopia.java.flow.util.Test;
 import utopia.java.flow.util.WaitUtils;

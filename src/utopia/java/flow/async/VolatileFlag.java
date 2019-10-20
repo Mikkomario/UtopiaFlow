@@ -1,6 +1,6 @@
-package utopia.flow.async;
+package utopia.java.flow.async;
 
-import utopia.flow.function.ThrowingRunnable;
+import utopia.java.flow.function.ThrowingRunnable;
 import utopia.java.flow.structure.Mutable;
 
 /**

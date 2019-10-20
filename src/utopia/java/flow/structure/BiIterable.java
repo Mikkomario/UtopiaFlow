@@ -6,7 +6,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import utopia.flow.function.ThrowingBiFunction;
+import utopia.java.flow.function.ThrowingBiFunction;
 
 /**
  * This is a simple utility interface for items that can be iterated as pairs

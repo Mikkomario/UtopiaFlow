@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import utopia.flow.function.ThrowingFunction;
+import utopia.java.flow.function.ThrowingFunction;
 import utopia.java.flow.structure.iterator.RichIterator;
 import utopia.java.flow.util.StringRepresentable;
 

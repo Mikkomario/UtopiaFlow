@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import utopia.flow.function.ThrowingFunction;
+import utopia.java.flow.function.ThrowingFunction;
 import utopia.java.flow.structure.iterator.RichIterator;
 import utopia.java.flow.structure.iterator.StringCharIterator;
 import utopia.java.flow.util.StringRepresentable;

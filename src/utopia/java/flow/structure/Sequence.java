@@ -6,7 +6,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import utopia.flow.function.ThrowingPredicate;
+import utopia.java.flow.function.ThrowingPredicate;
 import utopia.java.flow.structure.range.DefinedRange;
 import utopia.java.flow.structure.range.ExclusiveIntRange;
 import utopia.java.flow.structure.range.IntRange;

@@ -2,9 +2,9 @@ package utopia.java.flow.test;
 
 import java.time.Duration;
 
-import utopia.flow.async.Completion;
-import utopia.flow.async.Promise;
-import utopia.flow.async.ActionQueue;
+import utopia.java.flow.async.Completion;
+import utopia.java.flow.async.Promise;
+import utopia.java.flow.async.ActionQueue;
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.structure.range.IntRange;
 import utopia.java.flow.util.Unit;

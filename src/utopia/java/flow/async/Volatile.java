@@ -1,10 +1,10 @@
-package utopia.flow.async;
+package utopia.java.flow.async;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import utopia.flow.function.ThrowingConsumer;
-import utopia.flow.function.ThrowingFunction;
+import utopia.java.flow.function.ThrowingConsumer;
+import utopia.java.flow.function.ThrowingFunction;
 import utopia.java.flow.structure.Pair;
 
 /**

@@ -3,9 +3,9 @@ package utopia.java.flow.util;
 import java.time.Duration;
 import java.time.Instant;
 
-import utopia.flow.async.Breakable;
-import utopia.flow.async.Completion;
-import utopia.flow.async.VolatileFlag;
+import utopia.java.flow.async.Breakable;
+import utopia.java.flow.async.Completion;
+import utopia.java.flow.async.VolatileFlag;
 
 /**
  * This class represents a single waiting operation. Since waits don't have value semantics, they should not be 

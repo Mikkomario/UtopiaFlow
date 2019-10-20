@@ -2,7 +2,7 @@ package utopia.java.flow.test;
 
 import java.time.Duration;
 
-import utopia.flow.async.Promise;
+import utopia.java.flow.async.Promise;
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.util.WaitUtils;
 

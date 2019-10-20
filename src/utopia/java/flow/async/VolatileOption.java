@@ -1,4 +1,4 @@
-package utopia.flow.async;
+package utopia.java.flow.async;
 
 import utopia.java.flow.structure.Option;
 import utopia.java.flow.structure.RichIterable;

@@ -2,9 +2,9 @@ package utopia.java.flow.test;
 
 import java.time.Duration;
 
-import utopia.flow.async.Attempt;
-import utopia.flow.async.Completion;
-import utopia.flow.async.Volatile;
+import utopia.java.flow.async.Attempt;
+import utopia.java.flow.async.Completion;
+import utopia.java.flow.async.Volatile;
 import utopia.java.flow.structure.Try;
 import utopia.java.flow.util.Test;
 import utopia.java.flow.util.WaitUtils;

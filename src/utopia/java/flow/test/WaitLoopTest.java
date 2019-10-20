@@ -2,7 +2,7 @@ package utopia.java.flow.test;
 
 import java.time.Duration;
 
-import utopia.flow.async.StaticIntervalLoop;
+import utopia.java.flow.async.StaticIntervalLoop;
 import utopia.java.flow.util.Counter;
 import utopia.java.flow.util.WaitUtils;
 

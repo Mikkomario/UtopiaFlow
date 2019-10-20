@@ -1,4 +1,4 @@
-package utopia.flow.async;
+package utopia.java.flow.async;
 
 import java.util.function.Predicate;
 

@@ -4,8 +4,8 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Random;
 
-import utopia.flow.async.BackgroundProcessUtils;
-import utopia.flow.async.Completion;
+import utopia.java.flow.async.BackgroundProcessUtils;
+import utopia.java.flow.async.Completion;
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.structure.Option;
 import utopia.java.flow.util.Unit;

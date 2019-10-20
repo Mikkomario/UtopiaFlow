@@ -12,10 +12,10 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import utopia.flow.function.FunctionUtils;
-import utopia.flow.function.ThrowingConsumer;
-import utopia.flow.function.ThrowingFunction;
-import utopia.flow.function.ThrowingPredicate;
+import utopia.java.flow.function.FunctionUtils;
+import utopia.java.flow.function.ThrowingConsumer;
+import utopia.java.flow.function.ThrowingFunction;
+import utopia.java.flow.function.ThrowingPredicate;
 import utopia.java.flow.structure.iterator.RichIterator;
 import utopia.java.flow.structure.iterator.SkipFirstIterator;
 import utopia.java.flow.util.Unit;

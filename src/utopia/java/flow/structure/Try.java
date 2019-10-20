@@ -4,10 +4,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import utopia.flow.function.ThrowingConsumer;
-import utopia.flow.function.ThrowingFunction;
-import utopia.flow.function.ThrowingRunnable;
-import utopia.flow.function.ThrowingSupplier;
+import utopia.java.flow.function.ThrowingConsumer;
+import utopia.java.flow.function.ThrowingFunction;
+import utopia.java.flow.function.ThrowingRunnable;
+import utopia.java.flow.function.ThrowingSupplier;
 import utopia.java.flow.util.AutoCloseWrapper;
 import utopia.java.flow.util.StringRepresentable;
 import utopia.java.flow.util.Unit;

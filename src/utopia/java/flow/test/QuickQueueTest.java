@@ -3,9 +3,9 @@ package utopia.java.flow.test;
 import java.time.Duration;
 import java.util.Random;
 
-import utopia.flow.async.Completion;
-import utopia.flow.async.Promise;
-import utopia.flow.async.ActionQueue;
+import utopia.java.flow.async.Completion;
+import utopia.java.flow.async.Promise;
+import utopia.java.flow.async.ActionQueue;
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.structure.ListBuilder;
 import utopia.java.flow.util.Test;

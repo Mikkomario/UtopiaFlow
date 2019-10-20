@@ -1,4 +1,4 @@
-package utopia.flow.async;
+package utopia.java.flow.async;
 
 import utopia.java.flow.structure.WeakList;
 import utopia.java.flow.util.WaitTarget;

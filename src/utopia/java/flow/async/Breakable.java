@@ -1,4 +1,4 @@
-package utopia.flow.async;
+package utopia.java.flow.async;
 
 /**
  * This interface is implemented by classes that represent operations that can be quit / broken before their 

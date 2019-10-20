@@ -1,8 +1,8 @@
-package utopia.flow.async;
+package utopia.java.flow.async;
 
 import java.util.function.Supplier;
 
-import utopia.flow.function.ThrowingSupplier;
+import utopia.java.flow.function.ThrowingSupplier;
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.structure.Option;
 import utopia.java.flow.structure.Try;

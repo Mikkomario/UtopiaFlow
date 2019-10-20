@@ -2,8 +2,8 @@ package utopia.java.flow.test;
 
 import java.time.Duration;
 
-import utopia.flow.async.RepeatableAction;
-import utopia.flow.async.Volatile;
+import utopia.java.flow.async.RepeatableAction;
+import utopia.java.flow.async.Volatile;
 import utopia.java.flow.structure.range.IntRange;
 import utopia.java.flow.util.Test;
 import utopia.java.flow.util.WaitUtils;
