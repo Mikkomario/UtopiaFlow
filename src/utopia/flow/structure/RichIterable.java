@@ -590,7 +590,17 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	public default <B> ImmutableList<B> mapToList(Function<? super A, ? extends B> mapper)
 	{
 		return map(mapper, ListBuilder::new);
-		// return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
+	}
+	
+	/**
+	 * @param mapper A mapper function that transforms the values
+	 * @return An immutable list based on transformed values of this iterable
+	 * @throws E If mapping function fails
+	 */
+	public default <B, E extends Exception> ImmutableList<B> mapToListThrowing(
+			ThrowingFunction<? super A, ? extends B, ? extends E> mapper) throws E
+	{
+		return mapThrowing(mapper, ListBuilder::new);
 	}
 	
 	/**
@@ -600,7 +610,17 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	public default <B> ImmutableList<B> flatMapToList(Function<? super A, ? extends RichIterable<B>> mapper)
 	{
 		return flatMap(mapper, ListBuilder::new);
-		// return ImmutableList.build(buffer -> forEach(item -> buffer.add(mapper.apply(item))));
+	}
+	
+	/**
+	 * @param mapper A mapper function that transforms the values into zero or more items
+	 * @return An immutable list with all transformed results in sequential order
+	 * @throws E If mapping function throws
+	 */
+	public default <B, E extends Exception> ImmutableList<B> flatMapToListThrowing(
+			ThrowingFunction<? super A, ? extends RichIterable<B>, ? extends E> mapper) throws E
+	{
+		return flatMapThrowing(mapper, ListBuilder::new);
 	}
 	
 	/**
@@ -652,7 +672,19 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	public default <Key, Value> ImmutableMap<Key, Value> toMap(Function<? super A, ? extends Pair<Key, Value>> f)
 	{
 		return map(f, MapBuilder::new);
-		// return ImmutableMap.of(mapToList(f));
+	}
+	
+	/**
+	 * Transforms this list into a map
+	 * @param f A function that maps items to key value pairs
+	 * @return A map based on this list's contents. If multiple items are mapped to the same key, only the last 
+	 * item is included
+	 * @throws E If provided function throws
+	 */
+	public default <Key, Value, E extends Exception> ImmutableMap<Key, Value> toMapThrowing(
+			ThrowingFunction<? super A, ? extends Pair<Key, Value>, E> f) throws E
+	{
+		return mapThrowing(f, MapBuilder::new);
 	}
 	
 	/**
