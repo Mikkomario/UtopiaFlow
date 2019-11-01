@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import utopia.java.flow.structure.iterator.RichIterator;
@@ -172,10 +173,7 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	@Override
 	public int hashCode()
 	{
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((s == null) ? 0 : s.hashCode());
-		return result;
+		return Objects.hashCode(s);
 	}
 
 	@Override
@@ -190,14 +188,7 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 		if (!(obj instanceof RichString))
 			return false;
 		RichString other = (RichString) obj;
-		if (s == null)
-		{
-			if (other.s != null)
-				return false;
-		}
-		else if (!s.equals(other.s))
-			return false;
-		return true;
+		return s.equals(other.s);
 	}
 	
 	@Override
@@ -392,7 +383,7 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	 */
 	public ImmutableList<RichString> words()
 	{
-		return split(" ").map(s -> s.trimmed()).filter(s -> !s.isEmpty());
+		return split(" ").map(RichString::trimmed).filter(s -> !s.isEmpty());
 	}
 	
 	/**
@@ -419,7 +410,7 @@ public class RichString implements RichIterable<Character>, StringRepresentable,
 	 */
 	public Option<Integer> toInt()
 	{
-		return toDouble().map(d -> d.intValue());
+		return toDouble().map(Double::intValue);
 	}
 	
 	/**
