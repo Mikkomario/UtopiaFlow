@@ -19,7 +19,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param item Item to add
 	 * @return A copy of this collection with an item added
 	 */
-	public default Repr plus(A item)
+	default Repr plus(A item)
 	{
 		DefaultBuilder builder = newBuilder(estimatedSize().map(s -> s + 1));
 		builder.add(this);
@@ -31,14 +31,14 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param items Items to add
 	 * @return A copy of this collection with items added
 	 */
-	public default Repr plus(RichIterable<? extends A> items)
+	default Repr plus(RichIterable<? extends A> items)
 	{
 		if (items.nonEmpty())
 		{
 			DefaultBuilder builder = newBuilder(estimatedSize().flatMap(
 					s1 -> items.estimatedSize().map(s2 -> s1 + s2)));
-			builder.add(items);
 			builder.add(this);
+			builder.add(items);
 			return builder.result();
 		}
 		else
@@ -49,7 +49,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param items Items to add
 	 * @return A copy of this collection with items added
 	 */
-	public default Repr plus(A[] items)
+	default Repr plus(A[] items)
 	{
 		return plus(ImmutableList.of(items));
 	}
@@ -60,7 +60,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param more More items to add
 	 * @return A copy of this collection with all items added
 	 */
-	public default Repr plus(A first, A second, @SuppressWarnings("unchecked") A... more)
+	default Repr plus(A first, A second, A... more)
 	{
 		return plus(ImmutableList.withValues(first, second, more));
 	}
@@ -71,7 +71,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @return A copy of this collection with specified item included. If item already existed 
 	 * in this collection, returns self
 	 */
-	public default Repr with(A item, BiPredicate<? super A, ? super A> equals)
+	default Repr with(A item, BiPredicate<? super A, ? super A> equals)
 	{
 		if (contains(item, equals))
 			return self();
@@ -84,7 +84,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @return A copy of this collection with specified item included. If item already existed 
 	 * in this collection, returns self
 	 */
-	public default Repr with(A item)
+	default Repr with(A item)
 	{
 		return with(item, SAFE_EQUALS);
 	}
@@ -95,7 +95,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param equals method for checking equality
 	 * @return A combined collection
 	 */
-	public default Repr plusDistinct(RichIterable<? extends A> elements, BiPredicate<? super A, ? super A> equals)
+	default Repr plusDistinct(RichIterable<? extends A> elements, BiPredicate<? super A, ? super A> equals)
 	{
 		ListBuilder<A> newItemsBuilder = new ListBuilder<>(elements.estimatedSize());
 		elements.forEach(item -> 
@@ -112,7 +112,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param elements The new elements
 	 * @return A combined collection
 	 */
-	public default Repr plusDistinct(RichIterable<? extends A> elements)
+	default Repr plusDistinct(RichIterable<? extends A> elements)
 	{
 		return plusDistinct(elements, SAFE_EQUALS);
 	}
@@ -123,7 +123,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param equals method for checking equality
 	 * @return A combined list
 	 */
-	public default Repr overwriteAll(RichIterable<? extends A> elements, BiPredicate<? super A, ? super A> equals)
+	default Repr overwriteAll(RichIterable<? extends A> elements, BiPredicate<? super A, ? super A> equals)
 	{
 		return minus(elements, equals).plus(elements);
 	}
@@ -133,7 +133,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @param elements Elements to add
 	 * @return A copy of this collection with items added
 	 */
-	public default Repr overwriteAll(RichIterable<? extends A> elements)
+	default Repr overwriteAll(RichIterable<? extends A> elements)
 	{
 		return overwriteAll(elements, SAFE_EQUALS);
 	}
@@ -145,7 +145,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @return Copy of this collection with a single copy of item included. If a copy existed before, 
 	 * it is overwritten with provided copy.
 	 */
-	public default Repr overwrite(A item, BiPredicate<? super A, ? super A> equals)
+	default Repr overwrite(A item, BiPredicate<? super A, ? super A> equals)
 	{
 		return without(item, equals).plus(item);
 	}
@@ -156,7 +156,7 @@ public interface Appendable<A, Repr extends Appendable<A, Repr, DefaultBuilder>,
 	 * @return Copy of this collection with a single copy of item included. If a copy existed before, 
 	 * it is overwritten with provided copy.
 	 */
-	public default Repr overwrite(A item)
+	default Repr overwrite(A item)
 	{
 		return overwrite(item, SAFE_EQUALS);
 	}

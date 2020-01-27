@@ -60,9 +60,9 @@ class ListTest
 		System.out.println(sortedByLength);
 		System.out.println(sortedByLengthAndLetters);
 		Test.checkEquals(sortedByLetters.head(), "aakkonen");
-		Test.check(sortedByLetters.last() == "y");
+		Test.checkEquals(sortedByLetters.last(), "y");
 		Test.checkEquals(sortedByLength.head(), "y");
-		Test.check(sortedByLength.last() == "aakkonen");
+		Test.checkEquals(sortedByLength.last(), "aakkonen");
 		Test.checkEquals(sortedByLengthAndLetters, ImmutableList.withValues("y", "abc", "ant", "aakkonen"));
 		
 		Test.checkEquals(words3.dropWhile(s -> s.length() == 3).size(), 2);
@@ -86,7 +86,11 @@ class ListTest
 		// Tests new map style
 		ImmutableList<Integer> mapResult = words3.map(w -> w.length(), ListBuilder::new);
 		Test.checkEquals(mapResult, ImmutableList.withValues(3, 3, 1, 8));
-		
+
+		// Tests list append
+		Test.checkEquals(ImmutableList.withValues(1, 2, 3).plus(
+				ImmutableList.withValues(4, 5)), ImmutableList.withValues(1, 2, 3, 4, 5));
+
 		// Tests recursive dropping
 		System.out.println(iter(numbers));
 		
