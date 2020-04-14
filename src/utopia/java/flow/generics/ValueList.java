@@ -104,7 +104,7 @@ public class ValueList extends ArrayList<Value>
 		if (value != null)
 			return super.add(value.castTo(getType()));
 		else
-			return super.add(value);
+			return super.add(null);
 	}
 	
 	/**
@@ -132,7 +132,7 @@ public class ValueList extends ArrayList<Value>
 	public boolean contains(Object o)
 	{
 		if (o == null)
-			return super.contains(o);
+			return super.contains(null);
 		else if (o instanceof Value)
 			return contains((Value) o);
 		else
@@ -143,7 +143,7 @@ public class ValueList extends ArrayList<Value>
 	public boolean remove(Object o)
 	{
 		if (o == null)
-			return super.remove(o);
+			return super.remove(null);
 		else if (o instanceof Value)
 			return super.remove(((Value) o).castTo(getType()));
 		else
@@ -151,7 +151,7 @@ public class ValueList extends ArrayList<Value>
 	}
 	
 	@Override
-	public boolean removeAll(Collection<? extends Object> o)
+	public boolean removeAll(Collection<?> o)
 	{
 		if (o == null || o.isEmpty())
 			return false;
@@ -188,7 +188,7 @@ public class ValueList extends ArrayList<Value>
 	public boolean contains(Value value)
 	{
 		if (value == null)
-			return super.contains(value);
+			return super.contains(null);
 		else
 			return super.contains(value.castTo(getType()));
 	}

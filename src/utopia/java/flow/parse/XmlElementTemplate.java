@@ -21,22 +21,22 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return The name of this element
 	 */
-	public String getName();
+	String getName();
 	
 	/**
 	 * @return The text inside this element (trimmed). None if the element is empty
 	 */
-	public Option<String> getTextOption();
+	Option<String> getTextOption();
 	
 	/**
 	 * @return the children under this element
 	 */
-	public ImmutableList<Element> getChildren();
+	ImmutableList<Element> getChildren();
 	
 	/**
 	 * @return The attributes of this xml element
 	 */
-	public ImmutableMap<String, String> getAttributes();
+	ImmutableMap<String, String> getAttributes();
 	
 	
 	// OTHER	--------------------
@@ -44,7 +44,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return The text inside this element (trimmed). An empty string if the element is empty.
 	 */
-	public default String getText()
+	default String getText()
 	{
 		return getTextOption().getOrElse("");
 	}
@@ -52,7 +52,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return The value of the contents of this element
 	 */
-	public default Value getValue()
+	default Value getValue()
 	{
 		return getTextOption().map(Value::of).getOrElse(Value.EMPTY);
 	}
@@ -60,7 +60,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return The attributes of this xml element with values
 	 */
-	public default ImmutableMap<String, Value> getAttributesAsValues()
+	default ImmutableMap<String, Value> getAttributesAsValues()
 	{
 		return getAttributes().mapValues(Value::of);
 	}
@@ -68,7 +68,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return A model representing the attributes in this element
 	 */
-	public default Model<Variable> getAttributesModel()
+	default Model<Variable> getAttributesModel()
 	{
 		return Model.fromMap(getAttributes());
 	}
@@ -77,7 +77,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	 * @param attributeName The name of the attribute
 	 * @return The string value of the attribute
 	 */
-	public default Option<String> getAttribute(String attributeName)
+	default Option<String> getAttribute(String attributeName)
 	{
 		return getAttributes().getOption(attributeName);
 	}
@@ -86,7 +86,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	 * @param attributeName The name of the attribute
 	 * @return The value of the attribute (may be empty)
 	 */
-	public default Value getAttributeValue(String attributeName)
+	default Value getAttributeValue(String attributeName)
 	{
 		return getAttribute(attributeName).map(Value::of).getOrElse(Value.EMPTY);
 	}
@@ -96,7 +96,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	 * @param attName The name of the attribute
 	 * @return Whether this element contains an attribute with the provided name
 	 */
-	public default boolean hasAttribute(String attName)
+	default boolean hasAttribute(String attName)
 	{
 		return getAttributes().containsKey(attName);
 	}
@@ -104,7 +104,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return Whether this element contains attributes
 	 */
-	public default boolean hasAttributes()
+	default boolean hasAttributes()
 	{
 		return !getAttributes().isEmpty();
 	}
@@ -112,7 +112,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return Whether this element has any children
 	 */
-	public default boolean hasChildren()
+	default boolean hasChildren()
 	{
 		return !getChildren().isEmpty();
 	}
@@ -120,7 +120,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return Whether this element contains any text
 	 */
-	public default boolean hasText()
+	default boolean hasText()
 	{
 		return getTextOption().isDefined();
 	}
@@ -128,7 +128,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return Whether this element is completely empty (no text and no children)
 	 */
-	public default boolean isEmpty()
+	default boolean isEmpty()
 	{
 		return !hasText() && !hasChildren();
 	}
@@ -138,7 +138,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	 * @param childName The name of the child (case-insensitive)
 	 * @return A child with the specified name
 	 */
-	public default Option<Element> getExistingChild(String childName)
+	default Option<Element> getExistingChild(String childName)
 	{
 		return getChildren().find(c -> c.getName().equalsIgnoreCase(childName));
 	}
@@ -147,7 +147,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	 * @param name The name of the searched children (case-insensitive)
 	 * @return The children with the specified name
 	 */
-	public default ImmutableList<Element> childrenWithName(String name)
+	default ImmutableList<Element> childrenWithName(String name)
 	{
 		return getChildren().filter(c -> c.getName().equalsIgnoreCase(name));
 	}
@@ -155,7 +155,7 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	/**
 	 * @return Converts this xml element into a model representation
 	 */
-	public default Model<Variable> toModel()
+	default Model<Variable> toModel()
 	{
 		Model<Variable> model = Model.createBasicModel();
 		model.addAttributes(toMap().toList().map(p -> new Variable(p.first(), p.second())), true);
@@ -167,14 +167,12 @@ public interface XmlElementTemplate<Element extends XmlElementTemplate<?>>
 	 * @return A map of the values of the children under this element. Children with children are converted to 
 	 * model type values.
 	 */
-	public default ImmutableMap<String, Value> toMap()
+	default ImmutableMap<String, Value> toMap()
 	{
-		@SuppressWarnings("unchecked")
 		ImmutableMap<String, ImmutableList<Value>> attributeListMap = getChildren().toListMap(
 				c -> new Pair<>(c.getName(), c.hasChildren() ? Value.Model(c.toModel()) : c.getValue()));
-		ImmutableMap<String, Value> attributes = attributeListMap.mapValues(
+
+		return attributeListMap.mapValues(
 				values -> values.size() == 1 ? values.head() : Value.of(values));
-		
-		return attributes;
 	}
 }
