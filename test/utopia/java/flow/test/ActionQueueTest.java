@@ -3,12 +3,10 @@ package utopia.java.flow.test;
 import java.time.Duration;
 import java.util.Random;
 
-import utopia.java.flow.async.Completion;
 import utopia.java.flow.async.Promise;
 import utopia.java.flow.async.ActionQueue;
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.structure.ListBuilder;
-import utopia.java.flow.structure.range.IntRange;
 import utopia.java.flow.util.Test;
 import utopia.java.flow.util.Unit;
 import utopia.java.flow.util.WaitUtils;
@@ -20,7 +18,6 @@ import utopia.java.flow.util.WaitUtils;
  */
 public class ActionQueueTest
 {
-	@SuppressWarnings("javadoc")
 	public static void main(String[] args)
 	{
 		/*
