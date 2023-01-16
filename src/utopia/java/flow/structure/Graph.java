@@ -1,10 +1,5 @@
 package utopia.java.flow.structure;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 /**
  * Graphs are constructed from multiple nodes, linked together with edges
  * @author Mikko Hilpinen
@@ -12,34 +7,32 @@ import java.util.Set;
  * @param <EdgeContent> The type of content stored in the edges
  * @since 22.11.2015
  */
-// TODO: Refactor to use the latest data structures
 public class Graph<NodeContent, EdgeContent>
 {
 	// ATTRIBUTES	----------------------
 	
-	private Set<GraphNode<NodeContent, EdgeContent>> nodes;
+	private ImmutableList<GraphNode<NodeContent, EdgeContent>> nodes;
 	
 	
 	// CONSTRUCTOR	----------------------
 	
 	/**
-	 * Creates a new graph
+	 * Creates a new empty graph
 	 */
 	public Graph()
 	{
-		this.nodes = new HashSet<>();
+		this.nodes = ImmutableList.empty();
 	}
 	
 	
 	// ACCESSORS	-----------------------
 	
 	/**
-	 * @return The nodes stored in this graph. The returned set is a copy and changes made 
-	 * to it won't affect the graph.
+	 * @return The nodes currently stored in this graph.
 	 */
-	public Set<GraphNode<NodeContent, EdgeContent>> getNodes()
+	public ImmutableList<GraphNode<NodeContent, EdgeContent>> getNodes()
 	{
-		return new HashSet<>(this.nodes);
+		return this.nodes;
 	}
 	
 	
@@ -48,27 +41,18 @@ public class Graph<NodeContent, EdgeContent>
 	/**
 	 * @return All the edges from each node in this graph
 	 */
-	/*
-	public Set<GraphEdge<NodeContent, EdgeContent>> getEdges()
+	public ImmutableList<GraphEdge<NodeContent, EdgeContent>> getEdges()
 	{
-		Set<GraphEdge<NodeContent, EdgeContent>> edges = new HashSet<>();
-		for (GraphNode<NodeContent, EdgeContent> node : getNodes())
-		{
-			edges.addAll(node.getLeavingEdges());
-		}
-		
-		return edges;
+		return nodes.flatMap(GraphNode::getLeavingEdges);
 	}
-	*/
 	
 	/**
 	 * Adds a new node to the graph
 	 * @param node The node that will be added to the graph
 	 */
-	public void addNode(GraphNode<NodeContent, EdgeContent> node)
-	{
-		if (node != null)
-			this.nodes.add(node);
+	public void addNode(GraphNode<NodeContent, EdgeContent> node) {
+		if (node != null && !nodes.contains(node))
+			nodes = nodes.plus(node);
 	}
 	
 	/**
@@ -76,17 +60,8 @@ public class Graph<NodeContent, EdgeContent>
 	 * @param endNode The node the edges point towards
 	 * @return The nodes the connecting edges leave from
 	 */
-	public Set<GraphNode<NodeContent, EdgeContent>> findLeadingNodes(GraphNode<?, ?> endNode)
-	{
-		Set<GraphNode<NodeContent, EdgeContent>> nodes = new HashSet<>();
-		
-		for (GraphNode<NodeContent, EdgeContent> node : getNodes())
-		{
-			if (node.hasEdgeTowards(endNode))
-				nodes.add(node);
-		}
-		
-		return nodes;
+	public ImmutableList<GraphNode<NodeContent, EdgeContent>> findLeadingNodes(GraphNode<?, ?> endNode) {
+		return nodes.filter(n -> n.hasEdgeTowards(endNode));
 	}
 	
 	/**
@@ -95,13 +70,10 @@ public class Graph<NodeContent, EdgeContent>
 	 * @param node A node
 	 * @return Each node in this graph connected to the provided node.
 	 */
-	public Set<GraphNode<NodeContent, EdgeContent>> findConnectedNodes(GraphNode<NodeContent, 
+	public ImmutableList<GraphNode<NodeContent, EdgeContent>> findConnectedNodes(GraphNode<NodeContent,
 			EdgeContent> node)
 	{
-		Set<GraphNode<NodeContent, EdgeContent>> nodes = node.getEndNodes();
-		nodes.addAll(findLeadingNodes(node));
-		
-		return nodes;
+		return node.getEndNodes().plus(findLeadingNodes(node));
 	}
 	
 	/**
@@ -111,19 +83,7 @@ public class Graph<NodeContent, EdgeContent>
 	 */
 	public ImmutableList<GraphNode<NodeContent, EdgeContent>> findNodes(NodeContent content)
 	{
-		List<GraphNode<NodeContent, EdgeContent>> nodes = new ArrayList<>();
-		for (GraphNode<NodeContent, EdgeContent> node : getNodes())
-		{
-			if (node.getContent() == null)
-			{
-				if (content == null)
-					nodes.add(node);
-			}
-			else if (node.getContent().equals(content))
-				nodes.add(node);
-		}
-		
-		return ImmutableList.of(nodes);
+		return nodes.filter(n -> n.getContent().equals(content));
 	}
 	
 	/**
@@ -131,14 +91,8 @@ public class Graph<NodeContent, EdgeContent>
 	 * @param content The content of the searched edges
 	 * @return All edges which have the provided content
 	 */
-	public List<GraphEdge<NodeContent, EdgeContent>> findEdges(EdgeContent content)
+	public ImmutableList<GraphEdge<NodeContent, EdgeContent>> findEdges(EdgeContent content)
 	{
-		List<GraphEdge<NodeContent, EdgeContent>> edges = new ArrayList<>();
-		for (GraphNode<NodeContent, EdgeContent> node : getNodes())
-		{
-			edges.addAll(node.findEdges(content));
-		}
-		
-		return edges;
+		return nodes.flatMap(n -> n.findEdges(content));
 	}
 }

@@ -1,10 +1,8 @@
 package utopia.java.flow.structure;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Graph nodes can be stored in graphs and connected via edges. Each node contains content 
@@ -19,7 +17,7 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	// ATTRIBUTES	-------------------
 	
 	private NodeContent content;
-	private Set<GraphEdge<NodeContent, EdgeContent>> edges;
+	private ImmutableList<GraphEdge<NodeContent, EdgeContent>> edges;
 	
 	
 	// CONSTRUCTOR	-------------------
@@ -31,7 +29,7 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	public GraphNode(NodeContent content)
 	{
 		this.content = content;
-		this.edges = new HashSet<>();
+		this.edges = ImmutableList.empty();
 	}
 	
 	/**
@@ -41,12 +39,7 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	public GraphNode(GraphNode<NodeContent, EdgeContent> other)
 	{
 		this.content = other.getContent();
-		this.edges = new HashSet<>();
-		
-		for(GraphEdge<NodeContent, EdgeContent> edge : other.getLeavingEdges())
-		{
-			this.edges.add(new GraphEdge<>(edge));
-		}
+		this.edges = other.edges;
 	}
 	
 	
@@ -74,9 +67,9 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	 * @return The edges connected to this node. The returned set is a copy and changes made 
 	 * to it won't affect the original.
 	 */
-	public Set<GraphEdge<NodeContent, EdgeContent>> getLeavingEdges()
+	public ImmutableList<GraphEdge<NodeContent, EdgeContent>> getLeavingEdges()
 	{
-		return new HashSet<>(this.edges);
+		return edges;
 	}
 	
 	/**
@@ -85,8 +78,8 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	 */
 	public void addEdge(GraphEdge<NodeContent, EdgeContent> edge)
 	{
-		if (edge != null)
-			this.edges.add(edge);
+		if (edge != null && !edges.contains(edge))
+			edges = edges.plus(edge);
 	}
 	
 	/**
@@ -96,7 +89,7 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	public void removeEdge(GraphEdge<?, ?> edge)
 	{
 		if (edge != null)
-			this.edges.remove(edge);
+			edges = edges.filter(e -> !e.equals(edge));
 	}
 	
 	
@@ -115,34 +108,20 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	/**
 	 * @return A set that contains each node this node has edges pointing towards
 	 */
-	public Set<GraphNode<NodeContent, EdgeContent>> getEndNodes()
+	public ImmutableList<GraphNode<NodeContent, EdgeContent>> getEndNodes()
 	{
-		Set<GraphNode<NodeContent, EdgeContent>> nodes = new HashSet<>();
-		
-		for (GraphEdge<NodeContent, EdgeContent> edge : getLeavingEdges())
-		{
-			if (edge.getEndNode() != null)
-				nodes.add(edge.getEndNode());
-		}
-		
-		return nodes;
+		return edges.map(GraphEdge::getEndNode).distinct();
 	}
 	
 	/**
 	 * Finds the edge that leaves from this node and points to the provided node.
 	 * @param endNode The other node the edge is connected to
-	 * @return An edge that leaves from this node and points towards the other. Null if no 
-	 * such edge exists.
+	 * @return An edge that leaves from this node and points towards the other.
+	 * None if no such edge exists.
 	 */
-	public GraphEdge<NodeContent, EdgeContent> getConnectingEdge(GraphNode<?, ?> endNode)
+	public Option<GraphEdge<NodeContent, EdgeContent>> getConnectingEdge(GraphNode<?, ?> endNode)
 	{
-		for (GraphEdge<NodeContent, EdgeContent> edge : getLeavingEdges())
-		{
-			if (edge.getEndNode() != null && edge.getEndNode().equals(endNode))
-				return edge;
-		}
-		
-		return null;
+		return edges.find(e -> e.getEndNode().equals(endNode));
 	}
 	
 	/**
@@ -153,10 +132,7 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	 */
 	public boolean hasEdgeTowards(GraphNode<?, ?> endNode)
 	{
-		if (getConnectingEdge(endNode) == null)
-			return false;
-		else
-			return true;
+		return edges.exists(e -> e.getEndNode().equals(endNode));
 	}
 	
 	/**
@@ -164,48 +140,35 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 	 * @param content The content of the edges
 	 * @return The edges leaving from this node that have the provided content
 	 */
-	public List<GraphEdge<NodeContent, EdgeContent>> findEdges(EdgeContent content)
+	public ImmutableList<GraphEdge<NodeContent, EdgeContent>> findEdges(EdgeContent content)
 	{
-		List<GraphEdge<NodeContent, EdgeContent>> edges = new ArrayList<>();
-		for (GraphEdge<NodeContent, EdgeContent> edge : getLeavingEdges())
-		{
-			if (edge.getContent() == null)
-			{
-				if (content == null)
-					edges.add(edge);
-			}
-			else if (content != null && edge.getContent().equals(content))
-				edges.add(edge);
-		}
-		
-		return edges;
+		return edges.filter(e -> e.getContent().equals(content));
 	}
 	
 	/**
 	 * Finds all the routes that connect this node to another node. The routes may visit a 
 	 * node only once, so they won't contain any loops.
 	 * @param end Another node
-	 * @return The routes leading to the other node. Null if the two nodes aren't connected. 
+	 * @return The routes leading to the other node. None if the two nodes aren't connected.
 	 * An empty list if this is the target node.
 	 */
-	public List<LinkedList<GraphEdge<NodeContent, EdgeContent>>> findConnectingRoutes(
+	public Option<ImmutableList<ImmutableList<GraphEdge<NodeContent, EdgeContent>>>> findConnectingRoutes(
 			GraphNode<NodeContent, EdgeContent> end)
 	{
 		List<GraphNode<NodeContent, EdgeContent>> pastNodes = new ArrayList<>();
 		pastNodes.add(this);
 		
-		return findConnectingRoutes(end, pastNodes);
+		return findConnectingRoutes(end, pastNodes).map(routes -> ImmutableList.of(routes).map(ImmutableList::of));
 	}
-	
-	private List<LinkedList<GraphEdge<NodeContent, EdgeContent>>> findConnectingRoutes(
-			GraphNode<NodeContent, EdgeContent> end, List<? extends GraphNode<NodeContent, 
-			EdgeContent>> pastNodes)
+	private Option<List<LinkedList<GraphEdge<NodeContent, EdgeContent>>>> findConnectingRoutes(
+			GraphNode<NodeContent, EdgeContent> end,
+			List<? extends GraphNode<NodeContent, EdgeContent>> pastNodes)
 	{
 		// Collects all the found routes to a list
 		List<LinkedList<GraphEdge<NodeContent, EdgeContent>>> routes = new ArrayList<>();
 		
 		if (this.equals(end))
-			return routes;
+			return Option.some(routes);
 		
 		// Keeps track of the nodes that have already been visited, this included
 		List<GraphNode<NodeContent, EdgeContent>> newPastNodes = new ArrayList<>(pastNodes);
@@ -228,25 +191,24 @@ public class GraphNode<NodeContent, EdgeContent> implements Node<NodeContent>
 				else
 				{
 					// The routes are searched recirsively, but nodes will be visited only once
-					List<LinkedList<GraphEdge<NodeContent, EdgeContent>>> foundRoutes = 
+					Option<List<LinkedList<GraphEdge<NodeContent, EdgeContent>>>> foundRoutes =
 							edge.getEndNode().findConnectingRoutes(end, newPastNodes);
-					if (foundRoutes != null)
-					{
-						// Creates a new route for each route that lead to the target node. 
+					foundRoutes.forEach(fRoutes -> {
+						// Creates a new route for each route that lead to the target node.
 						// The route includes the used edge
-						for (LinkedList<GraphEdge<NodeContent, EdgeContent>> route : foundRoutes)
+						for (LinkedList<GraphEdge<NodeContent, EdgeContent>> route : fRoutes)
 						{
 							route.addFirst(edge);
 							routes.add(route);
 						}
-					}
+					});
 				}
 			}
 		}
 		
 		if (routes.isEmpty())
-			return null;
+			return Option.none();
 		else
-			return routes;
+			return Option.some(routes);
 	}
 }

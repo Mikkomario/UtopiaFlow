@@ -23,7 +23,7 @@ public class ConversionGraph
 {
 	// ATTRIBUTES	-------------------
 	
-	private Graph<DataType, Pair<ValueParser, ConversionReliability>> conversionGraph = new Graph<>();
+	private final Graph<DataType, Pair<ValueParser, ConversionReliability>> conversionGraph = new Graph<>();
 	private ImmutableMap<Pair<DataType, DataType>, ConversionRoute> optimalConversions = ImmutableMap.empty();
 	
 	
@@ -83,10 +83,9 @@ public class ConversionGraph
 		else
 		{
 			fromNode = fromNodes.head();
-			GraphEdge<DataType, Pair<ValueParser, ConversionReliability>> previousConnection = 
+			Option<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> previousConnection =
 					fromNode.getConnectingEdge(toNode);
-			if (previousConnection == null || 
-					!previousConnection.getContent().second().isBetterThan(reliability))
+			if (previousConnection.forAll(n -> !n.getContent().second().isBetterThan(reliability)))
 				fromNode.addEdge(createEdge(parser, reliability, toNode));
 		}
 	}
@@ -259,17 +258,9 @@ public class ConversionGraph
 			return Option.none();
 		
 		// First finds all conversion routes possible
-		List<List<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>>> routes = new ArrayList<>();
-		for (GraphNode<DataType, Pair<ValueParser, ConversionReliability>> fromNode : fromNodes)
-		{
-			for (GraphNode<DataType, Pair<ValueParser, ConversionReliability>> toNode : toNodes)
-			{
-				List<? extends List<GraphEdge<DataType, Pair<ValueParser, 
-						ConversionReliability>>>> someRoutes = fromNode.findConnectingRoutes(toNode);
-				if (someRoutes != null)
-					routes.addAll(someRoutes);
-			}
-		}
+		ImmutableList<ImmutableList<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>>> routes =
+				fromNodes.flatMap(fromNode ->
+						toNodes.flatMap(toNode -> fromNode.findConnectingRoutes(toNode).getOrElse(ImmutableList::empty)));
 		
 		// If there are no possible conversions, fails
 		if (routes.isEmpty())
@@ -285,8 +276,8 @@ public class ConversionGraph
 		// Otherwise finds the one with the smallest cost (most reliable)
 		else
 		{
-			List<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> bestRoute = 
-					ImmutableList.of(routes).minBy(ConversionGraph::calculateRouteCost).get();
+			ImmutableList<GraphEdge<DataType, Pair<ValueParser, ConversionReliability>>> bestRoute =
+					routes.minBy(ConversionGraph::calculateRouteCost).get();
 			
 			ConversionRoute route = parseRoute(bestRoute, from);
 			this.optimalConversions = this.optimalConversions.plus(cast, route);
