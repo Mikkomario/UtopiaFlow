@@ -1,12 +1,14 @@
 package utopia.java.flow.async;
 
-import java.time.Duration;
-import java.time.LocalTime;
-import java.util.function.Supplier;
-
 import utopia.java.flow.structure.Lazy;
 import utopia.java.flow.structure.Option;
+import utopia.java.flow.util.Common;
 import utopia.java.flow.util.WaitUtils;
+
+import java.time.Duration;
+import java.time.LocalTime;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 /**
  * This is a static collection of methods used for handling background operations
@@ -16,17 +18,6 @@ import utopia.java.flow.util.WaitUtils;
 public class BackgroundProcessUtils
 {
 	// ATTRIBUTES	-----------------------
-	
-	private static ThreadPool repeatPool = new ThreadPool("Background-Repeating", 20, 500, Duration.ofSeconds(30), e -> 
-	{
-		System.err.println("Error in repeating background process");
-		e.printStackTrace();
-	});
-	private static ThreadPool pool = new ThreadPool("Background", 20, 500, Duration.ofSeconds(30), e -> 
-	{
-		System.err.println("Error in background process");
-		e.printStackTrace();
-	});
 	
 	private static final Lazy<DailyTasksLoop> TASK_LOOP = new Lazy<>(BackgroundProcessUtils::setUpDailyTasksLoop);
 	
@@ -41,16 +32,15 @@ public class BackgroundProcessUtils
 	/**
 	 * Starts printing thread pool status in the background
 	 * @param printInterval The interval between prints
+	 * @deprecated Deprecated for removal
 	 */
 	public static void startThreadDebugPrints(Duration printInterval)
 	{
-		repeatForever(() -> 
-		{
-			repeatPool.printDebugStatus();
-			pool.printDebugStatus();
-			Promise.getThreadPool().printDebugStatus();
-			
-		}, printInterval);
+		Executor exc = Common.getExc();
+		if (exc instanceof ThreadPool) {
+			ThreadPool pool = (ThreadPool) exc;
+			repeatForever(pool::printDebugStatus, printInterval);
+		}
 	}
 	
 	/**
@@ -156,8 +146,7 @@ public class BackgroundProcessUtils
 	{
 		// Registers the loop to shutdown when JVM closes
 		loop.registerToStopAtExit();
-		
-		repeatPool.execute(new DelayedRunnable(loop, delay));
+		Common.getExc().execute(new DelayedRunnable(loop, delay));
 	}
 	
 	/**
@@ -165,18 +154,17 @@ public class BackgroundProcessUtils
 	 * @param r The operation that will be run
 	 * @param duration The duration before the start of the operation
 	 */
-	public static void performAfter(Runnable r, Duration duration)
-	{
-		runInBackground(new DelayedRunnable(r, duration));
+	public static void performAfter(Runnable r, Duration duration) {
+		Common.getExc().execute(new DelayedRunnable(r, duration));
 	}
 	
 	/**
 	 * Runs a process on a background thread
 	 * @param r A process that will be run
+	 * @deprecated Please use Common.getExc().execute(Runnable) instead
 	 */
-	public static void runInBackground(Runnable r)
-	{
-		pool.execute(r);
+	public static void runInBackground(Runnable r) {
+		Common.getExc().execute(r);
 	}
 	
 	/**
@@ -189,7 +177,7 @@ public class BackgroundProcessUtils
 		loop.registerToStopAtExit();
 		
 		// Starts the loop
-		repeatPool.execute(loop);
+		Common.getExc().execute(loop);
 	}
 	
 	private static void repeat(Runnable r, Duration interval, Option<Supplier<Boolean>> checkContinue)
@@ -214,8 +202,8 @@ public class BackgroundProcessUtils
 	{
 		// ATTRIBUTES	-----------------
 		
-		private Runnable operation;
-		private Duration interval;
+		private final Runnable operation;
+		private final Duration interval;
 		
 		
 		// CONSTRUCTOR	-----------------

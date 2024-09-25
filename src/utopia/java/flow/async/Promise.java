@@ -1,12 +1,14 @@
 package utopia.java.flow.async;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.structure.Option;
+import utopia.java.flow.util.Common;
 import utopia.java.flow.util.StringRepresentable;
 
 /**
@@ -18,14 +20,8 @@ import utopia.java.flow.util.StringRepresentable;
 public class Promise<T> implements StringRepresentable
 {
 	// ATTRIBUTES	-------------------
-	
+
 	// private String name = "Promise - " + Thread.currentThread().getName();
-	
-	private static ThreadPool pool = new ThreadPool("Promise", 20, 1000, Duration.ofSeconds(30), e -> 
-	{
-		System.err.println("Error while handling promise");
-		e.printStackTrace();
-	});
 	
 	private final Volatile<Option<T>> item = new Volatile<>(Option.none());
 	
@@ -53,20 +49,18 @@ public class Promise<T> implements StringRepresentable
 	 * @param getResults The function that generates the promised results
 	 * @return The promise that will be fulfilled in a separate thread
 	 */
-	public static <T> Promise<T> asynchronous(Supplier<? extends T> getResults)
-	{
+	public static <T> Promise<T> asynchronous(Supplier<? extends T> getResults) {
 		Promise<T> promise = new Promise<>();
 		
 		// Generates the promise contents in a separate thread
-		Runnable r = () -> 
-		{
+		Runnable r = () -> {
 			// Generates the result
 			T result = getResults.get();
 			// Fulfills the promise
 			promise.fulfill(result);
 		};
-		
-		pool.execute(r);
+
+		Common.getExc().execute(r);
 		return promise;
 	}
 	
@@ -90,10 +84,10 @@ public class Promise<T> implements StringRepresentable
 	 */
 	public static <T> Promise<ImmutableList<T>> combine(ImmutableList<? extends Promise<T>> promises)
 	{
-		if (promises.forAll(p -> p.isFulfilled()))
+		if (promises.forAll(Promise::isFulfilled))
 			return fulfilled(promises.map(p -> p.getCurrentItem().get()));
 		else
-			return asynchronous(() -> promises.map(p -> p.waitFor()));
+			return asynchronous(() -> promises.map(Promise::waitFor));
 	}
 	
 	
@@ -101,19 +95,20 @@ public class Promise<T> implements StringRepresentable
 	
 	/**
 	 * @return The thread pool used by promises and classes extending promise
+	 * @deprecated Please use Common.getExc() instead.
 	 */
-	static ThreadPool getThreadPool()
+	static Executor getThreadPool()
 	{
-		return pool;
+		return Common.getExc();
 	}
-	
 	/**
 	 * Changes the thread pool executor that is used
 	 * @param newPool The new thread executor pool
+	 * @deprecated Please use Common.setExc(Executor) instead.
 	 */
 	public static void setThreadPoolExecutor(ThreadPool newPool)
 	{
-		pool = newPool;
+		Common.setExc(newPool);
 	}
 	
 	
@@ -237,7 +232,7 @@ public class Promise<T> implements StringRepresentable
 	 */
 	public synchronized void doAsync(Consumer<? super T> f)
 	{
-		pool.execute(() -> f.accept(waitFor()));
+		Common.getExc().execute(() -> f.accept(waitFor()));
 	}
 	
 	/**
@@ -365,7 +360,7 @@ public class Promise<T> implements StringRepresentable
 		if (isFulfilled())
 			return Attempt.success(getCurrentItem().get());
 		else
-			return Attempt.tryAsynchronous(() -> waitFor(timeoutDuration).toTry(() -> new TimeoutException()));
+			return Attempt.tryAsynchronous(() -> waitFor(timeoutDuration).toTry(TimeoutException::new));
 	}
 	
 	

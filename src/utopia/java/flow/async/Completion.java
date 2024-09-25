@@ -2,6 +2,7 @@ package utopia.java.flow.async;
 
 import utopia.java.flow.structure.ImmutableList;
 import utopia.java.flow.structure.RichIterable;
+import utopia.java.flow.util.Common;
 import utopia.java.flow.util.Unit;
 
 /**
@@ -30,8 +31,7 @@ public class Completion extends Promise<Unit>
 	public static Completion ofAsynchronous(Runnable operation)
 	{
 		Completion completion = new Completion();
-		getThreadPool().execute(() -> 
-		{
+		Common.getExc().execute(() -> {
 			operation.run();
 			completion.fulfill();
 		}); 
@@ -55,10 +55,10 @@ public class Completion extends Promise<Unit>
 	 */
 	public static Completion ofMany(RichIterable<? extends Promise<?>> promises)
 	{
-		if (promises.forAll(p -> p.isFulfilled()))
+		if (promises.forAll(Promise::isFulfilled))
 			return Completion.fulfilled();
 		else
-			return Completion.ofAsynchronous(() -> promises.forEach(p -> p.waitFor()));
+			return Completion.ofAsynchronous(() -> promises.forEach(Promise::waitFor));
 	}
 	
 	/**

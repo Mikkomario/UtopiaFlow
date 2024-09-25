@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import utopia.java.flow.structure.Option;
 import utopia.java.flow.structure.Try;
+import utopia.java.flow.util.Common;
 import utopia.java.flow.util.WaitUtils;
 
 /**
@@ -37,7 +38,7 @@ public class Attempt<T> extends Promise<Try<T>>
 			attempt.fulfill(result);
 		};
 		
-		getThreadPool().execute(r);
+		Common.getExc().execute(r);
 		return attempt;
 	}
 	
@@ -69,7 +70,7 @@ public class Attempt<T> extends Promise<Try<T>>
 			attempt.fulfill(result);
 		};
 		
-		getThreadPool().execute(r);
+		Common.getExc().execute(r);
 		return attempt;
 	}
 	
@@ -151,7 +152,7 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public Promise<Option<Exception>> getFailure()
 	{
-		return map(false, result -> result.failure());
+		return map(false, Try::failure);
 	}
 	
 	/**
@@ -159,7 +160,7 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public boolean isSuccess()
 	{
-		return getCurrentItem().exists(t -> t.isSuccess());
+		return getCurrentItem().exists(Try::isSuccess);
 	}
 	
 	/**
@@ -167,7 +168,7 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public boolean isFailure()
 	{
-		return getCurrentItem().exists(t -> t.isFailure());
+		return getCurrentItem().exists(Try::isFailure);
 	}
 	
 	/**
@@ -183,7 +184,7 @@ public class Attempt<T> extends Promise<Try<T>>
 	 */
 	public Option<Exception> getCurrentFailure()
 	{
-		return getCurrentItem().flatMap(t -> t.failure());
+		return getCurrentItem().flatMap(Try::failure);
 	}
 	
 	/**

@@ -1,14 +1,14 @@
 package utopia.java.flow.test;
 
-import java.time.Duration;
-
-import utopia.java.flow.async.BackgroundProcessUtils;
 import utopia.java.flow.async.Completion;
 import utopia.java.flow.async.Volatile;
 import utopia.java.flow.async.VolatileFlag;
 import utopia.java.flow.structure.range.IntRange;
+import utopia.java.flow.util.Common;
 import utopia.java.flow.util.Test;
 import utopia.java.flow.util.WaitUtils;
+
+import java.time.Duration;
 
 /**
  * This class is used for testing the volatile class and the volatile flag class
@@ -23,8 +23,7 @@ public class VolatileTest
 
 	
 	// MAIN	--------------------------
-	
-	@SuppressWarnings("javadoc")
+
 	public static void main(String[] args)
 	{
 		VolatileFlag flag = new VolatileFlag();
@@ -47,8 +46,7 @@ public class VolatileTest
 		});
 		
 		Volatile<Integer> counter = new Volatile<>(0);
-		IntRange.exclusive(0, 50).forEach(i -> BackgroundProcessUtils.runInBackground(() ->
-		{
+		IntRange.exclusive(0, 50).forEach(i -> Common.getExc().execute(() -> {
 			int totalIncrease = 0;
 			while (totalIncrease < 50)
 			{
@@ -65,7 +63,7 @@ public class VolatileTest
 		}));
 		
 		System.out.println("Waiting 50 seconds before closing");
-		WaitUtils.wait(Duration.ofSeconds(50), new String());
+		WaitUtils.wait(Duration.ofSeconds(50), "");
 		System.out.println("DONE!");
 	}
 }
