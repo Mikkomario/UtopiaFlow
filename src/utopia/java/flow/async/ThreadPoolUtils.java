@@ -77,14 +77,10 @@ public class ThreadPoolUtils
 		@Override
 		public Thread newThread(Runnable r)
 		{
-			StringBuilder nameBuilder = new StringBuilder();
-			nameBuilder.append(name);
-			nameBuilder.append("-");
-			nameBuilder.append(counter.next());
-			
+            String fullName = name + "-" + counter.next();
 			Thread t = new Thread(r);
 			
-			t.setName(nameBuilder.toString());
+			t.setName(fullName);
 			t.setDaemon(true);
 			
 			return t;
