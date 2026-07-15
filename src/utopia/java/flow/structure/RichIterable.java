@@ -578,7 +578,7 @@ public interface RichIterable<A> extends Iterable<A>, Viewable<A>
 	 */
 	default ImmutableList<A> toList()
 	{
-		return collect(ListBuilder::new);
+		return this.<ImmutableList<A>>collect(ListBuilder::new);
 	}
 	
 	/**

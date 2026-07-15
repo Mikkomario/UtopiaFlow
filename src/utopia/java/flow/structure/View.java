@@ -149,7 +149,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public ImmutableList<T> force()
 	{
-		return force(ListBuilder::new);
+		return this.<ImmutableList<T>>force(ListBuilder::new);
 	}
 	
 	/**
@@ -274,7 +274,7 @@ public class View<T> implements RichIterable<T>
 	 */
 	public Option<ImmutableList<T>> tryCollect(Predicate<? super T> terminator)
 	{
-		return tryCollect(terminator, ListBuilder::new);
+		return this.<ImmutableList<T>>tryCollect(terminator, ListBuilder::new);
 	}
 	
 	/**

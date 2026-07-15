@@ -78,7 +78,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 */
 	default ImmutableList<A> take(int n)
 	{
-		return take(n, ListBuilder::new);
+		return this.<ImmutableList<A>>take(n, ListBuilder::new);
 	}
 	
 	/**
@@ -123,7 +123,7 @@ public interface RichIterator<A> extends Iterator<A>
 	 */
 	default ImmutableList<A> takeWhile(Predicate<? super A> f)
 	{
-		return takeWhile(f, ListBuilder::new);
+		return this.<ImmutableList<A>>takeWhile(f, ListBuilder::new);
 	}
 	
 	/**

@@ -428,7 +428,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 */
 	public <B> ImmutableList<Pair<T, B>> zip(RichIterable<? extends B> other)
 	{
-		return zip(other, ListBuilder::new);
+		return this.<B, ImmutableList<Pair<T, B>>>zip(other, ListBuilder::new);
 	}
 	
 	/**
@@ -546,7 +546,7 @@ public class ImmutableList<T> implements RichIterable<T>, StringRepresentable,
 	 */
 	public ImmutableList<T> mapWhere(Predicate<? super T> where, Function<? super T, ? extends T> map)
 	{
-		return mapWhere(where, map, ListBuilder::new);
+		return this.<ImmutableList<T>>mapWhere(where, map, ListBuilder::new);
 	}
 	
 	/**
